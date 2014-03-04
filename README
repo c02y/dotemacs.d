@@ -13,10 +13,10 @@ plugin:
 	packages that are only one .el file, nothing yet
 
 snippets:
-	snippet for yasnippet, only use this not the official
+	snippets for yasnippet, use this not the official
 
 emacs:
 	.emacs file, link for ~/.emacs 
 
 hunspell_en_US:
-	personal dictionary for ispell
+	personal dictionary from ispell
