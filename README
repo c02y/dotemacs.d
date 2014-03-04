@@ -1,19 +1,21 @@
 This is the .el files for my Emacs.
 
 el-get:
-	packages installed from el-get, nothing yet
+	packages installed from el-get, used to use, but it always fucked
+	itself up, already moved all the packages to elpa, so nothing yet
 
 elpa:
-	packages installed from elpa, most are
+	packages installed from elpa, mainly use
 
 molokai-theme-master:
 	molokai-theme packages
 
 plugin:
-	packages that are only one .el file, nothing yet
+	packages that are only one .el file, not using anything in it yet
 
 snippets:
-	snippets for yasnippet, use this not the official
+	snippets for yasnippet, revision of the official, use this version
+	only
 
 emacs:
 	.emacs file, link for ~/.emacs 
