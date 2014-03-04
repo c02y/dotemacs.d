@@ -1,1 +1,22 @@
-This is the .el files for my Emacs
+This is the .el files for my Emacs.
+
+el-get:
+	packages installed from el-get, nothing yet
+
+elpa:
+	packages installed from elpa, most are
+
+molokai-theme-master:
+	molokai-theme packages
+
+plugin:
+	packages that are only one .el file, nothing yet
+
+snippets:
+	snippet for yasnippet, only use this not the official
+
+emacs:
+	.emacs file, link for ~/.emacs 
+
+hunspell_en_US:
+	personal dictionary for ispell
