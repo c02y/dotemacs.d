@@ -1242,10 +1242,10 @@ searches all buffers."
 ;; git-rebase-mode required by magit
 (add-to-list 'load-path "~/.emacs.d/elpa/git-rebase-mode-20140220.1417")
 ;; magit
-(add-to-list 'load-path "~/.emacs.d/elpa/magit-20140302.2223/")
+(add-to-list 'load-path "~/.emacs.d/elpa/magit-20140304.918")
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140302.2223")))
+          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140304.918")))
 (require 'magit)
 
 
@@ -1255,17 +1255,17 @@ searches all buffers."
 ;;
 ;;  el-get self setup
 ;; ;;
-;; (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-;; (unless (require 'el-get nil 'noerror)
-;;   (with-current-buffer
-;;       (url-retrieve-synchronously
-;;        "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-;;     (let (el-get-master-branch)
-;;       (goto-char (point-max))
-;;       (eval-print-last-sexp))))
-;; (el-get 'sync)
-;; ;; solve the "Could not update git submodules" error
-;; (setq el-get-github-default-url-type "https")
+(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+(unless (require 'el-get nil 'noerror)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+    (let (el-get-master-branch)
+      (goto-char (point-max))
+      (eval-print-last-sexp))))
+(el-get 'sync)
+;; solve the "Could not update git submodules" error
+(setq el-get-github-default-url-type "https")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;	 the plugin installed by el-get
