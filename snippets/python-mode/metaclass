@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: metaclass
+# key: mt
+# --
+__metaclass__ = type
