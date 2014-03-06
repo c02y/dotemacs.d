@@ -734,8 +734,7 @@ searches all buffers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
-(setq package-archives '(
-                         ("ELPA" . "http://tromey.com/elpa/")
+(setq package-archives '(("ELPA" . "http://tromey.com/elpa/")
                          ("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")))
@@ -762,7 +761,7 @@ searches all buffers."
 ;; dropdown-list required by yasnippet (optional)
 (add-to-list 'load-path "~/.emacs.d/elpa/dropdown-list-20120329.1636")
 ;; yasnippet
-(add-to-list 'load-path "~/.emacs.d/elpa/yasnippet-20140303.53")
+(add-to-list 'load-path "~/.emacs.d/elpa/yasnippet-20140306.5")
 (require 'yasnippet)
 (require 'dropdown-list)
 (setq yas-prompt-functions '(yas-dropdown-prompt
@@ -1178,7 +1177,7 @@ searches all buffers."
 ;; Find Files or url: ~/ el$
 ;; 	Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
-(add-to-list 'load-path "~/.emacs.d/elpa/helm-20140303.2232")
+(add-to-list 'load-path "~/.emacs.d/elpa/helm-20140305.246")
 (require 'helm-config)
 (helm-mode 1)
 (setq enable-recursive-minibuffers t)
@@ -1233,19 +1232,19 @@ searches all buffers."
 ;; only (as used by narrow-to-defun.)
 (add-to-list 'load-path "~/.emacs.d/elpa/smartscan-20131230.739")
 (require 'smartscan)
-(smartscan-mode 1)
+(global-smartscan-mode 1)
 
 ;; magit
 ;;
 ;; git-commit-mode required by magit
-(add-to-list 'load-path "~/.emacs.d/elpa/git-commit-mode-20140125.1553")
+(add-to-list 'load-path "~/.emacs.d/elpa/git-commit-mode-20140305.540")
 ;; git-rebase-mode required by magit
 (add-to-list 'load-path "~/.emacs.d/elpa/git-rebase-mode-20140220.1417")
 ;; magit
-(add-to-list 'load-path "~/.emacs.d/elpa/magit-20140304.918")
+(add-to-list 'load-path "~/.emacs.d/elpa/magit-20140305.1300/")
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140304.918")))
+          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140305.1300")))
 (require 'magit)
 
 
