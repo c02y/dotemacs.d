@@ -3,4 +3,5 @@
 # --
 program ${1:name}
   $0
+
 end program ${1:name}

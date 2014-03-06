@@ -1222,7 +1222,7 @@ searches all buffers."
 ;; 	may be flawed. Inspect the *Messages* buffer for details. This indicator should
 ;; 	never be displayed for built-in syntax checkers. If it is, please report an
 ;; 	issue to the Flycheck developers, as by Reporting issues.
-(add-to-list 'load-path "~/.emacs.d/elpa/flycheck-20140227.2333")
+(add-to-list 'load-path "~/.emacs.d/elpa/flycheck-20140306.814")
 (require 'flycheck)
 (add-hook 'after-init-bhook 'global-flycheck-mode)
 
@@ -1246,6 +1246,8 @@ searches all buffers."
   '(progn (info-initialize)
           (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140305.1300")))
 (require 'magit)
+(global-set-key (kbd "C-c m") 'magit-status)
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
