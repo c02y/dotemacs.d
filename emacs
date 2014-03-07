@@ -164,32 +164,25 @@
 ;; font
 ;;
 (custom-set-faces
- ;; '(default ((t (:family "Monaco" :foundry "apple" :slant normal :weight normal :height 115 :width normal)))) ;; nice
- ;; '(default ((t (:family "Consolas" :slant normal :weight normal :height 120 :width normal))))  ;; nice
- ;; '(default ((t (:family "DejaVu Sans Mono" :slant normal :weight normal :height 120 :width normal))))
- ;; '(default ((t (:family "Meslo LG M DZ" :slant normal :weight semi-light :height 117 :width normal))))  ;; nice
- '(default ((t (:family "Menlo" :slant normal :weight semi-light :height 120 :width expanded))))  ;; nice
+ ;; '(default ((t (:family "Monaco" :foundry "apple" :slant normal :weight normal :height 115 :width normal))))
+ ;; '(default ((t (:family "Consolas" :slant normal :weight normal :height 120 :width normal))))
+ ;; '(default ((t (:family "Meslo LG M DZ" :slant normal :weight semi-light :height 117 :width normal))))
+ '(default ((t (:family "Menlo" :slant normal :weight semi-light :height 120 :width expanded))))
  )
 ;;
 ;; theme
 ;;
-;; ;; Solarized
-;; (add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/solarized-theme-20140227.1009")
-;; ;; the next two setting need to be set before load-theme is invoked for Solarized.
-;; ;; make the fringe stand out from the background
-;; (setq solarized-distinct-fringe-background t)
-;; ;; make the modeline high contrast
-;; (setq solarized-high-contrast-mode-line t)
-;; (require 'solarized)
-;; (load-theme 'solarized-dark t)
+;; Enabling a theme temporarily, use M-x load-theme <TAB> qsimpleq
+;; if you want to enable it after start up, add the two lines like below
 ;;
-;; afternoon-theme
-;; (add-to-list 'load-path "~/.emacs.d/elpa/afternoon-theme-20140104.1059")
+;; No prompt when M-x load-theme, treat all themes as safe
+(setq custom-safe-themes t)
+;; afternoon
 (add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/afternoon-theme-20140104.1059")
 (load-theme 'afternoon t)
 ;;
-;; ;; Molokai from github
-;; (add-to-list 'custom-theme-load-path "~/.emacs.d/molokai-theme-master")
+;; ;; molokai
+;; (add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/molokai-theme-20130828.0")
 ;; (load-theme 'molokai t)
 
 ;; Using F8 to make the face transparent
@@ -1186,7 +1179,7 @@ searches all buffers."
 ;; Find Files or url: ~/ el$
 ;; 	Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
-(add-to-list 'load-path "~/.emacs.d/elpa/helm-20140305.246")
+(add-to-list 'load-path "~/.emacs.d/elpa/helm-20140306.2141")
 (require 'helm-config)
 (helm-mode 1)
 (setq enable-recursive-minibuffers t)
@@ -1250,13 +1243,12 @@ searches all buffers."
 ;; git-rebase-mode required by magit
 (add-to-list 'load-path "~/.emacs.d/elpa/git-rebase-mode-20140220.1417")
 ;; magit
-(add-to-list 'load-path "~/.emacs.d/elpa/magit-20140305.1300/")
+(add-to-list 'load-path "~/.emacs.d/elpa/magit-20140306.1400")
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140305.1300")))
+          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140306.1400")))
 (require 'magit)
 (global-set-key (kbd "C-c m") 'magit-status)
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
