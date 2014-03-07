@@ -7,9 +7,6 @@ el-get:
 elpa:
 	packages installed from elpa, mainly use
 
-molokai-theme-master:
-	molokai-theme packages
-
 plugin:
 	packages that are only one .el file, not using anything in it yet
 
