@@ -732,7 +732,7 @@ searches all buffers."
         try-complete-lisp-symbol))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; packages from  Elpa, Marmelade and Melpa.
+;; packages from  elpa, marmelade and melpa.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
@@ -1249,6 +1249,14 @@ searches all buffers."
           (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140306.1400")))
 (require 'magit)
 (global-set-key (kbd "C-c m") 'magit-status)
+;; point to your favorite repos, Now use C-u M-x magit-status and have
+;; magit prompt you to choose from one of your favorite repos.
+(eval-after-load "magit"
+  '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
+               '("~/.emacs.d"
+                 ;; "~/dev/repo_b"
+                 )))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
