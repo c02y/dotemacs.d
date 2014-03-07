@@ -98,6 +98,17 @@
 ;; uncomment for CJK utf-8 support for non-Asian users
 ;; (require 'un-define)
 
+;; add-subdirs-to-load-path, don't need to change add-to-list after
+;; every update in elpa
+(defun add-subdirs-to-load-path (dir)
+  "Recursive add directories to `load-path'."
+  (let ((default-directory (file-name-as-directory dir)))
+    (add-to-list 'load-path dir)
+    (normal-top-level-add-subdirs-to-load-path)))
+(add-subdirs-to-load-path "/usr/share/emacs/site-lisp/")
+(add-subdirs-to-load-path "~/.emacs.d/")
+
+
 ;; re/compile every elisp file when saving it
 (add-hook 'emacs-lisp-mode-hook '(lambda ()
   (add-hook 'after-save-hook 'emacs-lisp-byte-compile t t)))
@@ -121,8 +132,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(add-to-list 'load-path "/usr/share/emacs/site-lisp")
 ;;
 (setq bookmark-save-flag t)
 (add-hook 'text-mode-hook 'auto-fill-mode)
@@ -164,11 +173,11 @@
 ;; font
 ;;
 (custom-set-faces
- ;; '(default ((t (:family "Monaco" :foundry "apple" :slant normal :weight normal :height 115 :width normal))))
+ ;; '(default ((t (:family "Monaco" :foundry "apple" :slant normal :weight normal :height 120 :width normal))))
  ;; '(default ((t (:family "Consolas" :slant normal :weight normal :height 120 :width normal))))
- ;; '(default ((t (:family "Meslo LG M DZ" :slant normal :weight semi-light :height 117 :width normal))))
  '(default ((t (:family "Menlo" :slant normal :weight semi-light :height 120 :width expanded))))
  )
+
 ;;
 ;; theme
 ;;
@@ -1256,7 +1265,6 @@ searches all buffers."
                '("~/.emacs.d"
                  ;; "~/dev/repo_b"
                  )))
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
