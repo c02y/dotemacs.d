@@ -2,4 +2,4 @@
 # name: add-to-list
 # key: atl
 # --
-(add-to-list 'load-path "~/.emacs.d/$0")
+(add-to-list 'load-path "~/.emacs.d/elpa/$0")
