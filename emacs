@@ -99,14 +99,14 @@
 ;; (require 'un-define)
 
 ;; add-subdirs-to-load-path, don't need to change add-to-list after
-;; every update in elpa
+;; every update in elpa, theme is needed the path
 (defun add-subdirs-to-load-path (dir)
   "Recursive add directories to `load-path'."
   (let ((default-directory (file-name-as-directory dir)))
     (add-to-list 'load-path dir)
     (normal-top-level-add-subdirs-to-load-path)))
-(add-subdirs-to-load-path "/usr/share/emacs/site-lisp/")
-(add-subdirs-to-load-path "~/.emacs.d/")
+(add-subdirs-to-load-path "/usr/share/emacs/site-lisp")
+(add-subdirs-to-load-path "~/.emacs.d")
 
 
 ;; re/compile every elisp file when saving it
@@ -187,12 +187,17 @@
 ;; No prompt when M-x load-theme, treat all themes as safe
 (setq custom-safe-themes t)
 ;; afternoon
-(add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/afternoon-theme-20140104.1059")
-(load-theme 'afternoon t)
+;; (add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/afternoon-theme-20140104.1059")
+;; (load-theme 'afternoon t)
 ;;
+;; it seems the above two lines can be replaced by the next two lines
+;; and it doesn't need to change the version of theme as well
+;; (add-to-list 'load-path "~/.emacs.d/elpa/afternoon-theme-20140104.1059")
+(require 'afternoon-theme)
 ;; ;; molokai
 ;; (add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/molokai-theme-20130828.0")
 ;; (load-theme 'molokai t)
+;; (require 'molokai-theme)
 
 ;; Using F8 to make the face transparent
 (global-set-key [(f8)] 'loop-alpha)
@@ -709,7 +714,6 @@ searches all buffers."
 ;;;;;;;;;;;;;;;;;;;    plugin in .emacs.d/plugin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; load plugin
-;; (add-to-list 'load-path "~/.emacs.d/plugin")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -717,7 +721,6 @@ searches all buffers."
 ;;;;; complete
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; hippie-expand-ext, extension of built-in hippie-exp
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa/hippie-exp-ext-20130824.1207"))
 (require 'hippie-exp-ext)
 (global-set-key (kbd "C-@") 'hippie-expand-dabbrev-limited-chars)
 ;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
@@ -770,9 +773,7 @@ searches all buffers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; dropdown-list required by yasnippet (optional)
-(add-to-list 'load-path "~/.emacs.d/elpa/dropdown-list-20120329.1636")
 ;; yasnippet
-(add-to-list 'load-path "~/.emacs.d/elpa/yasnippet-20140306.5")
 (require 'yasnippet)
 (require 'dropdown-list)
 (setq yas-prompt-functions '(yas-dropdown-prompt
@@ -788,7 +789,6 @@ searches all buffers."
 
 ;; ecb, use M-x ecb-minor-mode, or Tools->Start Code Browser
 ;; you'll be suprised
-(add-to-list 'load-path "~/.emacs.d/elpa/ecb-20140215.114")
 ;; If you want to load the ECB first after starting it by ecb-activate
 ;; (Advantage: Fast loading. Disadvantage: ECB- and semantic-options first available after starting ECB):
 (require 'ecb-autoloads)
@@ -799,7 +799,6 @@ searches all buffers."
 
 ;; multiple-cursors
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
-(add-to-list 'load-path "~/.emacs.d/elpa/multiple-cursors-20140105.259")
 (autoload 'multiple-cursors "multiple-cursors" t)
 ;; When you have an active region that spans multiple lines, the following will add a cursor to each line
 (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
@@ -810,7 +809,6 @@ searches all buffers."
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
 ;; ace-jump-mode
-(add-to-list 'load-path "~/.emacs.d/elpa/ace-jump-mode-20140207.530")
 (autoload
   'ace-jump-mode
   "ace-jump-mode"
@@ -834,21 +832,17 @@ searches all buffers."
 (define-key global-map (kbd "C-c l") 'ace-jump-line-mode)
 ;;
 ;; dash required by ace-jump-buffer
-(add-to-list 'load-path "~/.emacs.d/elpa/dash-20140303.1404")
 (autoload 'dash "dash" t)
 ;; ace-jump-buffer, requires dash and ace-jump-mode
-(add-to-list 'load-path "~/.emacs.d/elpa/ace-jump-buffer-20131221.759")
 (autoload 'ace-jump-buffer "ace-jump-buffer" t)
 ;; C-x C-b default to 'list-buffers
 (define-key global-map (kbd "C-x C-b") nil)
 (global-set-key (kbd "C-x C-b") 'ace-jump-buffer)
 
 ;; sml-mode requird by expand-region
-(add-to-list 'load-path "~/.emacs.d/elpa/sml-mode-6.4/")
 (autoload 'sml-mode "sml-mode" t)
 ;;
 ;; expand-region
-(add-to-list 'load-path "~/.emacs.d/elpa/expand-region-20140127.112")
 (require 'expand-region)
 (global-set-key (kbd "C-=") 'er/expand-region)
 ;; Want to work in text-mode
@@ -865,18 +859,15 @@ searches all buffers."
 ;; use 'complete-tag to complete symbol in include/*
 (global-set-key [f2] 'complete-tag)
 
-;; popup required by ac
-(add-to-list 'load-path "~/.emacs.d/elpa/popup-20140207.1702")
-(require 'popup)
+;;;; popup required by ac
+;; (require 'popup)
 
-;; fuzzy required for ac-fuzzy-complete
-(add-to-list 'load-path "~/.emacs.d/elpa/fuzzy-20131025.2343")
-(require 'fuzzy)
+;;;; fuzzy required for ac-fuzzy-complete
+;; (require 'fuzzy)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;   auto-complete
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(add-to-list 'load-path "~/.emacs.d/elpa/auto-complete-20140208.653")
 (require 'auto-complete)
 (require 'auto-complete-config)
 ;; since the dropdown menu shows up too slow, so use trigger key TAB
@@ -932,7 +923,6 @@ searches all buffers."
 (setq ac-fuzzy-complete t)
 ;;
 ;; ac-c-headers,  auto-complete source for C headers
-(add-to-list 'load-path "~/.emacs.d/elpa/ac-c-headers-20131015.2339")
 (require 'ac-c-headers)
 (add-hook 'c-mode-hook
           (lambda ()
@@ -952,11 +942,9 @@ searches all buffers."
                ac-source-files-in-current-dir
                ac-source-filename))
 ;; auto-complete-c-headers
-(add-to-list 'load-path "~/.emacs.d/elpa/auto-complete-c-headers-20131215.506")
 (require 'auto-complete-c-headers)
 (add-to-list 'ac-sources 'ac-source-c-headers)
 ;; c-eldoc
-(add-to-list 'load-path "~/.emacs.d/elpa/c-eldoc-20130821.1146")
 ;; (setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../")
 (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
 ;; eldoc for elisp
@@ -966,7 +954,6 @@ searches all buffers."
 
 
 ;; ;; tabbar for tabs
-;; (add-to-list 'load-path "~/.emacs.d/elpa/tabbar-20140208.905")
 ;; (require 'tabbar)
 ;; (setq tabbar-buffer-groups-function
 ;;       (lambda ()
@@ -985,7 +972,6 @@ searches all buffers."
 ;; (define-key map (kbd "C-?") 'undo-tree-redo)
 ;; change the (defcustom undo-tree-mode-lighter " Undo-Tree"
 ;; the " Undo-Tree" into " ut", shorter
-(add-to-list 'load-path "~/.emacs.d/elpa/undo-tree-20140110.616")
 (require 'undo-tree)
 ;; replace the standard undo system
 (global-undo-tree-mode)
@@ -994,7 +980,6 @@ searches all buffers."
 
 ;;
 ;; findr
-(add-to-list 'load-path "~/.emacs.d/elpa/findr-20130824.1207")
 (autoload 'findr "findr" "Find file name." t)
 (define-key global-map [(meta control S)] 'findr)
 (autoload 'findr-search "findr" "Find text in files." t)
@@ -1003,7 +988,6 @@ searches all buffers."
 (define-key global-map [(meta control r)] 'findr-query-replace)
 
 ;; iy-go-to-char better work with multiple-cursors
-(add-to-list 'load-path "~/.emacs.d/elpa/iy-go-to-char-20130901.729")
 (autoload 'iy-go-to-char "iy-go-to-char" t)
 (global-set-key (kbd "C-c f") 'iy-go-to-char)
 (global-set-key (kbd "C-c F") 'iy-go-to-char-backward)
@@ -1016,18 +1000,15 @@ searches all buffers."
 ;; (add-to-list 'mc/cursor-specific-vars 'iy-go-to-char-start-pos)
 
 ;; markdown-mode, http://jblevins.org/projects/markdown-mode/
-(add-to-list 'load-path "~/.emacs.d/elpa/markdown-mode-20131210.700")
 (autoload 'markdown-mode "markdown-mode"
   "Major mode for editing Markdown files" t)
 (add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 ;; markdown-mode+
-(add-to-list 'load-path "~/.emacs.d/elpa/markdown-mode+-20120829.510")
 (autoload 'markdown-mode+ "markdown-mode+" t)
 
 ;; ascope
-(add-to-list 'load-path "~/.emacs.d/elpa/ascope-20130824.1158")
 (require 'ascope)
 ;; M-x ascope-init load the cscope database before using it
 ;; in the *Result* buffer, n/p 'ascope-next/prev-symbol
@@ -1048,7 +1029,6 @@ searches all buffers."
             ))
 
 ;;;; cscope
-;; (add-to-list 'load-path "~/.emacs.d/elpa/xcscope-20140128.1356")
 ;; (require 'xcscope)
 ;; ;;(setq cscope-do-not-update-database t)
 ;; ;; load xcscope when open c/c++ file
@@ -1071,7 +1051,6 @@ searches all buffers."
 ;;;;	  )))
 
 ;; ;; gtags
-;; (add-to-list 'load-path "~/.emacs.d/elpa/gtags-3.3/")
 ;; (autoload 'gtags-mode "gtags" "" t)
 ;; (add-hook 'c-mode-common-hook
 ;;           '(lambda ()
@@ -1103,7 +1082,6 @@ searches all buffers."
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 ;;
 ;; org, http://orgmode.org/worg/org-faq.html
-(add-to-list 'load-path "~/.emacs.d/elpa/org-20140303")
 ;;
 ;; ;; The following two set-key has the side affect that
 ;; ;; you can not use the semantic-mode prefix
@@ -1193,7 +1171,6 @@ searches all buffers."
 ;; Find Files or url: ~/ el$
 ;; 	Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
-(add-to-list 'load-path "~/.emacs.d/elpa/helm-20140306.2141")
 (require 'helm-config)
 (helm-mode 1)
 (setq enable-recursive-minibuffers t)
@@ -1207,12 +1184,9 @@ searches all buffers."
 (global-set-key (kbd "C-c x") 'helm-resume)
 
 
-;; s required by flycheck
-(add-to-list 'load-path "~/.emacs.d/elpa/s-20131223.944")
-(require 's)
-;; f required by flycheck
-(add-to-list 'load-path "~/.emacs.d/elpa/f-20140220.21")
-(require 'f)
+;;;; s required by flycheck
+;;;; f required by flycheck
+;;
 ;; flycheck
 ;; By default, Flycheck Mode checks syntax automatically when
 ;; - the mode is enabled,
@@ -1241,7 +1215,6 @@ searches all buffers."
 ;; C-c ! l 'flycheck-list-errors
 ;; C-c ! n 'flycheck-next-error
 ;; C-c ! p 'flycheck-previous-error
-(add-to-list 'load-path "~/.emacs.d/elpa/flycheck-20140306.814")
 (require 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
@@ -1249,18 +1222,14 @@ searches all buffers."
 ;; M-n and M-p move between symbols and type M-' to replace all symbols in the buffer
 ;; matching the one under point, and C-u M-' to replace symbols in your current defun
 ;; only (as used by narrow-to-defun.)
-(add-to-list 'load-path "~/.emacs.d/elpa/smartscan-20131230.739")
 (require 'smartscan)
 (global-smartscan-mode 1)
 
 ;; magit
 ;;
 ;; git-commit-mode required by magit
-(add-to-list 'load-path "~/.emacs.d/elpa/git-commit-mode-20140305.540")
 ;; git-rebase-mode required by magit
-(add-to-list 'load-path "~/.emacs.d/elpa/git-rebase-mode-20140220.1417")
 ;; magit
-(add-to-list 'load-path "~/.emacs.d/elpa/magit-20140306.1400")
 (eval-after-load 'info
   '(progn (info-initialize)
           (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140306.1400")))
@@ -1281,7 +1250,6 @@ searches all buffers."
 ;;
 ;;  el-get self setup
 ;; ;;
-;; (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
 ;; (unless (require 'el-get nil 'noerror)
 ;;   (with-current-buffer
 ;;       (url-retrieve-synchronously
