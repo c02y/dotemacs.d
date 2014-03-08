@@ -3,3 +3,4 @@
 # key: ins
 # --
 #include <sys/$1.h>
+$0

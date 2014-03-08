@@ -3,3 +3,4 @@
 # key: inl
 # --
 #include <linux/$1.h>
+$0

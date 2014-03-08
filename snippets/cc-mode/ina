@@ -3,3 +3,4 @@
 # key: ina
 # --
 #include <asm/$1.h>
+$0
