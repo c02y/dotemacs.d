@@ -1,21 +1,20 @@
-This is the .el files for my Emacs.
+* This is the .el files for my Emacs.
 
-el-get:
-	packages installed from el-get, used to use, but it always fucked
-	itself up, already moved all the packages to elpa, so nothing yet
+* el-get:
+  - packages installed from el-get, used to use, but it always fucked
+    itself up, already moved all the packages to elpa, so nothing yet
 
-elpa:
-	packages installed from elpa, mainly use
+* elpa:
+  - packages installed from elpa, mainly use
 
-plugin:
-	packages that are only one .el file, not using anything in it yet
+* plugin:
+  - packages that are only one .el file, not using anything in it yet
 
-snippets:
-	snippets for yasnippet, revision of the official, use this version
-	only
+* snippets:
+  - snippets for yasnippet, revision of the official, use this version only
 
-emacs:
-	.emacs file, link for ~/.emacs 
+* emacs:
+  - emacs file, link for ~/.emacs 
 
-hunspell_en_US:
-	personal dictionary from ispell
+* hunspell_en_US:
+  - personal dictionary from ispell
