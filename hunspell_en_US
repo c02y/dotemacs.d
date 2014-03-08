@@ -183,3 +183,7 @@ endian
 RGB
 strcpy
 stringizing
+killring
+keybinding
+searchable
+commandline
