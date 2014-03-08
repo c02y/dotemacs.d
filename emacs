@@ -686,8 +686,8 @@ searches all buffers."
 (require 'semantic/bovine/gcc)
 ;;
 (defun my-include-semantic-hook ()
-  (semantic-add-system-include "/usr/include" 'c-mode)
-  (semantic-add-system-include "/usr/include" 'c++-mode))
+  (semantic-add-system-include "/usr/include/" 'c-mode)
+  (semantic-add-system-include "/usr/include/" 'c++-mode))
 (add-hook 'semantic-init-hooks 'my-include-semantic-hook)
 ;; Semantic's work optimization, optimize work with tags
 (setq-mode-local c-mode semanticdb-find-default-throttle
@@ -959,6 +959,11 @@ searches all buffers."
 (add-to-list 'load-path "~/.emacs.d/elpa/c-eldoc-20130821.1146")
 ;; (setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../")
 (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
+;; eldoc for elisp
+(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+
 
 ;; ;; tabbar for tabs
 ;; (add-to-list 'load-path "~/.emacs.d/elpa/tabbar-20140208.905")
@@ -1233,9 +1238,12 @@ searches all buffers."
 ;; 	may be flawed. Inspect the *Messages* buffer for details. This indicator should
 ;; 	never be displayed for built-in syntax checkers. If it is, please report an
 ;; 	issue to the Flycheck developers, as by Reporting issues.
+;; C-c ! l 'flycheck-list-errors
+;; C-c ! n 'flycheck-next-error
+;; C-c ! p 'flycheck-previous-error
 (add-to-list 'load-path "~/.emacs.d/elpa/flycheck-20140306.814")
 (require 'flycheck)
-(add-hook 'after-init-bhook 'global-flycheck-mode)
+(add-hook 'after-init-hook #'global-flycheck-mode)
 
 ;; smartscan
 ;; M-n and M-p move between symbols and type M-' to replace all symbols in the buffer
