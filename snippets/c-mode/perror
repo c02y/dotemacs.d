@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: perror
+# key: pe
+# --
+perror("$1");
