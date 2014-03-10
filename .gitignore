@@ -20,6 +20,8 @@
 /bookmarks
 /ede-projects.el
 /**/*~
-/elpa/archives/melpa/archive-contents
 /TAGS
+/elpa/archives/melpa/archive-contents
 /elpa/archives/marmalade/archive-contents
+/elpa/archives/gnu/archive-contents
+/elpa/archives/org/archive-contents
