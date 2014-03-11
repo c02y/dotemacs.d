@@ -146,7 +146,7 @@
 ;;
 ;; display time in modeline
 (display-time-mode 1)
-(setq display-time-24hr-format t)
+(defvar display-time-24hr-format)
 (setq display-time-day-and-date t)
 (display-time)
 ;; display buffer name or absolute file path name in the frame tittle
@@ -447,7 +447,7 @@ searches all buffers."
 ;; there are shell and eshell
 (defalias 'sh 'shell)
 ;; make shell in emacs load ~/.bashrc
-(setq shell-command-switch "-ic")
+(setq shell-command-switch "-lc")
 (global-set-key (kbd "C-x s") 'shell)
 ;; makes shell command always start a new shell
 ;; eshell doesn't work for the next
@@ -1215,6 +1215,7 @@ searches all buffers."
 ;; C-c ! l 'flycheck-list-errors
 ;; C-c ! n 'flycheck-next-error
 ;; C-c ! p 'flycheck-previous-error
+;; C-c ! c 'flycheck-buffer
 (require 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
@@ -1243,6 +1244,16 @@ searches all buffers."
                  ;; "~/dev/repo_b"
                  )))
 
+;; manage-minor-mode
+(setq manage-minor-mode-default
+      '((global
+         (on   rainbow-mode)
+         (off  line-number-mode))
+        (emacs-lisp-mode
+         (on   rainbow-delimiters-mode eldoc-mode show-paren-mode))
+        (js2-mode
+         (on   color-identifiers-mode)
+         (off  flycheck-mode))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get      ;;;;;;;;;;;;;;;;;;
