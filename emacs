@@ -84,6 +84,22 @@
 ;; C-x RET f undecided-unix RET    --> \n  (unix/Linux)
 ;; M-x tabify/untabify convert from spaces to tabs and vice versa
 
+;;add timestamps in *Messages* 
+(defun current-time-microseconds ()
+  (let* ((nowtime (current-time))
+         (now-ms (nth 2 nowtime)))
+    (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
+(defadvice message (before test-symbol activate)
+  (if (not (string-equal (ad-get-arg 0) "%s%s"))
+      (let ((deactivate-mark nil)
+            (inhibit-read-only t))
+        (save-excursion
+          (set-buffer "*Messages*")
+          (goto-char (point-max))
+          (if (not (bolp))
+              (newline))
+          (insert (current-time-microseconds))))))
+
 ;; encode, the last line will be the highest priority
 (set-language-environment 'UTF-8)
 (setq-default path-coding-system 'utf-8)
@@ -924,7 +940,7 @@ searches all buffers."
 ;;
 ;; ac-c-headers,  auto-complete source for C headers
 (require 'ac-c-headers)
-(add-hook 'c-mode-hook
+(add-hook 'c-mode-common-hook
           (lambda ()
             (add-to-list 'ac-sources 'ac-source-c-headers)
             (add-to-list 'ac-sources 'ac-source-c-header-symbols t)
