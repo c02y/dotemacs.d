@@ -1249,7 +1249,7 @@ searches all buffers."
 ;; magit
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140306.1400")))
+          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140312.1621")))
 (require 'magit)
 (global-set-key (kbd "C-c m") 'magit-status)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
