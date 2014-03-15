@@ -1271,6 +1271,20 @@ searches all buffers."
          (on   color-identifiers-mode)
          (off  flycheck-mode))))
 
+;; slime, Superior Lisp Interaction Mode for Emacs
+;; http://common-lisp.net/project/slime/doc/html
+(require 'slime-autoloads)
+(setq inferior-lisp-program "/usr/bin/sbcl")
+;; Also setup the slime-fancy contrib
+(add-to-list 'slime-contribs 'slime-fancy)
+(setq slime-lisp-implementations
+      '((sbcl ("sbcl" "--core" "sbcl.core-for-slime"))))
+(setq slime-lisp-implementations
+      '((sbcl ("sbcl" "--core" "sbcl.core-with-swank")
+              :init (lambda (port-file _)
+                      (format "(swank:start-server %S)\n" port-file)))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get      ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
