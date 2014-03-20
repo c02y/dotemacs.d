@@ -1199,6 +1199,14 @@ searches all buffers."
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
+;; check the file permissions automatically anyways, this will last
+;; until the end of this session, it won't ask for passwd again only
+;; if you kill the *tramp* buffer
+(defadvice helm-find-files (after find-file-sudo activate)
+  "Find file as root if necessary."
+  (unless (and buffer-file-name
+               (file-writable-p buffer-file-name))
+    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
@@ -1249,7 +1257,7 @@ searches all buffers."
 ;; magit
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140319.1630")))
+          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140320.509")))
 (require 'magit)
 (global-set-key (kbd "C-c m") 'magit-status)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
