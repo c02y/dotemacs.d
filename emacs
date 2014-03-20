@@ -245,6 +245,12 @@
     (call-interactively 'query-replace)))
 (global-set-key (kbd "M-%") 'query-replace-from-top)
 
+;; sudo to edit
+(defun sudo (file)
+  "Opens FILE with root privileges."
+  (interactive "F")
+  (set-buffer (find-file (concat "/sudo::" file))))
+(global-set-key (kbd "C-c C-f") 'sudo)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;  defun
@@ -1198,15 +1204,6 @@ searches all buffers."
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-;; check the file permissions automatically anyways, this will last
-;; until the end of this session, it won't ask for passwd again only
-;; if you kill the *tramp* buffer
-(defadvice helm-find-files (after find-file-sudo activate)
-  "Find file as root if necessary."
-  (unless (and buffer-file-name
-               (file-writable-p buffer-file-name))
-    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
