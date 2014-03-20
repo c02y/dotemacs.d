@@ -152,7 +152,7 @@
 (setq bookmark-save-flag t)
 (add-hook 'text-mode-hook 'auto-fill-mode)
 (global-linum-mode 1)
-(column-number-mode t)
+(setq column-number-mode t)
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
@@ -615,7 +615,7 @@ searches all buffers."
                                (?\( _ ")")
                                (?\[ _ "]")
                                (?\{ _ "}")
-                               (?` _ "`")))
+                               (?` _ "'")))
   (setq skeleton-pair t)
   (local-set-key (kbd "(") 'skeleton-pair-insert-maybe)
   (local-set-key (kbd "{") 'skeleton-pair-insert-maybe)
@@ -1198,7 +1198,7 @@ searches all buffers."
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
-
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
@@ -1249,7 +1249,7 @@ searches all buffers."
 ;; magit
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140312.1621")))
+          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140319.1630")))
 (require 'magit)
 (global-set-key (kbd "C-c m") 'magit-status)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
@@ -1270,19 +1270,6 @@ searches all buffers."
         (js2-mode
          (on   color-identifiers-mode)
          (off  flycheck-mode))))
-
-;; slime, Superior Lisp Interaction Mode for Emacs
-;; http://common-lisp.net/project/slime/doc/html
-(require 'slime-autoloads)
-(setq inferior-lisp-program "/usr/bin/sbcl")
-;; Also setup the slime-fancy contrib
-(add-to-list 'slime-contribs 'slime-fancy)
-(setq slime-lisp-implementations
-      '((sbcl ("sbcl" "--core" "sbcl.core-for-slime"))))
-(setq slime-lisp-implementations
-      '((sbcl ("sbcl" "--core" "sbcl.core-with-swank")
-              :init (lambda (port-file _)
-                      (format "(swank:start-server %S)\n" port-file)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
