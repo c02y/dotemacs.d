@@ -197,21 +197,15 @@
 ;;
 ;; theme
 ;;
-;; Enabling a theme temporarily, use M-x load-theme <TAB> qsimpleq
+;; Enabling a light theme temporarily, use M-x load-theme <TAB> flatui
 ;; if you want to enable it after start up, add the two lines like below
 ;;
-;; No prompt when M-x load-theme, treat all themes as safe
+;; the following will get rid of prompt when M-x load-theme, treat all
+;; themes as safe
 (setq custom-safe-themes t)
 ;; afternoon
-;; (add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/afternoon-theme-20140104.1059")
-;; (load-theme 'afternoon t)
-;;
-;; it seems the above two lines can be replaced by the next two lines
-;; and it doesn't need to change the version of theme as well
-;; (add-to-list 'load-path "~/.emacs.d/elpa/afternoon-theme-20140104.1059")
 (require 'afternoon-theme)
 ;; ;; molokai
-;; (add-to-list 'custom-theme-load-path "~/.emacs.d/elpa/molokai-theme-20130828.0")
 ;; (load-theme 'molokai t)
 ;; (require 'molokai-theme)
 
@@ -246,6 +240,7 @@
 (global-set-key (kbd "M-%") 'query-replace-from-top)
 
 ;; sudo to edit
+;; kill *tramp* buffer to exit the root mode
 (defun sudo (file)
   "Opens FILE with root privileges."
   (interactive "F")
@@ -773,7 +768,8 @@ searches all buffers."
 (setq package-archives '(("ELPA" . "http://tromey.com/elpa/")
                          ("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")))
+                         ("melpa" . "http://melpa.milkbox.net/packages/")
+                         ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")))
 ;;
 (defun eval-url (url)
   (let ((buffer (url-retrieve-synchronously url)))
@@ -899,7 +895,7 @@ searches all buffers."
 ;; (setq ac-auto-start nil)
 ;;
 (add-to-list 'ac-dictionary-directories
-             "~/.emacs.d/elpa/auto-complete-20140208.653/dict")
+             "~/.emacs.d/elpa/auto-complete-20140322.321/dict")
 (setq ac-comphist-file (expand-file-name
                         "~/.emacs.d/ac-comphist.dat"))
 (setq ac-use-quick-help t)
@@ -1129,7 +1125,9 @@ searches all buffers."
 (setq org-completion-use-ido t)
 (define-key org-mode-map (kbd "C-c a") 'org-agenda)
 (define-key org-mode-map (kbd "C-c c") 'org-capture)
-;; show/unshow the descriptive and literal links
+;; show/unshow the descriptive and literal links, disable 'org*task
+;; because it takes the C-c C-x t key after updates after a while
+(setq org-inlinetask-insert-task nil)
 (define-key org-mode-map (kbd "C-c C-x t") 'org-toggle-link-display)
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
@@ -1254,7 +1252,7 @@ searches all buffers."
 ;; magit
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-20140320.509")))
+          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
 (require 'magit)
 (global-set-key (kbd "C-c m") 'magit-status)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
