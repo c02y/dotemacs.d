@@ -84,6 +84,8 @@
 ;; C-x RET f undecided-unix RET    --> \n  (unix/Linux)
 ;; M-x tabify/untabify convert from spaces to tabs and vice versa
 
+(setq debug-on-error t)
+
 ;;add timestamps in *Messages* 
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
@@ -121,9 +123,8 @@
   (let ((default-directory (file-name-as-directory dir)))
     (add-to-list 'load-path dir)
     (normal-top-level-add-subdirs-to-load-path)))
-(add-subdirs-to-load-path "/usr/share/emacs/site-lisp")
-(add-subdirs-to-load-path "~/.emacs.d")
-
+(add-subdirs-to-load-path "/usr/share/emacs/")
+(add-subdirs-to-load-path "~/.emacs.d/")
 
 ;; re/compile every elisp file when saving it
 (add-hook 'emacs-lisp-mode-hook '(lambda ()
@@ -704,6 +705,7 @@ searches all buffers."
 ;; The next three lines should be put after (semantic-mode 1)
 (require 'semantic/ia)
 ;; System header files
+;; the following comment line will produce compile error after reinstalling Fedora 20 but totally OK in Ubuntu 14.04, weird 
 (require 'semantic/bovine/c)
 (require 'semantic/bovine/gcc)
 ;;
@@ -765,11 +767,13 @@ searches all buffers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
-(setq package-archives '(("ELPA" . "http://tromey.com/elpa/")
+(setq package-archives '(
+                         ("ELPA" . "http://tromey.com/elpa/")
                          ("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")
-                         ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")))
+                         ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
+                         ))
 ;;
 (defun eval-url (url)
   (let ((buffer (url-retrieve-synchronously url)))
@@ -1096,8 +1100,8 @@ searches all buffers."
 ;; (global-set-key (kbd "C-c s m") 'gtags-make-complete-list)
 
 ;; org-mode
-(autoload 'package "package" t)
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+;; (autoload 'package "package" t)
+;; (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 ;;
 ;; org, http://orgmode.org/worg/org-faq.html
 ;;
@@ -1142,8 +1146,8 @@ searches all buffers."
 (setq org-agenda-include-all-todo nil)
 ;; 4. Make sure that your org files are byte-compiled.
 (add-to-list 'auto-mode-alist '("\\.\\(README\\|txt\\)$" . org-mode))
-;; set the default-major-mode to org-mode not the Fundamental-mode
-(setq default-major-mode 'org-mode)
+;; set the default major-mode to org-mode not the Fundamental-mode
+(setq major-mode 'org-mode)
 ;; TODO
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
@@ -1262,6 +1266,8 @@ searches all buffers."
                '("~/.emacs.d"
                  ;; "~/dev/repo_b"
                  )))
+;; open link file such as .emacs to open just the link not the original file
+(setq vc-follow-symlinks 'nil)
 
 ;; manage-minor-mode
 (setq manage-minor-mode-default
@@ -1273,6 +1279,9 @@ searches all buffers."
         (js2-mode
          (on   color-identifiers-mode)
          (off  flycheck-mode))))
+
+;; highlight-blocks
+(add-hook 'prog-mode-hook 'highlight-blocks-mode)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
