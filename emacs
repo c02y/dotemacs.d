@@ -704,8 +704,8 @@ searches all buffers."
 ;; To enable more advanced functionality for name completion, etc.,
 ;; The next three lines should be put after (semantic-mode 1)
 (require 'semantic/ia)
-;; System header files
-;; the following comment line will produce compile error after reinstalling Fedora 20 but totally OK in Ubuntu 14.04, weird 
+;; System header files, if error on this following line,
+;; install gcc-c++
 (require 'semantic/bovine/c)
 (require 'semantic/bovine/gcc)
 ;;
