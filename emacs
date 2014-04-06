@@ -1206,6 +1206,8 @@ searches all buffers."
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
+(global-set-key (kbd "C-x C-f") 'helm-for-files)
+
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
