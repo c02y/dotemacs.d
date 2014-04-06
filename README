@@ -18,3 +18,11 @@
 
 * hunspell_en_US:
   - personal dictionary from ispell
+
+* bookmarks
+  - file bookmarks
+
+* recentf
+  - recnetly opened files
+
+* ido.last
