@@ -1239,6 +1239,7 @@ searches all buffers."
 ;; C-c ! n 'flycheck-next-error
 ;; C-c ! p 'flycheck-previous-error
 ;; C-c ! c 'flycheck-buffer
+;; install clang cppcheck first for c/c++ checker
 (require 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
