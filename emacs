@@ -567,7 +567,7 @@ searches all buffers."
 ;; Saveplace & desktop
 (setq-default save-place t)
 (require 'saveplace)
-(setq save-place-file "~/.emacs.d/.saved-places")
+(setq save-place-file "~/.emacs.d/saved-places")
 ;;
 (setq desktop-save 'ask)
 ;;desktop-save ask means always ask
@@ -713,6 +713,7 @@ searches all buffers."
   (semantic-add-system-include "/usr/include/" 'c-mode)
   (semantic-add-system-include "/usr/include/" 'c++-mode))
 (add-hook 'semantic-init-hooks 'my-include-semantic-hook)
+;; ;; Semantic's work optimization, optimize work with tags
 ;; Semantic's work optimization, optimize work with tags
 (setq-mode-local c-mode semanticdb-find-default-throttle
                  '(project unloaded system recursive))
@@ -720,8 +721,10 @@ searches all buffers."
 (defun my-semantic-hook ()
   (imenu-add-to-menubar "TAGS"))
 (add-hook 'semantic-init-hooks 'my-semantic-hook)
+(setq-mode-local c-mode semanticdb-find-default-throttle
+                 '(project unloaded system recursive))
 ;; Enables project mode on all files.
-;; (global-ede-mode t)
+(global-ede-mode t)
 ;; Starting for inline completion when "." is pressed
 (define-key prog-mode-map "." 'semantic-complete-self-insert)
 ;;
@@ -735,44 +738,17 @@ searches all buffers."
 ;; load plugin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;; complete
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; hippie-expand-ext, extension of built-in hippie-exp
-(require 'hippie-exp-ext)
-(global-set-key (kbd "C-@") 'hippie-expand-dabbrev-limited-chars)
-;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
-(global-set-key (kbd "M-/") 'hippie-expand)
-;; the built-in hippie-exp config
-(setq hippie-expand-try-functions-list
-      '(
-        ;; from yasnippet
-        yas-hippie-try-expand
-        ;;
-        try-expand-dabbrev
-        try-expand-dabbrev-visible
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-list
-        try-expand-line
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packages from  elpa, marmelade and melpa.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
 (setq package-archives '(
-                         ("ELPA" . "http://tromey.com/elpa/")
-                         ("gnu" . "http://elpa.gnu.org/packages/")
+                         ;; ("ELPA" . "http://tromey.com/elpa/")
+                         ;; ("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")
-                         ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
+                         ;; ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
                          ))
 ;;
 (defun eval-url (url)
@@ -818,6 +794,30 @@ searches all buffers."
 ;; If you want to load the complete ECB at (X)Emacs-loadtime
 ;; (Advantage: All ECB-options available after loading ECB. Disadvantage: Increasing loadtime):
 ;; (require 'ecb)
+
+;; hippie-expand-etx
+(require 'hippie-exp-ext)
+(global-set-key (kbd "C-@") 'hippie-expand-dabbrev-limited-chars)
+;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
+(global-set-key (kbd "M-/") 'hippie-expand)
+;; the built-in hippie-exp config
+(setq hippie-expand-try-functions-list
+      '(
+        ;; from yasnippet
+        yas-hippie-try-expand
+        ;;
+        try-expand-dabbrev
+        try-expand-dabbrev-visible
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-all-abbrevs
+        try-expand-list
+        try-expand-line
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol))
+
 
 ;; multiple-cursors
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
@@ -1145,9 +1145,7 @@ searches all buffers."
 ;; 3. Do not include the global todo list in your agenda view.
 (setq org-agenda-include-all-todo nil)
 ;; 4. Make sure that your org files are byte-compiled.
-(add-to-list 'auto-mode-alist '("\\.\\(README\\|txt\\)$" . org-mode))
-;; set the default major-mode to org-mode not the Fundamental-mode
-(setq major-mode 'org-mode)
+(add-to-list 'auto-mode-alist '("\\.\\(\\|README\\|txt\\)$" . org-mode))
 ;; TODO
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
@@ -1180,11 +1178,9 @@ searches all buffers."
   (let (org-log-done org-log-states)   ; turn off logging
     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
-;; highlight the source code block when exporting to html
 (setq org-src-fontify-natively t)
 
 ;; helm
-;; 'helm-for-files
 ;; https://github.com/emacs-helm/helm/wiki
 ;; Find Files or url: ~/
 ;; 	That show all ~/ directory.
