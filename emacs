@@ -1217,7 +1217,6 @@ searches all buffers."
 ;; - new lines are inserted,
 ;; - or some short time after the last change to the buffer.
 ;; http://flycheck.readthedocs.org/en/latest/manual/usage.html#syntax-checker-configuration
-;; install clang cppcheck first
 ;; Mode line:: Flycheck indicates its state in the mode line:
 ;; FlyC
 ;; 	There are no errors in the current buffer.
