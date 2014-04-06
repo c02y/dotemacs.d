@@ -1,0 +1,95 @@
+;;;; Emacs Bookmark Format Version 1 ;;;;
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(("elpa"
+ (filename . "~/.emacs")
+ (front-context-string . "elpa, marmelade ")
+ (rear-context-string . " packages from  ")
+ (position . 27650))
+("theme"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;;\n;; ;; Solari")
+ (rear-context-string . "e\n )\n;;\n;; theme")
+ (position . 6571))
+("org-html"
+ (filename . "~/Org/org-html.org")
+ (front-context-string . "# This is the sh")
+ (rear-context-string)
+ (position . 1))
+("note-org"
+ (filename . "~/Org/Note-org.org")
+ (front-context-string . "\n\n* Welcome to o")
+ (rear-context-string . "*- mode: org -*-")
+ (position . 20))
+("linux.org"
+ (filename . "~/Org/linux.org")
+ (front-context-string)
+ (rear-context-string . " from the\n  end.")
+ (position . 40241))
+("agenda"
+ (filename . "~/Org/agenda")
+ (front-context-string)
+ (rear-context-string . "[struct]] L21\n	\n")
+ (position . 6290))
+("ac"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;;;;;;;;;;;;;;;")
+ (rear-context-string . "   auto-complete")
+ (position . 48233))
+("cedet, semantic"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;; more detail:")
+ (rear-context-string . "; built-in cedet")
+ (position . 29851))
+("theme & font"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;;;;;;;;;;;;;;;")
+ (rear-context-string . ";   theme & font")
+ (position . 5237))
+("shortkeys"
+ (filename . "~/.emacs")
+ (front-context-string . "s\n;;;;;;;;;;;;;;")
+ (rear-context-string . ";;;;;;; shortkey")
+ (position . 18624))
+("shortkeys-comment"
+ (filename . "~/.emacs")
+ (front-context-string . "\n\n\n;; Windows st")
+ (rear-context-string . "hesis structure\n")
+ (position . 2119))
+("org-mode"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;; M-x list-pac")
+ (rear-context-string . "g-mode from elpa")
+ (position . 50808))
+("built-in"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;;;;;;;;;;;;;;;")
+ (rear-context-string . "built-in project")
+ (position . 29304))
+("defun"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;;;;;;;;;;;;;;;")
+ (rear-context-string . ";;;;;;;;;  defun")
+ (position . 7541))
+("minibuffer-buffers-dire"
+ (filename . "~/.emacs")
+ (front-context-string . "e\n;;;;;;;;;;;;;;")
+ (rear-context-string . " & buffers & dir")
+ (position . 8834))
+("elpa-end"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;;;;;;;;;;;;;;;")
+ (rear-context-string . "t-blocks-mode)\n\n")
+ (position . 49013))
+("plugin"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;;;;;;;;;;;;;;;")
+ (rear-context-string . "*Completions\")\n\n")
+ (position . 32488))
+("paren"
+ (filename . "~/.emacs")
+ (front-context-string . "Parentheses\n;;;;")
+ (rear-context-string . ";\n;;;;;;;;;;;;; ")
+ (position . 20808))
+)
