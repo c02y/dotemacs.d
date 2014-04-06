@@ -3,7 +3,6 @@
 /semanticdb/
 /org-clock-save.elc
 /org-clock-save.el
-/ido.last
 /helm-adaptive-history
 /git-gutter-fringe+.org
 /emacs-20140218
@@ -13,12 +12,9 @@
 /emacs-20140111
 /emacs-20140217
 /.mc-lists.el
-/.saved-places
 /TAGS.bak
 /ac-comphist.dat
 /auto-save-list/
-/bookmarks
 /ede-projects.el
 /**/*~
 /TAGS
-/recentf
