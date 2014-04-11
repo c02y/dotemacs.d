@@ -173,8 +173,31 @@
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
-;; set the default window size at startup
-(setq default-frame-alist '((height . 35) (width . 80)))
+;; set the default window size at startup according to the resolutions
+;; (setq default-frame-alist '((height . 37) (width . 80)))
+(defun set-frame-size-according-to-resolution ()
+  (interactive)
+  (if window-system
+  (progn
+    ;; use 120 char wide window for largeish displays
+    ;; and smaller 80 column windows for smaller displays
+    ;; pick whatever numbers make sense for you
+    (if (> (x-display-pixel-width) 1500)
+           (add-to-list 'default-frame-alist (cons 'width 85))
+           (add-to-list 'default-frame-alist (cons 'width 80)))
+    (if (> (x-display-pixel-height) 1000)
+           (add-to-list 'default-frame-alist (cons 'height 48))
+           (add-to-list 'default-frame-alist (cons 'height 37)))
+    )))
+    ;; for the height, subtract a couple hundred pixels
+    ;; from the screen height (for panels, menubars and
+    ;; whatnot), then divide by the height of a char to
+    ;; get the height we want
+    ;; (add-to-list 'default-frame-alist 
+    ;;      (cons 'height (/ (- (x-display-pixel-height) 200)
+    ;;                          (frame-char-height)))))))
+(set-frame-size-according-to-resolution)
+
 ;; show cursor as a |
 ;; (setq-default cursor-type 'bar')
 ;; when cursor comes close to mouse, mouse moves away automatically
@@ -1202,8 +1225,7 @@ searches all buffers."
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
-(global-set-key (kbd "C-x C-f") 'helm-for-files)
-
+;; use C-x c f for 'helm-for-files
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
