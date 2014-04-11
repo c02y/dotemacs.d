@@ -1,5 +1,5 @@
 ;;; -*- coding: utf-8 -*-
-(("/home/chz/.emacs" . 47170)
+(("/home/chz/.emacs" . 6923)
  ("/home/chz/.emacs.d/.gitignore" . 306)
  ("/home/chz/.emacs.d/README" . 594)
  ("/home/chz/.emacs.d/ede-projects.el" . 86)
@@ -15,7 +15,7 @@
  ("/home/chz/.emacs.d/elpa/pkg-info-20140405.50/pkg-info-autoloads.el" . 3975)
  ("/home/chz/.emacs.d/emacs" . 47548)
  ("/home/chz/.emacs.d/org-clock-save.el" . 69)
- ("/home/chz/.recentf" . 1441)
+ ("/home/chz/.recentf" . 1494)
  ("/home/chz/.vimrc" . 343)
  ("/home/chz/Projects/CWork/chat-room-client/client.c" . 7722)
  ("/home/chz/Projects/CWork/chat-room-client/i.h" . 2820)
