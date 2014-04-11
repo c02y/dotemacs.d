@@ -173,50 +173,10 @@
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
-;; set the default window size at startup according to the resolutions
-;; (setq default-frame-alist '((height . 37) (width . 80)))
-(defun set-frame-size-according-to-resolution ()
-  (interactive)
-  (if window-system
-  (progn
-    ;; use 120 char wide window for largeish displays
-    ;; and smaller 80 column windows for smaller displays
-    ;; pick whatever numbers make sense for you
-    (if (> (x-display-pixel-width) 1500)
-           (add-to-list 'default-frame-alist (cons 'width 85))
-           (add-to-list 'default-frame-alist (cons 'width 80)))
-    (if (> (x-display-pixel-height) 1000)
-           (add-to-list 'default-frame-alist (cons 'height 48))
-           (add-to-list 'default-frame-alist (cons 'height 37)))
-    )))
-    ;; for the height, subtract a couple hundred pixels
-    ;; from the screen height (for panels, menubars and
-    ;; whatnot), then divide by the height of a char to
-    ;; get the height we want
-    ;; (add-to-list 'default-frame-alist 
-    ;;      (cons 'height (/ (- (x-display-pixel-height) 200)
-    ;;                          (frame-char-height)))))))
-(set-frame-size-according-to-resolution)
-
-;; show cursor as a |
-;; (setq-default cursor-type 'bar')
-;; when cursor comes close to mouse, mouse moves away automatically
-;; (mouse-avoidance-mode 'animate)
-;;
-;; using a visible bell when error occurs
-(setq visible-bell t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; font
-;;
-(custom-set-faces
- ;; '(default ((t (:family "Monaco" :foundry "apple" :slant normal :weight normal :height 120 :width normal))))
- ;; '(default ((t (:family "Consolas" :slant normal :weight normal :height 120 :width normal))))
- '(default ((t (:family "Menlo" :slant normal :weight semi-light :height 120 :width expanded))))
- )
 
 ;;
 ;; theme
@@ -232,6 +192,48 @@
 ;; ;; molokai
 ;; (load-theme 'molokai t)
 ;; (require 'molokai-theme)
+;;
+;; font and size of startup
+;; 
+;; set the default window size at startup according to the resolutions
+;; (setq default-frame-alist '((height . 37) (width . 80)))
+(defun set-frame-size-according-to-resolution ()
+  (interactive)
+  (if window-system
+  (progn
+    ;; use 120 char wide window for largeish displays
+    ;; and smaller 80 column windows for smaller displays
+    ;; pick whatever numbers make sense for you
+    (if (> (x-display-pixel-width) 1500)
+           ;; (add-to-list 'default-frame-alist (cons 'width 85))
+           ;; (add-to-list 'default-frame-alist (cons 'width 85)))
+        (setq default-frame-alist
+              '((top . 0)(left . 0)
+                (width . 85)(height . 48)
+                (font . "Menlo-13")));; Monaco, Consolas
+      
+      (setq default-frame-alist
+            '((top . 0)(left . 0)
+              (width . 85)(height . 38)
+              (font . "Menlo-12")
+              )))
+    )))
+    ;; (if (> (x-display-pixel-height) 1000)
+    ;;        (add-to-list 'default-frame-alist (cons 'height 48))
+    ;;        (add-to-list 'default-frame-alist (cons 'height 37)))
+    ;; )))
+    ;; for the height, subtract a couple hundred pixels
+    ;; from the screen height (for panels, menubars and
+    ;; whatnot), then divide by the height of a char to
+    ;; get the height we want
+    ;; (add-to-list 'default-frame-alist 
+    ;;      (cons 'height (/ (- (x-display-pixel-height) 200)
+    ;;                          (frame-char-height)))))))
+(set-frame-size-according-to-resolution)
+
+;; using a visible bell when error occurs
+(setq visible-bell t)
+
 
 ;; Using F8 to make the face transparent
 (global-set-key [(f8)] 'loop-alpha)
