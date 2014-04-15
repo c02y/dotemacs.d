@@ -648,7 +648,8 @@ searches all buffers."
   (local-set-key (kbd "{") 'skeleton-pair-insert-maybe)
   (local-set-key (kbd "[") 'skeleton-pair-insert-maybe)
   (local-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
-  (local-set-key (kbd "`") 'skeleton-pair-insert-maybe))
+  ;; (local-set-key (kbd "`") 'skeleton-pair-insert-maybe)
+  )
 (add-hook 'prog-mode-hook 'my-mode-auto-pair)
 (add-hook 'org-mode-hook 'my-mode-auto-pair)
 ;;
@@ -1227,7 +1228,6 @@ searches all buffers."
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
-;; use C-x c f for 'helm-for-files
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
