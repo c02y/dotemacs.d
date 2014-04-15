@@ -1063,8 +1063,11 @@ searches all buffers."
 ;; " "(blank) 'ascope-show-entry-other-window
 ;; RET 'ascope-select-entry-other-window-delete-window
 (defalias 'ai 'ascope-init)
+;; C-c s u 'cscope-pop-mark to go back
+;; n/p in popup window
 (add-hook 'c-mode-common-hook
 	  (lambda()
+            (cscope-minor-mode t)
 	    (local-set-key  (kbd "C-c s g") 'ascope-find-global-definition)
             (local-set-key  (kbd "C-c s c") 'ascope-find-functions-calling-this-function)
             (local-set-key  (kbd "C-c s h") 'ascope-find-files-including-file)
@@ -1076,31 +1079,9 @@ searches all buffers."
             ;; (local-set-key  (kbd "C-c s n") 'ascope-show-next-entry-other-window)
             ))
 
-;;;; cscope
-;; (require 'xcscope)
-;; ;;(setq cscope-do-not-update-database t)
-;; ;; load xcscope when open c/c++ file
-;; (add-hook 'c-mode-common-hook
-;; 		  '(lambda()
-;; 			 (require 'xcscope)
-;; 			 )
-;; 		  )
-;;;; color of cscope result
-;; (setq cscope-use-face t)
-;;;; it seems that the following lines are unnecessarily \
-;;;; emacs will find the .files & .out file automatically
-;;;;add cscope.files & cscope.out of
-;;;;(setq cscope-set-initial-directory "/home/s3c-linux-2.6.28.6-Real6410/")
-;;;;(setq cscope-database-regexps
-;;;;      '(
-;;;;	( \"^/home/chz/s3c-linux-2.6.28.6-Real6410\"
-;;;;	  ( t )
-;;;;	  ( \"/home/chz/s3c-linux-2.6.28.6-Real6410\")
-;;;;	  )))
-
-;; ;; gtags
+;; ;; gtags, doesn't work  but ggtags works, weird
 ;; (autoload 'gtags-mode "gtags" "" t)
-;; (add-hook 'c-mode-common-hook
+;; (add-hook 'c-mode-hook
 ;;           '(lambda ()
 ;;              (gtags-mode 1)
 ;;              ))
@@ -1111,19 +1092,30 @@ searches all buffers."
 ;;              (hl-line-mode 1)
 ;;              ))
 ;; (setq gtags-mode-hook
-;;       '(lambda ()
-;;          (setq gtags-path-style 'relative)
-;;          )) ;; relative can be root, relative and absolute
-;; ;;
-;; ;;(global-set-key (kbd "C-c s a") 'gtags-find-with-grep)
-;; (global-set-key (kbd "C-c s g") 'gtags-find-tag-other-window)
-;; (global-set-key (kbd "C-c s G") 'gtags-find-tag-from-here)
-;; (global-set-key (kbd "C-c s c") 'gtags-find-rtag)
-;; (global-set-key (kbd "C-c s s") 'gtags-find-symbol)
-;; (global-set-key (kbd "C-c s a") 'gtags-find-pattern)
-;; (global-set-key (kbd "C-c s f") 'gtags-find-file)
-;; (global-set-key (kbd "C-c s b") 'gtags-pop-stack)
-;; (global-set-key (kbd "C-c s m") 'gtags-make-complete-list)
+      ;; '(lambda ()
+         ;; (setq gtags-path-style 'relative)
+         ;; )) ;; relative can be root, relative and absolute
+;; (add-hook 'c-mode-common-hook
+;;           (lambda()
+;;             (local-set-key (kbd "C-c s g") 'gtags-find-tag-other-window)
+;;             (local-set-key (kbd "C-c s G") 'gtags-find-tag-from-here)
+;;             (local-set-key (kbd "C-c s s") 'gtags-find-symbol)
+;;             (local-set-key (kbd "C-c s S") 'gtags-find-with-grep)
+;;             (local-set-key (kbd "C-c s r") 'gtags-find-rtag)
+;;             (local-set-key (kbd "C-c s p") 'gtags-find-pattern)
+;;             (local-set-key (kbd "C-c s f") 'gtags-find-file)
+;;             (local-set-key (kbd "C-c s b") 'gtags-pop-stack)
+;;             (local-set-key (kbd "C-c s m") 'gtags-make-complete-list)
+;;             ))
+(which-function-mode 1)
+
+;; ggtags: https://github.com/leoliu/ggtags
+;; M-n/p, M-* to go back, RET to exit ggtags status
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+              (ggtags-mode 1))))
+
 
 ;; org-mode
 ;; (autoload 'package "package" t)
