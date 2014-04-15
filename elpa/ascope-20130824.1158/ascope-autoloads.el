@@ -3,8 +3,8 @@
 ;;; Code:
 
 
-;;;### (autoloads nil nil ("ascope-pkg.el" "ascope.el") (21201 33892
-;;;;;;  961586 480000))
+;;;### (autoloads nil nil ("ascope-pkg.el" "ascope.el") (21324 61563
+;;;;;;  485597 759000))
 
 ;;;***
 
