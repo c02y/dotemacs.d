@@ -1056,18 +1056,16 @@ searches all buffers."
 ;; markdown-mode+
 (autoload 'markdown-mode+ "markdown-mode+" t)
 
-;; ascope
+;; ascope, M-x cscope-minor-mode before using it
 (require 'ascope)
-;; M-x ascope-init load the cscope database before using it
 ;; in the *Result* buffer, n/p 'ascope-next/prev-symbol
 ;; " "(blank) 'ascope-show-entry-other-window
 ;; RET 'ascope-select-entry-other-window-delete-window
-(defalias 'ai 'ascope-init)
 ;; C-c s u 'cscope-pop-mark to go back
 ;; n/p in popup window
 (add-hook 'c-mode-common-hook
 	  (lambda()
-            (cscope-minor-mode t)
+            ;; (cscope-minor-mode t)
 	    (local-set-key  (kbd "C-c s g") 'ascope-find-global-definition)
             (local-set-key  (kbd "C-c s c") 'ascope-find-functions-calling-this-function)
             (local-set-key  (kbd "C-c s h") 'ascope-find-files-including-file)
@@ -1109,12 +1107,12 @@ searches all buffers."
 ;;             ))
 (which-function-mode 1)
 
-;; ggtags: https://github.com/leoliu/ggtags
-;; M-n/p, M-* to go back, RET to exit ggtags status
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-              (ggtags-mode 1))))
+;; ggtags: https://github.com/leoliu/ggtags, M-x ggtags-mode before using it
+;; M-n/p, M-* to go back, RET to exit ggtags status'
+;; (add-hook 'c-mode-common-hook
+;;           (lambda ()
+;;             (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+;;               (ggtags-mode 1))))
 
 
 ;; org-mode
