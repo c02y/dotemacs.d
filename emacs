@@ -770,11 +770,11 @@ searches all buffers."
 (autoload 'package "package" t)
 ;; Package repositories
 (setq package-archives '(
-                         ;; ("ELPA" . "http://tromey.com/elpa/")
-                         ;; ("gnu" . "http://elpa.gnu.org/packages/")
+                         ("ELPA" . "http://tromey.com/elpa/")
+                         ("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")
-                         ;; ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
+                         ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
                          ))
 ;;
 (defun eval-url (url)
@@ -1116,8 +1116,8 @@ searches all buffers."
 
 
 ;; org-mode
-;; (autoload 'package "package" t)
-;; (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+(autoload 'package "package" t)
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 ;;
 ;; org, http://orgmode.org/worg/org-faq.html
 ;;
@@ -1294,6 +1294,8 @@ searches all buffers."
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
+
+;; evil
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
