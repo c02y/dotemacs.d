@@ -84,7 +84,7 @@
 ;; C-x RET f undecided-unix RET    --> \n  (unix/Linux)
 ;; M-x tabify/untabify convert from spaces to tabs and vice versa
 
-(setq debug-on-error t)
+;; (setq debug-on-error t)
 
 ;;add timestamps in *Messages* 
 (defun current-time-microseconds ()
@@ -1295,8 +1295,12 @@ searches all buffers."
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
 
-;; evil
-
+;; ;; evil, use C-z to switch between vim/Emacs
+;; (setq evil-search-module 'evil-search
+;;       evil-want-C-u-scroll t
+;;       evil-want-C-w-in-emacs-state t)
+;; (require 'evil)
+;; (evil-mode t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get      ;;;;;;;;;;;;;;;;;;
