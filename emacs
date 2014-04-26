@@ -86,6 +86,10 @@
 
 ;; (setq debug-on-error t)
 
+;; proxy goagent
+;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
+
+
 ;;add timestamps in *Messages* 
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
