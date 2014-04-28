@@ -718,7 +718,14 @@ searches all buffers."
 ;; Semantic's customization
 (semantic-mode 1)
 ;; enable global support for Semanticdb
+;; the semanticdb should be in cedet packages
+;; (require 'semanticdb)
 (global-semanticdb-minor-mode t)
+;; with semanticdb, you can use databased made by global, ctags, ebrowser, cscope
+;; global for example
+;; (require 'semanticdb-global)
+(semanticdb-enable-gnu-global-databases 'c-mode)
+(semanticdb-enable-gnu-global-databases 'c++-mode)
 ;;
 ;; enables automatic bookmarking of tags that you edited,
 ;; so you can return to them later with 'semantic-mrub-switch-tags
@@ -743,16 +750,13 @@ searches all buffers."
   (semantic-add-system-include "/usr/include/" 'c-mode)
   (semantic-add-system-include "/usr/include/" 'c++-mode))
 (add-hook 'semantic-init-hooks 'my-include-semantic-hook)
-;; ;; Semantic's work optimization, optimize work with tags
-;; Semantic's work optimization, optimize work with tags
 (setq-mode-local c-mode semanticdb-find-default-throttle
                  '(project unloaded system recursive))
+;; Semantic's work optimization, optimize work with tags
 ;; Integration with imenu
 (defun my-semantic-hook ()
   (imenu-add-to-menubar "GTAGS"))
 (add-hook 'semantic-init-hooks 'my-semantic-hook)
-(setq-mode-local c-mode semanticdb-find-default-throttle
-                 '(project unloaded system recursive))
 ;; Enables project mode on all files.
 (global-ede-mode t)
 ;; Starting for inline completion when "." is pressed
