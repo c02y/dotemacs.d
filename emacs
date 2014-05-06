@@ -90,7 +90,7 @@
 ;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
 
 
-;;add timestamps in *Messages* 
+;;add timestamps in *Messages*
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
          (now-ms (nth 2 nowtime)))
@@ -198,7 +198,7 @@
 ;; (require 'molokai-theme)
 ;;
 ;; font and size of startup
-;; 
+;;
 ;; set the default window size at startup according to the resolutions
 ;; (setq default-frame-alist '((height . 37) (width . 80)))
 (defun set-frame-size-according-to-resolution ()
@@ -215,7 +215,7 @@
               '((top . 0)(left . 0)
                 (width . 85)(height . 48)
                 (font . "Menlo-13")));; Monaco, Consolas
-      
+
       (setq default-frame-alist
             '((top . 0)(left . 0)
               (width . 85)(height . 38)
@@ -230,7 +230,7 @@
     ;; from the screen height (for panels, menubars and
     ;; whatnot), then divide by the height of a char to
     ;; get the height we want
-    ;; (add-to-list 'default-frame-alist 
+    ;; (add-to-list 'default-frame-alist
     ;;      (cons 'height (/ (- (x-display-pixel-height) 200)
     ;;                          (frame-char-height)))))))
 (set-frame-size-according-to-resolution)
