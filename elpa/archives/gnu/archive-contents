@@ -140,7 +140,7 @@
 	   ((:url . "http://elpa.gnu.org/packages/flylisp.html")
 	    (:keywords))])
  (ggtags .
-	 [(0 8 3)
+	 [(0 8 4)
 	  ((emacs
 	    (24))
 	   (cl-lib
@@ -221,7 +221,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/nhexl-mode.html")
 	       (:keywords "data"))])
  (nlinum .
-	 [(1 2)
+	 [(1 3)
 	  nil "Show line numbers in the margin" single
 	  ((:url . "http://elpa.gnu.org/packages/nlinum.html")
 	   (:keywords "convenience"))])
@@ -245,7 +245,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20140428)
+      [(20140505)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
 		[(0 1)
