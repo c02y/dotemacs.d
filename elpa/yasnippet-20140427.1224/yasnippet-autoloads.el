@@ -4,7 +4,11 @@
 
 
 ;;;### (autoloads (yas-global-mode yas-minor-mode) "yasnippet" "yasnippet.el"
+<<<<<<< HEAD:elpa/yasnippet-20140427.1224/yasnippet-autoloads.el
 ;;;;;;  (21342 9678 562579 107000))
+=======
+;;;;;;  (21343 58134 271113 99000))
+>>>>>>> 5fe63e4944dc2ce248c18d0c179c43470731b8c7:elpa/yasnippet-20140427.1224/yasnippet-autoloads.el
 ;;; Generated autoloads from yasnippet.el
 
 (autoload 'yas-minor-mode "yasnippet" "\
@@ -46,8 +50,13 @@ See `yas-minor-mode' for more information on Yas minor mode.
 
 ;;;***
 
+<<<<<<< HEAD:elpa/yasnippet-20140427.1224/yasnippet-autoloads.el
 ;;;### (autoloads nil nil ("yasnippet-pkg.el") (21342 9678 724395
 ;;;;;;  918000))
+=======
+;;;### (autoloads nil nil ("yasnippet-pkg.el") (21343 58134 357380
+;;;;;;  459000))
+>>>>>>> 5fe63e4944dc2ce248c18d0c179c43470731b8c7:elpa/yasnippet-20140427.1224/yasnippet-autoloads.el
 
 ;;;***
 
