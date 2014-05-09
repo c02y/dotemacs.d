@@ -552,7 +552,7 @@ searches all buffers."
 ;; C-x down means "M-x next-multiframe-window; C-x up means previous
 (global-set-key (kbd "C-x <up>") 'previous-multiframe-window)
 (global-set-key (kbd "C-x <down>") 'next-multiframe-window)
-(setq recentf-max-saved-items 33)
+(setq recentf-max-saved-items 100)
 ;;
 ;; revert buffer without confirmation
 ;; (global-auto-revert-mode 1)
@@ -1126,7 +1126,7 @@ searches all buffers."
 ;; org-mode
 (autoload 'package "package" t)
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
-;;
+;; then install both org and org-plus-contrib, they are all in contrib/ from org git repo.
 ;; org, http://orgmode.org/worg/org-faq.html
 ;;
 ;; ;; The following two set-key has the side affect that
@@ -1203,6 +1203,11 @@ searches all buffers."
     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 (setq org-src-fontify-natively t)
+;;;;;;;;;;;;;;;
+;; org-plus-contrib
+;; (require 'org-export)
+;; (require 'org-md)
+
 
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
