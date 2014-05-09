@@ -1193,8 +1193,8 @@ searches all buffers."
 ;; tags, shortcut
 ;; (setq org-tag-alist '(("@work" . ?w) ("@home" . ?h) ("laptop" . ?l)))
 ;; Clocking working time, to save the clock history across Emacs sessions
-(setq org-clock-persist 'history)
-(org-clock-persistence-insinuate)
+;; (setq org-clock-persist 'history)
+;; (org-clock-persistence-insinuate)
 ;; If you would like a TODO entry to automatically
 ;; change to DONE when all children are done:
 (defun org-summary-todo (n-done n-not-done)
@@ -1205,8 +1205,6 @@ searches all buffers."
 (setq org-src-fontify-natively t)
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
-;; (require 'org-export)
-;; (require 'org-md)
 
 
 ;; helm
