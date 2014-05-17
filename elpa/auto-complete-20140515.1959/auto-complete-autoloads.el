@@ -4,7 +4,7 @@
 
 
 ;;;### (autoloads (global-auto-complete-mode auto-complete-mode auto-complete)
-;;;;;;  "auto-complete" "auto-complete.el" (21360 35870 10121 388000))
+;;;;;;  "auto-complete" "auto-complete.el" (21366 2740 959101 149000))
 ;;; Generated autoloads from auto-complete.el
 
 (autoload 'auto-complete "auto-complete" "\
@@ -41,7 +41,7 @@ See `auto-complete-mode' for more information on Auto-Complete mode.
 ;;;***
 
 ;;;### (autoloads nil nil ("auto-complete-config.el" "auto-complete-pkg.el")
-;;;;;;  (21360 35870 73931 747000))
+;;;;;;  (21366 2741 19890 451000))
 
 ;;;***
 

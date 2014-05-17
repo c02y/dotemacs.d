@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-2014  Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
-;; Version: 20140514.2031
+;; Version: 20140515.2103
 ;; X-Original-Version: 0.8.5
 ;; Keywords: tools, convenience
 ;; Created: 2013-01-29
@@ -895,7 +895,7 @@ definition tags."
         (not buffer-file-name)
         (not (ggtags-project-has-refs (ggtags-find-project)))
         (not (ggtags-project-file-p buffer-file-name)))
-    (ggtags-find-tag 'definition (shell-quote-argument name)))
+    (ggtags-find-definition name))
    (t (ggtags-find-tag (format "--from-here=%d:%s"
                                (line-number-at-pos)
                                (shell-quote-argument
@@ -910,6 +910,11 @@ definition tags."
     (save-excursion
       (goto-char (posn-point (event-start event)))
       (call-interactively #'ggtags-find-tag-dwim))))
+
+;; Another option for `M-.'.
+(defun ggtags-find-definition (name)
+  (interactive (list (ggtags-read-tag 'definition current-prefix-arg)))
+  (ggtags-find-tag 'definition (shell-quote-argument name)))
 
 (defun ggtags-setup-libpath-search (type name)
   (pcase (and ggtags-global-search-libpath-for-reference
