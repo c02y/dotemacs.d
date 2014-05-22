@@ -549,9 +549,12 @@ searches all buffers."
 (global-set-key (kbd "C-x 3") 'my-split-window-right)
 
 ;; You can use C-x o 'other-window, but the following is better
-;; C-x down means "M-x next-multiframe-window; C-x up means previous
-(global-set-key (kbd "C-x <up>") 'previous-multiframe-window)
-(global-set-key (kbd "C-x <down>") 'next-multiframe-window)
+;; move your point to another window in the specific direction
+(global-set-key (kbd "C-x <left>") 'windmove-left)
+(global-set-key (kbd "C-x <right>") 'windmove-right)
+(global-set-key (kbd "C-x <up>") 'windmove-up)
+(global-set-key (kbd "C-x <down>") 'windmove-down)
+
 (setq recentf-max-saved-items 100)
 ;;
 ;; revert buffer without confirmation
