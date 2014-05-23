@@ -153,6 +153,7 @@ buffer-local wherever it is set."
     go-vet
     go-build
     go-test
+    go-errcheck
     haml
     handlebars
     haskell-ghc
@@ -4344,7 +4345,8 @@ See URL `http://golang.org/cmd/gofmt/'."
                   ;; Fall back, if go-golint doesn't exist
                   (no-errors . go-vet)
                   ;; Fall back, if go-vet doesn't exist
-                  (no-errors . go-build) (no-errors . go-test)))
+                  (no-errors . go-build) (no-errors . go-test)
+                  (no-errors . go-errcheck)))
 
 (flycheck-define-checker go-golint
   "A Go style checker using Golint.
@@ -4356,7 +4358,7 @@ See URL `https://github.com/golang/lint'."
   :modes go-mode
   :next-checkers (go-vet
                   ;; Fall back, if go-vet doesn't exist
-                  go-build go-test))
+                  go-build go-test go-errcheck))
 
 (flycheck-def-option-var flycheck-go-vet-print-functions nil go-vet
   "A comma-separated list of print-like functions for `go tool vet'.
@@ -4387,8 +4389,11 @@ See URL `http://golang.org/cmd/go/' and URL
   ((warning line-start (file-name) ":" line ": " (message) line-end))
   :modes go-mode
   ;; We must explicitly check whether the "vet" tool is available
-  :predicate (lambda () (member "vet" (process-lines "go" "tool")))
-  :next-checkers (go-build go-test))
+  :predicate (lambda () (member "vet" (ignore-errors
+                                        (process-lines "go" "tool"))))
+  :next-checkers (go-build go-test
+                  ;; Fall back if `go build' or `go test' can be used
+                  go-errcheck))
 
 (flycheck-define-checker go-build
   "A Go syntax and type checker using the `go build' command.
@@ -4406,7 +4411,8 @@ See URL `http://golang.org/cmd/go'."
   (lambda ()
     (and (buffer-file-name)
          (not (buffer-modified-p))
-         (not (s-ends-with? "_test.go" (buffer-file-name))))))
+         (not (s-ends-with? "_test.go" (buffer-file-name)))))
+  :next-checkers ((no-errors . go-errcheck)))
 
 (flycheck-define-checker go-test
   "A Go syntax and type checker using the `go test' command.
@@ -4425,7 +4431,27 @@ See URL `http://golang.org/cmd/go'."
   (lambda ()
     (and (buffer-file-name)
          (not (buffer-modified-p))
-         (s-ends-with? "_test.go" (buffer-file-name)))))
+         (s-ends-with? "_test.go" (buffer-file-name))))
+  :next-checkers ((no-errors . go-errcheck)))
+
+(flycheck-define-checker go-errcheck
+  "A Go checker for unchecked errors.
+
+See URL `https://github.com/kisielk/errcheck'."
+  :command ("errcheck" ".")
+  :error-patterns
+  ((warning line-start (file-name) ":" line ":" column (one-or-more "\t") (message) line-end))
+  :error-filter
+  (lambda (errors)
+    (let ((errors (flycheck-sanitize-errors errors)))
+      (--each errors
+        (-when-let (message (flycheck-error-message it))
+          ;; Improve the messages reported by errcheck to make them more clear.
+          (setf (flycheck-error-message it)
+                (format "Ignored `error` returned from `%s`" message)))))
+    errors)
+  :modes go-mode
+  :predicate (lambda () (and (buffer-file-name) (not (buffer-modified-p)))))
 
 (flycheck-define-checker haml
   "A Haml syntax checker using the Haml compiler.

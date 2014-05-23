@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012 Magnar Sveen
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
-;; Version: 20140512.201
+;; Version: 20140523.547
 ;; X-Original-Version: 2.6.0
 ;; Keywords: lists
 
@@ -468,10 +468,7 @@ section is returned.  Defaults to 1."
         (!cdr list)))
     (nreverse result)))
 
-(defun -drop (n list)
-  "Returns the tail of LIST without the first N items."
-  (--dotimes n (!cdr list))
-  list)
+(defalias '-drop 'nthcdr "Returns the tail of LIST without the first N items.")
 
 (defmacro --take-while (form list)
   "Anaphoric form of `-take-while'."
