@@ -250,6 +250,11 @@
  (org .
       [(20140519)
        nil "Outline-based notes management and organizer" tar nil])
+ (osc .
+      [(0 1)
+       nil "Open Sound Control protocol library" single
+       ((:url . "http://elpa.gnu.org/packages/osc.html")
+	(:keywords "comm" "processes" "multimedia"))])
  (poker .
 	[(0 1)
 	 nil "Texas hold'em poker" single
