@@ -1376,6 +1376,15 @@ searches all buffers."
 ;; (require 'evil)
 ;; (evil-mode t)
 
+;; sublimity--smooth-scrolling, minimap and distraction-free mode
+;; the configuration for touchpad in this file is still in use
+(require 'sublimity)
+(require 'sublimity-scroll)
+;; the speed of smooth-scroll
+(setq sublimity-scroll-weight 5
+      sublimity-scroll-drift-length 10)
+(sublimity-mode 1)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get      ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
