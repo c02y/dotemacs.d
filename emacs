@@ -1169,6 +1169,14 @@ searches all buffers."
 ;;             (local-set-key (kbd "C-c s m") 'gtags-make-complete-list)
 ;;             ))
 (which-function-mode 1)
+;; repalce the 8 with other number to change the position
+(let ((which-func '(which-func-mode ("" which-func-format " "))))
+  (setq-default mode-line-format (remove which-func mode-line-format))
+  (setq-default mode-line-misc-info (remove which-func mode-line-misc-info))
+  (setq cell (last mode-line-format 8))
+  (setcdr cell
+          (cons which-func
+                (cdr cell))))
 
 ;; ggtags: https://github.com/leoliu/ggtags
 ;; M-n/p, M-* to go back, RET to exit ggtags status'
