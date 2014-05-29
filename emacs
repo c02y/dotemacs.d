@@ -1210,7 +1210,7 @@ searches all buffers."
 (define-key org-mode-map (kbd "C-c c") 'org-capture)
 ;; show/unshow the descriptive and literal links, disable 'org*task
 ;; because it takes the C-c C-x t key after updates after a while
-(setq org-inlinetask-insert-task nil)
+;; (setq org-inlinetask-insert-task nil)
 (define-key org-mode-map (kbd "C-c C-x t") 'org-toggle-link-display)
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
