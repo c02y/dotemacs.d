@@ -684,6 +684,7 @@ searches all buffers."
 ;;              (setq c-basic-offset 8)))
 
 ;;;;;;;Documentation/CodingStyle
+;;Using spaces for alignment, but tabs for indentation
 (defun c-lineup-arglist-tabs-only (ignored)
   "Line up argument lists by tabs, not spaces"
   (let* ((anchor (c-langelem-pos c-syntactic-element))
