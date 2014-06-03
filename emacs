@@ -132,7 +132,7 @@
 
 ;; re/compile every elisp file when saving it
 (add-hook 'emacs-lisp-mode-hook '(lambda ()
-  (add-hook 'after-save-hook 'emacs-lisp-byte-compile t t)))
+                                   (add-hook 'after-save-hook 'emacs-lisp-byte-compile t t)))
 ;; Delete the existed/no-existed .emacs.elc and recompile and reload
 (defun byte-compile-init-file ()
   (when (equal user-init-file buffer-file-name)
@@ -204,35 +204,35 @@
 (defun set-frame-size-according-to-resolution ()
   (interactive)
   (if window-system
-  (progn
-    ;; use 120 char wide window for largeish displays
-    ;; and smaller 80 column windows for smaller displays
-    ;; pick whatever numbers make sense for you
-    (if (> (x-display-pixel-width) 1500)
-           ;; (add-to-list 'default-frame-alist (cons 'width 85))
-           ;; (add-to-list 'default-frame-alist (cons 'width 85)))
-        (setq default-frame-alist
-              '((top . 0)(left . 0)
-                (width . 85)(height . 48)
-                (font . "Menlo-13")));; Monaco, Consolas
+      (progn
+        ;; use 120 char wide window for largeish displays
+        ;; and smaller 80 column windows for smaller displays
+        ;; pick whatever numbers make sense for you
+        (if (> (x-display-pixel-width) 1500)
+            ;; (add-to-list 'default-frame-alist (cons 'width 85))
+            ;; (add-to-list 'default-frame-alist (cons 'width 85)))
+            (setq default-frame-alist
+                  '((top . 0)(left . 0)
+                    (width . 85)(height . 48)
+                    (font . "Menlo-13")));; Monaco, Consolas
 
-      (setq default-frame-alist
-            '((top . 0)(left . 0)
-              (width . 85)(height . 38)
-              (font . "Menlo-12")
-              )))
-    )))
-    ;; (if (> (x-display-pixel-height) 1000)
-    ;;        (add-to-list 'default-frame-alist (cons 'height 48))
-    ;;        (add-to-list 'default-frame-alist (cons 'height 37)))
-    ;; )))
-    ;; for the height, subtract a couple hundred pixels
-    ;; from the screen height (for panels, menubars and
-    ;; whatnot), then divide by the height of a char to
-    ;; get the height we want
-    ;; (add-to-list 'default-frame-alist
-    ;;      (cons 'height (/ (- (x-display-pixel-height) 200)
-    ;;                          (frame-char-height)))))))
+          (setq default-frame-alist
+                '((top . 0)(left . 0)
+                  (width . 85)(height . 38)
+                  (font . "Menlo-12")
+                  )))
+        )))
+;; (if (> (x-display-pixel-height) 1000)
+;;        (add-to-list 'default-frame-alist (cons 'height 48))
+;;        (add-to-list 'default-frame-alist (cons 'height 37)))
+;; )))
+;; for the height, subtract a couple hundred pixels
+;; from the screen height (for panels, menubars and
+;; whatnot), then divide by the height of a char to
+;; get the height we want
+;; (add-to-list 'default-frame-alist
+;;      (cons 'height (/ (- (x-display-pixel-height) 200)
+;;                          (frame-char-height)))))))
 (set-frame-size-according-to-resolution)
 
 ;; using a visible bell when error occurs
@@ -571,8 +571,8 @@ searches all buffers."
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
 (add-hook 'c-mode-common-hook
-	  (lambda()
-	    (local-set-key  (kbd "C-c o") 'ff-find-other-file)))
+          (lambda()
+            (local-set-key  (kbd "C-c o") 'ff-find-other-file)))
 
 ;; alias
 ;; define alias toe increase productivity
@@ -600,7 +600,7 @@ searches all buffers."
 ;; ;;
 ;; ;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
 ;; ;; http://blog.binchen.org/posts/effective-spell-check-in-emacs.html
-;; ;; 
+;; ;;
 ;; ;; if (aspell installed) { use aspell}
 ;; ;; else if (hunspell installed) { use hunspell }
 ;; ;; whatever spell checker I use, I always use English dictionary
@@ -675,13 +675,38 @@ searches all buffers."
           (lambda ()
             (setq indent-tabs-mode t)
             (setq tab-width 4)))
-;;
+;; ;;
+;; (add-hook 'c-mode-common-hook
+;;           '(lambda ()
+;;              (c-set-style "linux")
+;;              (setq tab-width 8)
+;;              (setq indent-tabs-mode t)  ;;default in linux kernel
+;;              (setq c-basic-offset 8)))
+
+;;;;;;;Documentation/CodingStyle
+(defun c-lineup-arglist-tabs-only (ignored)
+  "Line up argument lists by tabs, not spaces"
+  (let* ((anchor (c-langelem-pos c-syntactic-element))
+         (column (c-langelem-2nd-pos c-syntactic-element))
+         (offset (- (1+ column) anchor))
+         (steps (floor offset c-basic-offset)))
+    (* (max steps 1)
+       c-basic-offset)))
 (add-hook 'c-mode-common-hook
-          '(lambda ()
-             (c-set-style "linux")
-             (setq tab-width 8)
-             (setq indent-tabs-mode nil)
-             (setq c-basic-offset 8)))
+          (lambda ()
+            ;; Add kernel style
+            (c-add-style
+             "linux-tabs-only"
+             '("linux" (c-offsets-alist
+                        (arglist-cont-nonempty
+                         c-lineup-gcc-asm-reg
+                         c-lineup-arglist-tabs-only))))))
+(add-hook 'c-mode-hook
+          (lambda ()
+            (let ((filename (buffer-file-name)))
+              (setq indent-tabs-mode t)
+              (c-set-style "linux-tabs-only"))))
+;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;; Parentheses
@@ -1127,9 +1152,9 @@ searches all buffers."
 ;; C-c s u 'cscope-pop-mark to go back
 ;; n/p in popup window
 (add-hook 'c-mode-common-hook
-	  (lambda()
+          (lambda()
             (cscope-minor-mode t)
-	    (local-set-key  (kbd "C-c s g") 'ascope-find-global-definition)
+            (local-set-key  (kbd "C-c s g") 'ascope-find-global-definition)
             (local-set-key  (kbd "C-c s c") 'ascope-find-functions-calling-this-function)
             (local-set-key  (kbd "C-c s h") 'ascope-find-files-including-file)
             (local-set-key  (kbd "C-c s s") 'ascope-find-this-symbol)
@@ -1153,9 +1178,9 @@ searches all buffers."
 ;;              (hl-line-mode 1)
 ;;              ))
 ;; (setq gtags-mode-hook
-      ;; '(lambda ()
-         ;; (setq gtags-path-style 'relative)
-         ;; )) ;; relative can be root, relative and absolute
+;; '(lambda ()
+;; (setq gtags-path-style 'relative)
+;; )) ;; relative can be root, relative and absolute
 ;; (add-hook 'c-mode-common-hook
 ;;           (lambda()
 ;;             (local-set-key (kbd "C-c s g") 'gtags-find-tag-other-window)
@@ -1349,9 +1374,9 @@ searches all buffers."
 ;; magit prompt you to choose from one of your favorite repos.
 (eval-after-load "magit"
   '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
-               '("~/.emacs.d"
-                 ;; "~/dev/repo_b"
-                 )))
+         '("~/.emacs.d"
+           ;; "~/dev/repo_b"
+           )))
 ;; open link file such as .emacs to open just the link not the original file
 (setq vc-follow-symlinks 'nil)
 
@@ -1403,5 +1428,5 @@ searches all buffers."
 ;; (setq el-get-github-default-url-type "https")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;	 the plugin installed by el-get
+;;;;;	the plugin installed by el-get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
