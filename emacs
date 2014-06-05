@@ -1224,7 +1224,7 @@ searches all buffers."
 ;; ;; or you can use C-c , to set the TODO priority
 ;; (define-key semantic-mode-map "\C-c," 'org-priority)
 ;; ;; or you have to M-x org-mode to use (C-u)C-c . org-time-stamp
-;; (define-key ede-minor-mode-map "\C-c." 'org-time-stamp)
+(define-key ede-minor-mode-map "\C-c." 'org-time-stamp)
 ;;
 ;; the next line is needed before load org-mode
 ;; Non-nil means single character alphabetical bullets are allowed.
