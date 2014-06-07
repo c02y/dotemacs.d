@@ -537,7 +537,17 @@ searches all buffers."
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
 ;; you can C-x 1 to close other windows and C-c <left> to restore
-(winner-mode 1)
+;; (winner-mode 1)
+;; use the following functions is better
+(defun toggle-maximize-buffer () "Maximize buffer"
+  (interactive)
+  (if (= 1 (length (window-list)))
+      (jump-to-register '_) 
+    (progn
+      (window-configuration-to-register '_)
+      (delete-other-windows))))
+(global-set-key (kbd "C-x z") 'toggle-maximize-buffer)
+
 ;;
 ;; change the default action of C-x 2/3
 ;; switch to the new window immediately after creating
