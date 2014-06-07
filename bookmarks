@@ -79,9 +79,9 @@
  (position . 8834))
 ("elpa-end"
  (filename . "~/.emacs")
- (front-context-string . "\n;;;;;;;;;;;;;;;")
- (rear-context-string . "t-blocks-mode)\n\n")
- (position . 49013))
+ (front-context-string . ";;;;;;;;;;;;;;;;")
+ (rear-context-string . "  'emmet-mode)\n\n")
+ (position . 54670))
 ("plugin"
  (filename . "~/.emacs")
  (front-context-string . "\n;;;;;;;;;;;;;;;")
