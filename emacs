@@ -534,6 +534,10 @@ searches all buffers."
 (global-set-key (kbd "S-C-<right>")	'enlarge-window-horizontally)
 (global-set-key (kbd "S-C-<down>")	'shrink-window)
 (global-set-key (kbd "S-C-<up>")	'enlarge-window)
+;; winner-mode, max a window temporarily and restore the state
+;; C-c <left/right> 'winner-undo/redo
+;; you can C-x 1 to close other windows and C-c <left> to restore
+(winner-mode 1)
 ;;
 ;; change the default action of C-x 2/3
 ;; switch to the new window immediately after creating
