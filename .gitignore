@@ -11,3 +11,4 @@ saved-places
 tramp
 elpa/archives/*
 ido.last
+/.mc-lists.el
