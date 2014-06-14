@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-     Shin Aoyama
 ;; Copyright (C) 2009-2012 Chris Done
 
-;; Version: 20140611.311
+;; Version: 20140613.2306
 ;; X-Original-Version: 1.0.8
 ;; Author: Shin Aoyama <smihica@gmail.com>
 ;; URL: https://github.com/smihica/emmet-mode
@@ -3482,11 +3482,15 @@ tbl))
   :group 'emmet)
 
 (defun emmet-prettify (markup indent)
-  (let ((first-col (format (format "%%%ds" indent) ""))
-        (tab       (format (format "%%%ds" emmet-indentation) "")))
-    (concat first-col
-            (replace-regexp-in-string "\n" (concat "\n" first-col)
-                                      (replace-regexp-in-string "    " tab markup)))))
+  (destructuring-bind (first-col tab)
+      (if indent-tabs-mode
+          (list (apply #'concat (loop for i from 1 to (/ indent tab-width) collect "\t")) "\t")
+        (list (format (format "%%%ds" indent) "")
+              (format (format "%%%ds" emmet-indentation) "")))
+    (let ((internal-indent-1 "    "))
+      (concat first-col
+              (replace-regexp-in-string "\n" (concat "\n" first-col)
+                                        (replace-regexp-in-string internal-indent-1 tab markup))))))
 
 (defvar emmet-use-css-transform nil
   "When true, transform Emmet snippets into CSS, instead of the usual HTML.")

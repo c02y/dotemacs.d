@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-2014  Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
-;; Version: 20140521.346
+;; Version: 20140614.36
 ;; X-Original-Version: 0.8.5
 ;; Keywords: tools, convenience
 ;; Created: 2013-01-29
@@ -475,21 +475,18 @@ Value is new modtime if updated."
     (size (let ((project (or project (ggtags-find-project))))
             (and project (> (ggtags-project-tag-size project) size))))))
 
+(defvar-local ggtags-last-default-directory nil)
 (defvar-local ggtags-project-root 'unset
   "Internal variable for project root directory.")
-
-(defun ggtags-clear-project-root ()
-  (kill-local-variable 'ggtags-project-root))
 
 ;;;###autoload
 (defun ggtags-find-project ()
   ;; See https://github.com/leoliu/ggtags/issues/42
   ;;
-  ;; It is unsafe to cache `ggtags-project-root' in non-file buffers.
-  ;; But we keep the cache for a command's duration so that multiple
-  ;; calls of `ggtags-find-project' has no performance impact.
-  (unless buffer-file-name
-    (add-hook 'pre-command-hook #'ggtags-clear-project-root nil t))
+  ;; It is unsafe to cache `ggtags-project-root' in non-file buffers
+  ;; whose `default-directory' can often change.
+  (unless (equal ggtags-last-default-directory default-directory)
+    (kill-local-variable 'ggtags-project-root))
   (let ((project (gethash ggtags-project-root ggtags-projects)))
     (if (ggtags-project-p project)
         (if (ggtags-project-expired-p project)
@@ -497,6 +494,7 @@ Value is new modtime if updated."
               (remhash ggtags-project-root ggtags-projects)
               (ggtags-find-project))
           project)
+      (setq ggtags-last-default-directory default-directory)
       (setq ggtags-project-root
             (or (ignore-errors-unless-debug
                   (file-name-as-directory
@@ -642,6 +640,14 @@ Value is new modtime if updated."
       (goto-char (point-min))
       (not (re-search-forward "^file not found" nil t)))))
 
+(defun ggtags-invalidate-buffer-project-root (root)
+  (mapc (lambda (buf)
+          (with-current-buffer buf
+            (and buffer-file-truename
+                 (string-prefix-p root buffer-file-truename)
+                 (kill-local-variable 'ggtags-project-root))))
+        (buffer-list)))
+
 (defun ggtags-create-tags (root)
   "Create tag files (e.g. GTAGS) in directory ROOT.
 If file .globalrc or gtags.conf exists in ROOT, it will be used
@@ -679,6 +685,7 @@ source trees. See Info node `(global)gtags' for details."
                          (apply #'ggtags-process-string
                                 "gtags" (cl-remove "--idutils" args))
                        (signal (car err) (cdr err)))))))))
+    (ggtags-invalidate-buffer-project-root (file-truename root))
     (message "GTAGS generated in `%s'" root)
     root))
 
@@ -1548,9 +1555,12 @@ commands `next-error' and `previous-error'.
     (define-key map "\M-{" 'ggtags-navigation-previous-file)
     (define-key map "\M->" 'ggtags-navigation-last-error)
     (define-key map "\M-<" 'first-error)
-    ;; Note: shadows `isearch-forward-regexp' but it can be invoked
-    ;; with C-u C-s instead.
+    ;; Note: shadows `isearch-forward-regexp' but it can still be
+    ;; invoked with `C-u C-s'.
     (define-key map "\C-\M-s" 'ggtags-navigation-isearch-forward)
+    ;; Add an alternative binding because C-M-s is reported not
+    ;; working on some systems.
+    (define-key map "\M-ss" 'ggtags-navigation-isearch-forward)
     (define-key map "\C-c\C-k"
       (lambda () (interactive)
         (ggtags-ensure-global-buffer (kill-compilation))))
