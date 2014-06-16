@@ -1028,7 +1028,7 @@ searches all buffers."
 ;; (setq ac-auto-start nil)
 ;;
 (add-to-list 'ac-dictionary-directories
-             "~/.emacs.d/elpa/auto-complete-20140322.321/dict")
+             "~/.emacs.d/elpa/auto-complete-20140615.811/")
 (setq ac-comphist-file (expand-file-name
                         "~/.emacs.d/ac-comphist.dat"))
 (setq ac-use-quick-help t)
