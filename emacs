@@ -1005,11 +1005,6 @@ searches all buffers."
                               mark-page))))
 (er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
 
-;; tag for include/*
-(setq tags-file-name "~/.emacs.d/TAGS")
-;; use 'complete-tag to complete symbol in include/*
-(global-set-key [f2] 'complete-tag)
-
 ;;;; popup required by ac
 ;; (require 'popup)
 
@@ -1028,7 +1023,7 @@ searches all buffers."
 ;; (setq ac-auto-start nil)
 ;;
 (add-to-list 'ac-dictionary-directories
-             "~/.emacs.d/elpa/auto-complete-20140615.811/")
+             "~/.emacs.d/elpa/auto-complete-20140615.811/dict")
 (setq ac-comphist-file (expand-file-name
                         "~/.emacs.d/ac-comphist.dat"))
 (setq ac-use-quick-help t)
