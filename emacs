@@ -131,8 +131,9 @@
 (add-subdirs-to-load-path "~/.emacs.d/")
 
 ;; re/compile every elisp file when saving it
-(add-hook 'emacs-lisp-mode-hook '(lambda ()
-                                   (add-hook 'after-save-hook 'emacs-lisp-byte-compile t t)))
+(add-hook 'emacs-lisp-mode-hook
+		  (lambda ()
+			(add-hook 'after-save-hook 'emacs-lisp-byte-compile t t)))
 ;; Delete the existed/no-existed .emacs.elc and recompile and reload
 (defun byte-compile-init-file ()
   (when (equal user-init-file buffer-file-name)
@@ -524,12 +525,12 @@ searches all buffers."
 ;; firstly disable some shortkeys in org-mode
 ;; the following shortkeys are in shift-selection, org-support-shift-select
 (add-hook 'org-mode-hook
-          '(lambda ()
-             (define-key org-mode-map [(control shift left)] nil)
-             (define-key org-mode-map [(control shift right)] nil)
-             (define-key org-mode-map [(control shift up)] nil)
-             (define-key org-mode-map [(control shift down)] nil)
-             ))
+		  (lambda ()
+			(define-key org-mode-map [(control shift left)] nil)
+			(define-key org-mode-map [(control shift right)] nil)
+			(define-key org-mode-map [(control shift up)] nil)
+			(define-key org-mode-map [(control shift down)] nil)
+			))
 (global-set-key (kbd "S-C-<left>")	'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>")	'enlarge-window-horizontally)
 (global-set-key (kbd "S-C-<down>")	'shrink-window)
@@ -542,7 +543,7 @@ searches all buffers."
 (defun toggle-maximize-buffer () "Maximize buffer"
   (interactive)
   (if (= 1 (length (window-list)))
-      (jump-to-register '_) 
+      (jump-to-register '_)
     (progn
       (window-configuration-to-register '_)
       (delete-other-windows))))
@@ -593,8 +594,8 @@ searches all buffers."
 (defalias 'man 'woman)
 ;; ;; to check the whole buffer for wrong typo
 ;; ;; Not better than flyspell-mode
-;; (defalias 'ib 'ispell-buffer)
-;; (defalias 'eit 'emacs-init-time)
+(defalias 'ib 'ispell-buffer)
+(defalias 'eit 'emacs-init-time)
 
 ;; C-$ 'spell-word
 ;; C-S-/(C-?) is used in undo-tree plugin by default
@@ -676,51 +677,62 @@ searches all buffers."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Tab & indent
+;;;;;;;;;;; '(global-)whitespace-mode to show tab/space
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(add-hook 'python-mode-hook
-          (lambda ()
-            (setq indent-tabs-mode nil)
-            (setq tab-width 4)
-            (setq python-indent 4)))
+(defalias 'ws 'whitespace-mode)
 ;; use spaces instead of tabs, nit->t -- don't replace
-(setq-default indent-tabs-mode nil)
-;;
+(setq-default indent-tabs-mode t)
+(setq-default tab-width 4)
+;; (setq indent-line-function 'insert-tab)
 (add-hook 'text-mode-hook
-          (lambda ()
+		  (lambda ()
             (setq indent-tabs-mode t)
             (setq tab-width 4)))
-;; ;;
-;; (add-hook 'c-mode-common-hook
-;;           '(lambda ()
-;;              (c-set-style "linux")
-;;              (setq tab-width 8)
-;;              (setq indent-tabs-mode t)  ;;default in linux kernel
-;;              (setq c-basic-offset 8)))
-
-;;;;;;;Documentation/CodingStyle
-;;Using spaces for alignment, but tabs for indentation
-(defun c-lineup-arglist-tabs-only (ignored)
-  "Line up argument lists by tabs, not spaces"
-  (let* ((anchor (c-langelem-pos c-syntactic-element))
-         (column (c-langelem-2nd-pos c-syntactic-element))
-         (offset (- (1+ column) anchor))
-         (steps (floor offset c-basic-offset)))
-    (* (max steps 1)
-       c-basic-offset)))
+(add-hook 'fundamental-mode-hook
+		  (lambda ()
+			(setq indent-tabs-mode t)
+			(setq tab-width 4)))
+(add-hook 'emacs-lisp-mode-hook
+		  (lambda ()
+			(setq indent-tabs-mode nil)
+			(setq tab-width 4)))
+(add-hook 'python-mode-hook
+		  (lambda ()
+ 			(setq indent-tabs-mode nil)
+			(setq tab-width 4)
+			(setq python-indent-offset 4)))
+;;
 (add-hook 'c-mode-common-hook
-          (lambda ()
-            ;; Add kernel style
-            (c-add-style
-             "linux-tabs-only"
-             '("linux" (c-offsets-alist
-                        (arglist-cont-nonempty
-                         c-lineup-gcc-asm-reg
-                         c-lineup-arglist-tabs-only))))))
-(add-hook 'c-mode-hook
-          (lambda ()
-            (let ((filename (buffer-file-name)))
-              (setq indent-tabs-mode t)
-              (c-set-style "linux-tabs-only"))))
+		  (lambda ()
+			(c-set-style "linux")
+			(setq tab-width 8)
+			(setq indent-tabs-mode t)  ;;default in linux kernel
+			(setq c-basic-offset 8)))
+
+;; ;;;;;;;Documentation/CodingStyle
+;; ;;Using spaces for alignment, but tabs for indentation
+;; (defun c-lineup-arglist-tabs-only (ignored)
+;;	 "Line up argument lists by tabs, not spaces"
+;;	 (let* ((anchor (c-langelem-pos c-syntactic-element))
+;;			(column (c-langelem-2nd-pos c-syntactic-element))
+;;			(offset (- (1+ column) anchor))
+;;			(steps (floor offset c-basic-offset)))
+;;	   (* (max steps 1)
+;;		  c-basic-offset)))
+;; (add-hook 'c-mode-common-hook
+;;			 (lambda ()
+;;			   ;; Add kernel style
+;;			   (c-add-style
+;;				"linux-tabs-only"
+;;				'("linux" (c-offsets-alist
+;;						   (arglist-cont-nonempty
+;;							c-lineup-gcc-asm-reg
+;;							c-lineup-arglist-tabs-only))))))
+;; (add-hook 'c-mode-hook
+;;			 (lambda ()
+;;			   (let ((filename (buffer-file-name)))
+;;				 (setq indent-tabs-mode t)
+;;				 (c-set-style "linux-tabs-only"))))
 ;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -736,12 +748,12 @@ searches all buffers."
 (defun my-mode-auto-pair ()
   (interactive)
   (make-local-variable 'skeleton-pair-alist)
-  (setq skeleton-pair-alist  '(
-                               (?\" _ "\"")
-                               (?\( _ ")")
-                               (?\[ _ "]")
-                               (?\{ _ "}")
-                               (?` _ "'")))
+  (setq skeleton-pair-alist '(
+							  (?\" _ "\"")
+							  (?\( _ ")")
+							  (?\[ _ "]")
+							  (?\{ _ "}")
+							  (?` _ "'")))
   (setq skeleton-pair t)
   (local-set-key (kbd "(") 'skeleton-pair-insert-maybe)
   (local-set-key (kbd "{") 'skeleton-pair-insert-maybe)
@@ -755,8 +767,7 @@ searches all buffers."
 ;; automatically insert new line with } and indent when typing {
 (define-minor-mode c-helpers-minor-mode
   "This mode contains little helpers for C developement" nil ""
-  '(
-    ((kbd "{") . insert-c-block-parentheses)))
+  '(((kbd "{") . insert-c-block-parentheses)))
 (defun insert-c-block-parentheses ()
   (interactive)
   (insert "{")
@@ -787,11 +798,11 @@ searches all buffers."
 ;; Code folding using built-in hs-minor-mode
 ;; F1-b to see the key binding
 (mapc (lambda (mode-hook) (add-hook mode-hook 'hs-minor-mode))
-      '(c-mode-common-hook
-        java-mode-hook
-        python-mode-hook
-        emacs-lisp-mode-hook
-        lisp-mode-hook))
+	  '(c-mode-common-hook
+		java-mode-hook
+		python-mode-hook
+		emacs-lisp-mode-hook
+		lisp-mode-hook))
 ;; ediff split horizontal, default is vertically
 (setq ediff-split-window-function 'split-window-horizontally)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
@@ -846,7 +857,7 @@ searches all buffers."
   (semantic-add-system-include "/usr/include/" 'c++-mode))
 (add-hook 'semantic-init-hooks 'my-include-semantic-hook)
 (setq-mode-local c-mode semanticdb-find-default-throttle
-                 '(project unloaded system recursive))
+				 '(project unloaded system recursive))
 ;; Semantic's work optimization, optimize work with tags
 ;; Integration with imenu
 (defun my-semantic-hook ()
@@ -858,11 +869,11 @@ searches all buffers."
 (define-key prog-mode-map "." 'semantic-complete-self-insert)
 ;;
 (add-hook 'org-mode-hook
-          '(lambda() (set
-                      (make-local-variable 'semantic-mode) nil)))
+		  (lambda() (set
+					 (make-local-variable 'semantic-mode) nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;    plugin in .emacs.d/plugin
+;;;;;;;;;;;;;;;;;;;	   plugin in .emacs.d/plugin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; load plugin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -873,21 +884,21 @@ searches all buffers."
 (autoload 'package "package" t)
 ;; Package repositories
 (setq package-archives '(
-                         ("ELPA" . "http://tromey.com/elpa/")
-                         ("gnu" . "http://elpa.gnu.org/packages/")
-                         ("marmalade" . "http://marmalade-repo.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")
-                         ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
-                         ))
+						 ("ELPA" . "http://tromey.com/elpa/")
+						 ("gnu" . "http://elpa.gnu.org/packages/")
+						 ("marmalade" . "http://marmalade-repo.org/packages/")
+						 ("melpa" . "http://melpa.milkbox.net/packages/")
+						 ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
+						 ))
 ;;
 (defun eval-url (url)
   (let ((buffer (url-retrieve-synchronously url)))
-    (save-excursion
-      (set-buffer buffer)
-      (goto-char (point-min))
-      (re-search-forward "^$" nil 'move)
-      (eval-region (point) (point-max))
-      (kill-buffer (current-buffer)))))
+	(save-excursion
+	  (set-buffer buffer)
+	  (goto-char (point-min))
+	  (re-search-forward "^$" nil 'move)
+	  (eval-region (point) (point-max))
+	  (kill-buffer (current-buffer)))))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
 (defalias 'plp 'package-list-packages)
@@ -904,10 +915,10 @@ searches all buffers."
 (require 'yasnippet)
 (require 'dropdown-list)
 (setq yas-prompt-functions '(yas-dropdown-prompt
-                             yas-ido-prompt
-                             yas-completing-prompt
-                             yas-x-prompt
-                             yas-no-prompt))
+							 yas-ido-prompt
+							 yas-completing-prompt
+							 yas-x-prompt
+							 yas-no-prompt))
 (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
 (yas-global-mode 1)
 ;; stop yasnippet auto-indent
@@ -931,21 +942,21 @@ searches all buffers."
 (global-set-key (kbd "M-/") 'hippie-expand)
 ;; the built-in hippie-exp config
 (setq hippie-expand-try-functions-list
-      '(
-        ;; from yasnippet
-        yas-hippie-try-expand
-        ;;
-        try-expand-dabbrev
-        try-expand-dabbrev-visible
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-list
-        try-expand-line
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol))
+	  '(
+		;; from yasnippet
+		yas-hippie-try-expand
+		;;
+		try-expand-dabbrev
+		try-expand-dabbrev-visible
+		try-expand-dabbrev-all-buffers
+		try-expand-dabbrev-from-kill
+		try-complete-file-name-partially
+		try-complete-file-name
+		try-expand-all-abbrevs
+		try-expand-list
+		try-expand-line
+		try-complete-lisp-symbol-partially
+		try-complete-lisp-symbol))
 
 
 ;; multiple-cursors
@@ -1000,9 +1011,9 @@ searches all buffers."
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
   (setq er/try-expand-list (append
-                            er/try-expand-list
-                            '(mark-paragraph
-                              mark-page))))
+							er/try-expand-list
+							'(mark-paragraph
+							  mark-page))))
 (er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
 
 ;;;; popup required by ac
@@ -1012,7 +1023,7 @@ searches all buffers."
 ;; (require 'fuzzy)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;   auto-complete
+;;;;;;;;;;	 auto-complete
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'auto-complete)
 (require 'auto-complete-config)
@@ -1023,9 +1034,9 @@ searches all buffers."
 ;; (setq ac-auto-start nil)
 ;;
 (add-to-list 'ac-dictionary-directories
-             "~/.emacs.d/elpa/auto-complete-20140615.811/dict")
+			 "~/.emacs.d/elpa/auto-complete-20140618.2217/dict")
 (setq ac-comphist-file (expand-file-name
-                        "~/.emacs.d/ac-comphist.dat"))
+						"~/.emacs.d/ac-comphist.dat"))
 (setq ac-use-quick-help t)
 (setq ac-quick-help-delay 1)
 ;; The following line uses auto-complete-mode-maybe, which turn AC on
@@ -1037,7 +1048,7 @@ searches all buffers."
 (defun auto-complete-mode-maybe ()
   "No maybe for you. Only AC!"
   (unless (minibufferp (current-buffer))
-    (auto-complete-mode 1)))
+	(auto-complete-mode 1)))
 ;;
 ;; t could be time
 (setq ac-auto-show-menu t)
@@ -1059,8 +1070,8 @@ searches all buffers."
 ;; t could be an integer, which is the num of characters you type
 (setq ac-auto-start 3)
 ;; t means:
-;;    After selecting candidates, TAB will behave as RET
-;;    TAB will behave as RET only on candidate remains
+;;	  After selecting candidates, TAB will behave as RET
+;;	  TAB will behave as RET only on candidate remains
 (setq ac-dwim t)
 ;; Distinguish case, if ignore case, nil -> t
 ;; Ignore case if completion target string doesn't include upper characters, nil -> smart
@@ -1071,22 +1082,22 @@ searches all buffers."
 ;; ac-c-headers,  auto-complete source for C headers
 (require 'ac-c-headers)
 (add-hook 'c-mode-common-hook
-          (lambda ()
-            (add-to-list 'ac-sources 'ac-source-c-headers)
-            (add-to-list 'ac-sources 'ac-source-c-header-symbols t)
-            ;; the following two lines are from cebet, names completion with auto-complete package
-            (add-to-list 'ac-sources 'ac-source-gtags)
-            (add-to-list 'ac-sources 'ac-source-semantic)))
+		  (lambda ()
+			(add-to-list 'ac-sources 'ac-source-c-headers)
+			(add-to-list 'ac-sources 'ac-source-c-header-symbols t)
+			;; the following two lines are from cebet, names completion with auto-complete package
+			(add-to-list 'ac-sources 'ac-source-gtags)
+			(add-to-list 'ac-sources 'ac-source-semantic)))
 (ac-config-default)
 (set-default 'ac-sources
-             '(ac-source-semantic
-               ac-source-yasnippet
-               ac-source-abbrev
-               ac-source-words-in-buffer
-               ac-source-words-in-all-buffer
-               ac-source-imenu
-               ac-source-files-in-current-dir
-               ac-source-filename))
+			 '(ac-source-semantic
+			   ac-source-yasnippet
+			   ac-source-abbrev
+			   ac-source-words-in-buffer
+			   ac-source-words-in-all-buffer
+			   ac-source-imenu
+			   ac-source-files-in-current-dir
+			   ac-source-filename))
 ;; auto-complete-c-headers
 (require 'auto-complete-c-headers)
 (add-to-list 'ac-sources 'ac-source-c-headers)
@@ -1102,13 +1113,13 @@ searches all buffers."
 ;; ;; tabbar for tabs
 ;; (require 'tabbar)
 ;; (setq tabbar-buffer-groups-function
-;;       (lambda ()
-;;         (list "All")))
+;;		 (lambda ()
+;;		   (list "All")))
 ;; ;; uncomment the next line to default showing the tabbar
 ;; ;;(tabbar-mode)
 ;; ;; when tabbar-mode is enabled, use the following shortkeys
 ;; ;; You can also use C-c C-<left>/<right> do the tricks
-;; (define-key tabbar-mode-map  (kbd "C-S-<iso-lefttab>") 'tabbar-backward)
+;; (define-key tabbar-mode-map	(kbd "C-S-<iso-lefttab>") 'tabbar-backward)
 ;; (define-key tabbar-mode-map (kbd "C-<tab>") 'tabbar-forward)
 
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
@@ -1162,47 +1173,47 @@ searches all buffers."
 ;; C-c s u 'cscope-pop-mark to go back
 ;; n/p in popup window
 (add-hook 'c-mode-common-hook
-          (lambda()
-            (cscope-minor-mode t)
-            (local-set-key  (kbd "C-c s g") 'ascope-find-global-definition)
-            (local-set-key  (kbd "C-c s c") 'ascope-find-functions-calling-this-function)
-            (local-set-key  (kbd "C-c s h") 'ascope-find-files-including-file)
-            (local-set-key  (kbd "C-c s s") 'ascope-find-this-symbol)
-            (local-set-key  (kbd "C-c s t") 'ascope-find-this-text-string)
-            (local-set-key  (kbd "C-c s a") 'ascope-all-symbol-assignments)
-            ;; (local-set-key  (kbd "C-c s o") 'ascope-show-entry-other-window)
-            ;; (local-set-key  (kbd "C-c s p") 'ascope-show-prev-entry-other-window)
-            ;; (local-set-key  (kbd "C-c s n") 'ascope-show-next-entry-other-window)
-            ))
+		  (lambda()
+			(cscope-minor-mode t)
+			(local-set-key	(kbd "C-c s g") 'ascope-find-global-definition)
+			(local-set-key	(kbd "C-c s c") 'ascope-find-functions-calling-this-function)
+			(local-set-key	(kbd "C-c s h") 'ascope-find-files-including-file)
+			(local-set-key	(kbd "C-c s s") 'ascope-find-this-symbol)
+			(local-set-key	(kbd "C-c s t") 'ascope-find-this-text-string)
+			(local-set-key	(kbd "C-c s a") 'ascope-all-symbol-assignments)
+			;; (local-set-key  (kbd "C-c s o") 'ascope-show-entry-other-window)
+			;; (local-set-key  (kbd "C-c s p") 'ascope-show-prev-entry-other-window)
+			;; (local-set-key  (kbd "C-c s n") 'ascope-show-next-entry-other-window)
+			))
 
 ;; ;; gtags, doesn't work  but ggtags works, weird
 ;; (autoload 'gtags-mode "gtags" "" t)
 ;; (add-hook 'c-mode-hook
-;;           '(lambda ()
-;;              (gtags-mode 1)
-;;              ))
+;;			 '(lambda ()
+;;				(gtags-mode 1)
+;;				))
 ;; ;; Setting to make 'Gtags select mode' easy to see
 ;; (add-hook 'gtags-select-mode-hook
-;;           '(lambda ()
-;;              (setq hl-line-face 'underline)
-;;              (hl-line-mode 1)
-;;              ))
+;;			 '(lambda ()
+;;				(setq hl-line-face 'underline)
+;;				(hl-line-mode 1)
+;;				))
 ;; (setq gtags-mode-hook
 ;; '(lambda ()
 ;; (setq gtags-path-style 'relative)
 ;; )) ;; relative can be root, relative and absolute
 ;; (add-hook 'c-mode-common-hook
-;;           (lambda()
-;;             (local-set-key (kbd "C-c s g") 'gtags-find-tag-other-window)
-;;             (local-set-key (kbd "C-c s G") 'gtags-find-tag-from-here)
-;;             (local-set-key (kbd "C-c s s") 'gtags-find-symbol)
-;;             (local-set-key (kbd "C-c s S") 'gtags-find-with-grep)
-;;             (local-set-key (kbd "C-c s r") 'gtags-find-rtag)
-;;             (local-set-key (kbd "C-c s p") 'gtags-find-pattern)
-;;             (local-set-key (kbd "C-c s f") 'gtags-find-file)
-;;             (local-set-key (kbd "C-c s b") 'gtags-pop-stack)
-;;             (local-set-key (kbd "C-c s m") 'gtags-make-complete-list)
-;;             ))
+;;			 (lambda()
+;;			   (local-set-key (kbd "C-c s g") 'gtags-find-tag-other-window)
+;;			   (local-set-key (kbd "C-c s G") 'gtags-find-tag-from-here)
+;;			   (local-set-key (kbd "C-c s s") 'gtags-find-symbol)
+;;			   (local-set-key (kbd "C-c s S") 'gtags-find-with-grep)
+;;			   (local-set-key (kbd "C-c s r") 'gtags-find-rtag)
+;;			   (local-set-key (kbd "C-c s p") 'gtags-find-pattern)
+;;			   (local-set-key (kbd "C-c s f") 'gtags-find-file)
+;;			   (local-set-key (kbd "C-c s b") 'gtags-pop-stack)
+;;			   (local-set-key (kbd "C-c s m") 'gtags-make-complete-list)
+;;			   ))
 (which-function-mode 1)
 ;; repalce the 8 with other number to change the position
 (let ((which-func '(which-func-mode ("" which-func-format " "))))
@@ -1210,15 +1221,15 @@ searches all buffers."
   (setq-default mode-line-misc-info (remove which-func mode-line-misc-info))
   (setq cell (last mode-line-format 8))
   (setcdr cell
-          (cons which-func
-                (cdr cell))))
+		  (cons which-func
+				(cdr cell))))
 
 ;; ggtags: https://github.com/leoliu/ggtags
 ;; M-n/p, M-* to go back, RET to exit ggtags status'
 (add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-              (ggtags-mode 1))))
+		  (lambda ()
+			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+			  (ggtags-mode 1))))
 
 
 ;; org-mode
@@ -1272,11 +1283,11 @@ searches all buffers."
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "READ(r)" "|" "DONE(d)")
-        ;; multiple sets for one file
-        ;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
-        ;; (sequence "|" "CANCELED(c)")
-        ))
+	  '((sequence "TODO(t)" "READ(r)" "|" "DONE(d)")
+		;; multiple sets for one file
+		;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
+		;; (sequence "|" "CANCELED(c)")
+		))
 ;; Keep track of when a certain TODO item was finished.
 ;; (setq org-log-done 'time)
 ;; record a note along with the timestamp
@@ -1284,9 +1295,9 @@ searches all buffers."
 ;; ;; If you would like a TODO entry to automatically change to DONE
 ;; ;; when all children are done, you can use the following setup:
 ;; (defun org-summary-todo (n-done n-not-done)
-;;   "Switch entry to DONE when all subentries are done, to TODO otherwise."
-;;   (let (org-log-done org-log-states)   ; turn off logging
-;;     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+;;	 "Switch entry to DONE when all subentries are done, to TODO otherwise."
+;;	 (let (org-log-done org-log-states)	  ; turn off logging
+;;	   (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 ;; (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 ;; tags, shortcut
 ;; (setq org-tag-alist '(("@work" . ?w) ("@home" . ?h) ("laptop" . ?l)))
@@ -1298,7 +1309,7 @@ searches all buffers."
 (defun org-summary-todo (n-done n-not-done)
   "Switch entry to DONE when all subentries are done, to TODO otherwise."
   (let (org-log-done org-log-states)   ; turn off logging
-    (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+	(org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 (setq org-src-fontify-natively t)
 ;;;;;;;;;;;;;;;
@@ -1308,13 +1319,13 @@ searches all buffers."
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
 ;; Find Files or url: ~/
-;; 	That show all ~/ directory.
+;;	That show all ~/ directory.
 ;; Find Files or url: ~/des
-;; 	will show all what begin with "des"
+;;	will show all what begin with "des"
 ;; Find Files or url: ~/ esk
-;; 	(Notice the space after ~/) will show all what contain esk.
+;;	(Notice the space after ~/) will show all what contain esk.
 ;; Find Files or url: ~/ el$
-;; 	Will show all what finish with el
+;;	Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
 (require 'helm-config)
 (helm-mode 1)
@@ -1340,21 +1351,21 @@ searches all buffers."
 ;; http://flycheck.readthedocs.org/en/latest/manual/usage.html#syntax-checker-configuration
 ;; Mode line:: Flycheck indicates its state in the mode line:
 ;; FlyC
-;; 	There are no errors in the current buffer.
+;;	There are no errors in the current buffer.
 ;; FlyC*
-;; 	A syntax check is being performed currently.
+;;	A syntax check is being performed currently.
 ;; FlyC:3/4
-;; 	There are three errors and four warnings in the current buffer.
+;;	There are three errors and four warnings in the current buffer.
 ;; FlyC-
-;; 	Automatic syntax checker selection did not find a suitable syntax checker.
-;; 	See Syntax checker selection for more information.
+;;	Automatic syntax checker selection did not find a suitable syntax checker.
+;;	See Syntax checker selection for more information.
 ;; FlyC!
-;; 	The syntax check failed. Inspect the *Messages* buffer for details.
+;;	The syntax check failed. Inspect the *Messages* buffer for details.
 ;; FlyC?
-;; 	The syntax check had a dubious result. The definition of the syntax checker
-;; 	may be flawed. Inspect the *Messages* buffer for details. This indicator should
-;; 	never be displayed for built-in syntax checkers. If it is, please report an
-;; 	issue to the Flycheck developers, as by Reporting issues.
+;;	The syntax check had a dubious result. The definition of the syntax checker
+;;	may be flawed. Inspect the *Messages* buffer for details. This indicator should
+;;	never be displayed for built-in syntax checkers. If it is, please report an
+;;	issue to the Flycheck developers, as by Reporting issues.
 ;; C-c ! l 'flycheck-list-errors
 ;; C-c ! n 'flycheck-next-error
 ;; C-c ! p 'flycheck-previous-error
@@ -1377,37 +1388,37 @@ searches all buffers."
 ;; magit
 (eval-after-load 'info
   '(progn (info-initialize)
-          (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
+		  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
 (require 'magit)
 (global-set-key (kbd "C-c m") 'magit-status)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
 (eval-after-load "magit"
   '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
-         '("~/.emacs.d"
-           ;; "~/dev/repo_b"
-           )))
+		 '("~/.emacs.d"
+		   ;; "~/dev/repo_b"
+		   )))
 ;; open link file such as .emacs to open just the link not the original file
 (setq vc-follow-symlinks 'nil)
 
 ;; manage-minor-mode
 (setq manage-minor-mode-default
-      '((global
-         (on   rainbow-mode)
-         (off  line-number-mode))
-        (emacs-lisp-mode
-         (on   rainbow-delimiters-mode eldoc-mode show-paren-mode))
-        (js2-mode
-         (on   color-identifiers-mode)
-         (off  flycheck-mode))))
+	  '((global
+		 (on   rainbow-mode)
+		 (off  line-number-mode))
+		(emacs-lisp-mode
+		 (on   rainbow-delimiters-mode eldoc-mode show-paren-mode))
+		(js2-mode
+		 (on   color-identifiers-mode)
+		 (off  flycheck-mode))))
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
 
 ;; ;; evil, use C-z to switch between vim/Emacs
 ;; (setq evil-search-module 'evil-search
-;;       evil-want-C-u-scroll t
-;;       evil-want-C-w-in-emacs-state t)
+;;		 evil-want-C-u-scroll t
+;;		 evil-want-C-w-in-emacs-state t)
 ;; (require 'evil)
 ;; (evil-mode t)
 
@@ -1417,7 +1428,7 @@ searches all buffers."
 (require 'sublimity-scroll)
 ;; the speed of smooth-scroll
 (setq sublimity-scroll-weight 5
-      sublimity-scroll-drift-length 10)
+	  sublimity-scroll-drift-length 10)
 (sublimity-mode 1)
 
 ;; emmet for web development
@@ -1430,19 +1441,25 @@ searches all buffers."
 (require 'hide-comnt)
 (defalias 'hc 'hide/show-comments-toggle)
 
+;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
+(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+(setq lua-indent-level 4)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;   el-get      ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;  el-get self setup
+;;	el-get self setup
 ;; ;;
 ;; (unless (require 'el-get nil 'noerror)
-;;   (with-current-buffer
-;;       (url-retrieve-synchronously
-;;        "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-;;     (let (el-get-master-branch)
-;;       (goto-char (point-max))
-;;       (eval-print-last-sexp))))
+;;	 (with-current-buffer
+;;		 (url-retrieve-synchronously
+;;		  "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+;;	   (let (el-get-master-branch)
+;;		 (goto-char (point-max))
+;;		 (eval-print-last-sexp))))
 ;; (el-get 'sync)
 ;; ;; solve the "Could not update git submodules" error
 ;; (setq el-get-github-default-url-type "https")
