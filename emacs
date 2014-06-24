@@ -352,6 +352,17 @@ buffer-local variable `show-trailing-whitespace'."
 ;; M-Backspace delete to the previous word 'backword-kill-word
 (global-set-key (kbd "C-<backspace>") 'fixup-whitespace)
 
+;; indent marked files in dirs
+;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
+;; --> M-x indent-marked-files
+(defun indent-marked-files ()
+  (interactive)
+  (dolist (file (dired-get-marked-files))
+    (find-file file)
+    (indent-region (point-min) (point-max))
+    (save-buffer)
+    (kill-buffer nil)))
+
 (global-set-key (kbd "C-S-k") 'kill-this-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
