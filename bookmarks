@@ -80,8 +80,8 @@
 ("elpa-end"
  (filename . "~/.emacs")
  (front-context-string . ";;;;;;;;;;;;;;;;")
- (rear-context-string . "  'emmet-mode)\n\n")
- (position . 54670))
+ (rear-context-string . "us-workgroup)\n\n\n")
+ (position . 55192))
 ("plugin"
  (filename . "~/.emacs")
  (front-context-string . "\n;;;;;;;;;;;;;;;")
