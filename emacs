@@ -1458,6 +1458,12 @@ searches all buffers."
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 (setq lua-indent-level 4)
 
+;; ;; workgroup2
+;; (require 'workgroups2)
+;; (workgroups-mode 1)
+;; (setq wg-default-session-file "~/.emacs.d/emacs_workgroups")
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
