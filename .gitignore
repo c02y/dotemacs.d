@@ -12,3 +12,4 @@ tramp
 elpa/archives/*
 ido.last
 /.mc-lists.el
+/emacs_workgroups
