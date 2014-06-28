@@ -80,8 +80,8 @@
 ("elpa-end"
  (filename . "~/.emacs")
  (front-context-string . ";;;;;;;;;;;;;;;;")
- (rear-context-string . "us-workgroup)\n\n\n")
- (position . 55192))
+ (rear-context-string . "_workgroups\")\n\n\n")
+ (position . 54788))
 ("plugin"
  (filename . "~/.emacs")
  (front-context-string . "\n;;;;;;;;;;;;;;;")
