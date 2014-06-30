@@ -894,14 +894,15 @@ searches all buffers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
-(setq package-archives '(
-						 ("gnu" . "http://elpa.gnu.org/packages/")
-						 ("ELPA" . "http://tromey.com/elpa/")
-						 ("melpa" . "http://melpa.milkbox.net/packages/")
-                         ("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
-						 ("melpa-stable" . "http://hiddencameras.milkbox.net/packages/")
-						 ("marmalade" . "http://marmalade-repo.org/packages/")
-						 ))
+(setq package-archives
+      '(
+        ("gnu" . "http://elpa.gnu.org/packages/")
+        ("ELPA" . "http://tromey.com/elpa/")
+        ("melpa" . "http://melpa.milkbox.net/packages/")
+        ("melpa-stable1" . "http://melpa-stable.milkbox.net/packages/")
+        ("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
+        ("marmalade" . "http://marmalade-repo.org/packages/")
+        ))
 ;;
 (defun eval-url (url)
   (let ((buffer (url-retrieve-synchronously url)))
