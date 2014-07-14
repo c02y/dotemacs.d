@@ -1347,7 +1347,9 @@ searches all buffers."
 (global-set-key (kbd "C-s") 'helm-occur)
 (global-set-key (kbd "M-x") 'helm-M-x)
 ;; The default M-y was 'yank-pop
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+;; helm-show-kill-ring not working any more, use 'browser-kill-ring, use M-y to cycle the yank ring
+(global-set-key (kbd "C-x y") 'browse-kill-ring)
+;; (global-set-key (kbd "M-y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
