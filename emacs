@@ -32,6 +32,7 @@
 ;; C-h b to show all the shortkeys
 ;;
 ;; shortcuts summary:
+;; C-h e switch to buffer *Message*
 ;; C-v to next page
 ;; C-x C-x remakr the region
 ;; M-v to previous page
@@ -47,8 +48,6 @@
 ;; C-c r to 'rev('revert-buffer)
 ;; C-x s to 'sh('shell)
 ;; C-x C-r to 'recentf-open-files
-;; C-return to C-e C-m(open and jump to a blank line above the current line)
-;; M-return to C-a C-m C-p(open and jump to a blank beneath the current line)
 ;; C-k to 'kill-line to the end of the line
 ;; M-k to 'kill-line to the beginning of the line
 ;; C-x <up> to 'previous-multiframe-window
@@ -348,8 +347,11 @@ buffer-local variable `show-trailing-whitespace'."
 ;; delete-trailing-whitespace using C-c d
 (global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation
-;; C-Backspace delete to the previous non-whitespace char
 ;; M-Backspace delete to the previous word 'backword-kill-word
+;; M-\ delete kill _all_ spaces at point 'delete-horizontal-space
+;; C-Backspace delete to the previous non-whitespace char
+;; M-\ & C-Backspace are alike, but the previous will all the spaces
+;; and the latter one will replace all with only one
 (global-set-key (kbd "C-<backspace>") 'fixup-whitespace)
 
 ;; indent marked files in dirs
@@ -390,9 +392,7 @@ buffer-local variable `show-trailing-whitespace'."
   (when (active-minibuffer-window)
     (select-window (active-minibuffer-window))))
 (global-set-key (kbd "<f7>") 'switch-to-minibuffer-window)
-;; 'ibuffer-list-buffers's shortkey is replace by 'ace-jump-buffer
-;; use M-x il to operate the buffers
-(defalias 'il 'ibuffer-list-buffers)
+(global-set-key (kbd "C-c b") 'ibuffer)
 ;; improve the profermance of the minibuffer
 (setq echo-keystrokes 0.001)
 ;; use minibuffer recursively, don't know what does it mean
@@ -453,9 +453,9 @@ searches all buffers."
 (global-set-key (kbd "<f6>") 'copy-line)
 (global-set-key (kbd "<f5>") 'kill-whole-line) ;;'kill-line -> C-k
 ;;
-;; open a new line under/above the current line and jump to it using M/C-return
-(global-set-key (kbd "<M-return>") "\C-e\C-m")
-(global-set-key (kbd "<C-return>") "\C-a\C-m\C-p")
+;; open a new line under/above the current line and jump to it
+(global-set-key (kbd "<S-return>") "\C-e\C-m")
+(global-set-key (kbd "<M-S-return>") "\C-a\C-p\C-e\C-m")
 ;; M-k kills to the left, C-k kill to the right
 ;; the default M-k is 'kill-sentence delete to the end of the sentence
 ;; C-x Backspace delete to the beginning of the sentence
@@ -504,17 +504,17 @@ searches all buffers."
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; there are shell and eshell
-(defalias 'sh 'shell)
-;; make shell in emacs load ~/.bashrc
-(setq shell-command-switch "-lc")
 (global-set-key (kbd "C-x s") 'shell)
-;; makes shell command always start a new shell
-;; eshell doesn't work for the next
+;; shell will prompt if you try to kill the buffer, but eshell will not.
+;; eshell will not use the .bashrc/.fishrc, but shell will
+;; makes shell command always start a new shell, use C-u M-x eshell to create a new eshell,
 (defadvice shell (around always-new-shell)
   "Always start a new shell."
   (let ((buffer
          (generate-new-buffer-name "*shell*")))
     ad-do-it))
+;; make shell in emacs load .bashrc/.fishrc
+(setq shell-command-switch "-lc")
 (ad-activate 'shell)
 ;; support copy&paste through different apps
 (setq x-select-enable-clipboard t)
@@ -560,7 +560,7 @@ searches all buffers."
       (delete-other-windows))))
 (global-set-key (kbd "C-x z") 'toggle-maximize-buffer)
 
-;;
+;; Try C-x 4 C-h for C-x 4 info
 ;; change the default action of C-x 2/3
 ;; switch to the new window immediately after creating
 (defun my-split-window-below ()
@@ -601,10 +601,8 @@ searches all buffers."
             (local-set-key  (kbd "C-c o") 'ff-find-other-file)))
 
 ;; alias
-;; define alias toe increase productivity
 (defalias 'man 'woman)
-;; ;; to check the whole buffer for wrong typo
-;; ;; Not better than flyspell-mode
+;; to check the whole buffer for wrong typo, no better than flyspell-mode
 (defalias 'ib 'ispell-buffer)
 (defalias 'eit 'emacs-init-time)
 
@@ -1237,11 +1235,17 @@ searches all buffers."
 		  (cons which-func
 				(cdr cell))))
 
+;; ggtags supports jump/navigation
+;; cedet supports highlighting, project, smart jump, context-sensitive completion, symbol references, code generation...
 ;; ggtags: https://github.com/leoliu/ggtags
-;; M-n/p, M-* to go back, RET to exit ggtags status'
+;; C-x d to the source dir, M-x ggtags-create-tags --> dir --> ctags(no)
+;; will create tags for source code or reference the ~/Recentchange/emacs
+;; M-n/p, M-* to go back, RET to exit ggtags status
+;; C-c M-h 'ggtags-view-tag-history, stores the places in files you visited
+;; C-c M-/ 'ggtags-view-search-history, stores the tag operations you performed
 (add-hook 'c-mode-common-hook
 		  (lambda ()
-			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
 			  (ggtags-mode 1))))
 
 
@@ -1346,10 +1350,8 @@ searches all buffers."
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
 (global-set-key (kbd "C-s") 'helm-occur)
 (global-set-key (kbd "M-x") 'helm-M-x)
-;; The default M-y was 'yank-pop
-;; helm-show-kill-ring not working any more, use 'browser-kill-ring, use M-y to cycle the yank ring
-(global-set-key (kbd "C-x y") 'browse-kill-ring)
-;; (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+;; M-y cycles the kill ring
+(global-set-key (kbd "C-x y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
@@ -1452,10 +1454,6 @@ searches all buffers."
 (add-hook 'html-mode-hook 'emmet-mode)
 (add-hook 'css-mode-hook  'emmet-mode)
 
-;; hide-comments
-(require 'hide-comnt)
-(defalias 'hc 'hide/show-comments-toggle)
-
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
 (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
@@ -1467,6 +1465,16 @@ searches all buffers."
 ;; (workgroups-mode 1)
 ;; (setq wg-default-session-file "~/.emacs.d/emacs_workgroups")
 
+;; hide-comments
+(require 'hide-comnt)
+(defalias 'hc 'hide/show-comments-toggle)
+
+;; yafolding
+;; C-S-return 'yafolding-toggle-all
+;; C-return 'yafolding-toggle-element
+(add-hook 'prog-mode-hook
+          (lambda () (yafolding-mode)))
+(require 'yafolding)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
