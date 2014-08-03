@@ -6,6 +6,12 @@
 ;; (the one between the Right-Alt and Right-Ctrl key) key
 ;; to replace M-x
 ;;
+;; http://tuhdo.github.io/emacs-tutor3.html
+;; Three ways to set a global key
+;; (global-set-key (kbd "C-x C-b") 'ibuffer) ;; recommended
+;; (global-set-key "\C-x\C-b" 'ibuffer)
+;; (global-set-key [?\C-x?\C-b] 'ibuffer)
+;;
 ;; the kbd issue
 ;; F1-f edmacro-mode
 ;; (kbd "C-<backspace>")
@@ -16,8 +22,12 @@
 ;; "\M-n"
 ;; "\C-x\ \C-r"
 ;; (kbd "SPC")
+;; (kbd "")
 ;; (kbd "C-x C-b")
 ;; (kbd "RET")
+;; (kbd "<end/home>") ; End/Home
+;; (kbd "<prior/next>") ; PageUp/Down
+;; (kbd "<backtab") ;; S-TAB or C-iso-tab
 ;; (kbd "<S-return>")
 ;; (kbd "S-C-<left>")
 ;; (kbd "C-x <up>")
@@ -277,6 +287,19 @@
   (set-buffer (find-file (concat "/sudo::" file))))
 (global-set-key (kbd "C-c C-f") 'sudo)
 
+;; clean buffer/format using C-c n
+(defun buffer-cleanup ()
+  "Clean up the buffer"
+  (interactive)
+  (delete-blank-lines)
+  (delete-trailing-whitespace)
+  (untabify (point-min) (point-max))
+  (indent-region (point-min) (point-max)))
+(global-set-key (kbd "C-c n") 'buffer-cleanup)
+;; donot use buffer-cleanup, it is too much
+;; C-c e to 'show-ws-toggle-show-trailing-whitespace
+(global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;  defun
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -344,8 +367,6 @@ buffer-local variable `show-trailing-whitespace'."
                        "enabled" "disabled"))))
 (setq-default show-trailing-whitespace nil)
 (global-set-key "\C-ce" 'show-ws-toggle-show-trailing-whitespace)
-;; delete-trailing-whitespace using C-c d
-(global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation
 ;; M-Backspace delete to the previous word 'backword-kill-word
 ;; M-\ delete kill _all_ spaces at point 'delete-horizontal-space
@@ -437,6 +458,15 @@ searches all buffers."
   nil " locked" nil
   (set-window-dedicated-p (selected-window) sticky-buffer-mode))
 (global-set-key [f11] 'sticky-buffer-mode)
+;; Generate unique buffer names if you open many files with same basename
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'forward)
+(setq uniquify-separator "/")
+;; rename after killing uniquified
+(setq uniquify-after-kill-buffer-p t)
+;; don't muck with special buffers
+(setq uniquify-ignore-buffers-re "^\\*")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; line issues
@@ -806,6 +836,7 @@ searches all buffers."
 
 ;; Code folding using built-in hs-minor-mode
 ;; F1-b to see the key binding
+;; mapc: http://tuhdo.github.io/emacs-tutor3.html
 (mapc (lambda (mode-hook) (add-hook mode-hook 'hs-minor-mode))
 	  '(c-mode-common-hook
 		java-mode-hook
@@ -1045,7 +1076,7 @@ searches all buffers."
 ;; (setq ac-auto-start nil)
 ;;
 (add-to-list 'ac-dictionary-directories
-			 "~/.emacs.d/elpa/auto-complete-20140618.2217/dict")
+			 "~/.emacs.d/elpa/auto-complete-20140726.303/dict")
 (setq ac-comphist-file (expand-file-name
 						"~/.emacs.d/ac-comphist.dat"))
 (setq ac-use-quick-help t)
@@ -1348,13 +1379,29 @@ searches all buffers."
 (helm-mode 1)
 (setq enable-recursive-minibuffers t)
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
+;; view the content of the both the local and global mark rings in a friendly interface,
+;; so you can always jump back to where you were, like the 'ggtags-view-tag-history
+(global-set-key (kbd "C-h SPC") 'helm-all-mark-rings)
+;; helm-apropos describes commands, functions, variables and faces - all in one command!
+(global-set-key (kbd "C-h a") 'helm-apropos)
+(global-set-key (kbd "<f1>-a") 'helm-apropos)
+;; in dired(you have to go to the dir first), helm-find is like find in terminal,
+;; helm-locate is like locate in terminal, to use local database with prefix argument C-u
+;; helm-for-files list buffers, recentf, bookmarks, files in current dir
+;; C-s after C-x C-f to search a file/directory on highlighted...
+;; (From within a helm-find-files session, you can invoke helm-ff-run-grep
+;; with C-s to search a file/directory on highlighted entry in the Helm buffer.
+;; With prefix argument, recursively grep a selected directory. )
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-s") 'helm-occur)
 (global-set-key (kbd "M-x") 'helm-M-x)
 ;; M-y cycles the kill ring
 (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
-(global-set-key (kbd "C-/") 'helm-imenu)
+(global-set-key (kbd "C-/") 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
+;; fix the typing too fast and emacs won't be ready problem
+(setq helm-exit-idle-delay 0)
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
@@ -1475,6 +1522,16 @@ searches all buffers."
 (add-hook 'prog-mode-hook
           (lambda () (yafolding-mode)))
 (require 'yafolding)
+
+;; projectile,
+;; it works in the dir containing GTAGS
+; https://github.com/bbatsov/projectile/
+(add-hook 'c-mode-common-hook 'projectile-on)
+;;Using Projectile everywhere(even without the presence of project file)
+(setq projectile-require-project-root nil)
+;; helm-projectile
+(global-set-key (kbd "C-c h") 'helm-projectile)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
