@@ -4,8 +4,8 @@
 
 
 ;;;### (autoloads (mc/edit-beginnings-of-lines mc/edit-ends-of-lines
-;;;;;;  mc/edit-lines) "mc-edit-lines" "mc-edit-lines.el" (21467
-;;;;;;  64782 84218 851000))
+;;;;;;  mc/edit-lines) "mc-edit-lines" "mc-edit-lines.el" (21469
+;;;;;;  37345 960053 295000))
 ;;; Generated autoloads from mc-edit-lines.el
 
 (autoload 'mc/edit-lines "mc-edit-lines" "\
@@ -44,7 +44,7 @@ Add one cursor to the beginning of each line in the active region.
 ;;;;;;  mc/mark-previous-word-like-this mc/mark-previous-like-this
 ;;;;;;  mc/mark-next-symbol-like-this mc/mark-next-word-like-this
 ;;;;;;  mc/mark-next-like-this) "mc-mark-more" "mc-mark-more.el"
-;;;;;;  (21467 64782 152217 171000))
+;;;;;;  (21469 37346 40051 265000))
 ;;; Generated autoloads from mc-mark-more.el
 
 (autoload 'mc/mark-next-like-this "mc-mark-more" "\
@@ -204,8 +204,8 @@ Mark the tag we're in and its pair for renaming.
 
 ;;;***
 
-;;;### (autoloads (mc/mark-pop) "mc-mark-pop" "mc-mark-pop.el" (21467
-;;;;;;  64782 264214 405000))
+;;;### (autoloads (mc/mark-pop) "mc-mark-pop" "mc-mark-pop.el" (21469
+;;;;;;  37346 152048 423000))
 ;;; Generated autoloads from mc-mark-pop.el
 
 (autoload 'mc/mark-pop "mc-mark-pop" "\
@@ -217,8 +217,8 @@ to the popped mark.
 ;;;***
 
 ;;;### (autoloads (mc/sort-regions mc/reverse-regions mc/insert-numbers)
-;;;;;;  "mc-separate-operations" "mc-separate-operations.el" (21467
-;;;;;;  64782 230215 245000))
+;;;;;;  "mc-separate-operations" "mc-separate-operations.el" (21469
+;;;;;;  37346 107049 565000))
 ;;; Generated autoloads from mc-separate-operations.el
 
 (autoload 'mc/insert-numbers "mc-separate-operations" "\
@@ -239,7 +239,7 @@ Insert increasing numbers for each cursor, starting at 0 or ARG.
 ;;;***
 
 ;;;### (autoloads (set-rectangular-region-anchor) "rectangular-region-mode"
-;;;;;;  "rectangular-region-mode.el" (21467 64781 954222 62000))
+;;;;;;  "rectangular-region-mode.el" (21469 37345 828056 645000))
 ;;; Generated autoloads from rectangular-region-mode.el
 
 (autoload 'set-rectangular-region-anchor "rectangular-region-mode" "\
@@ -253,8 +253,8 @@ an exceedingly quick way of adding multiple cursors to multiple lines.
 ;;;***
 
 ;;;### (autoloads nil nil ("mc-cycle-cursors.el" "multiple-cursors-core.el"
-;;;;;;  "multiple-cursors-pkg.el" "multiple-cursors.el") (21467 64782
-;;;;;;  298324 331000))
+;;;;;;  "multiple-cursors-pkg.el" "multiple-cursors.el") (21469 37346
+;;;;;;  212924 365000))
 
 ;;;***
 
