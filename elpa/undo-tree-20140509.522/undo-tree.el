@@ -874,7 +874,7 @@
   "Tree undo/redo."
   :group 'undo)
 
-(defcustom undo-tree-mode-lighter " ut"
+(defcustom undo-tree-mode-lighter " Undo-Tree"
   "Lighter displayed in mode line
 when `undo-tree-mode' is enabled."
   :group 'undo-tree
