@@ -2,7 +2,12 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-(("elpa"
+(("helm"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;; https://gith")
+ (rear-context-string . "ontrib\n\n\n;; helm")
+ (position . 52355))
+("elpa"
  (filename . "~/.emacs")
  (front-context-string . "elpa, marmelade ")
  (rear-context-string . " packages from  ")
