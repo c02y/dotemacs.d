@@ -43,6 +43,7 @@
 ;;
 ;; shortcuts summary:
 ;; C-h e switch to buffer *Message*
+;; C-h m 'describe-mode show all active modes and brief description
 ;; C-v to next page
 ;; C-x C-x remakr the region
 ;; M-v to previous page
@@ -60,9 +61,6 @@
 ;; C-x C-r to 'recentf-open-files
 ;; C-k to 'kill-line to the end of the line
 ;; M-k to 'kill-line to the beginning of the line
-;; C-x <up> to 'previous-multiframe-window
-;; C-x <down> to 'next-multiframe-window
-;; C-x C-b to 'ibuffer-other-window
 ;; C-x b to switch buffers in minibuffer
 ;; S-C-<left> to 'shrink-window-horizontally
 ;; S-C-<right> to 'enlarge-window-horizontally
@@ -74,11 +72,6 @@
 ;; C-x C-j to 'dired-jump
 ;; C-c y to 'yas-reload-all
 ;; C-c a to 'align-regexp, set it not working
-;; C-M-S to 'findr
-;; C-M-s to 'findr-search
-;; C-M-r to 'findr-query-replace
-;; C-x C-<left> 'previous-buffer
-;; C-x C-<right> 'next-buffer
 ;; C-M-n/p Move forward/backward over a parenthetical group
 ;; C-M-u/d Move up/down in parenthesis structure
 ;; M-$ -> i -> y to insert the string into personal dictionary
@@ -168,6 +161,8 @@
 (add-hook 'text-mode-hook 'auto-fill-mode)
 (global-linum-mode 1)
 (setq column-number-mode t)
+;; file size in mode line
+(setq size-indication-mode t)
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
@@ -209,6 +204,11 @@
 ;;
 ;; font and size of startup
 ;;
+;; (setq default-frame-alist '((font . "Menlo-12")))
+;; set italic font for italic face, since Emacs does not set italic face automatically
+;; (set-face-attribute 'italic nil
+;;                    :family "Menlo-Italic")
+;;
 ;; set the default window size at startup according to the resolutions
 ;; (setq default-frame-alist '((height . 37) (width . 80)))
 (defun set-frame-size-according-to-resolution ()
@@ -224,14 +224,19 @@
             (setq default-frame-alist
                   '((top . 0)(left . 0)
                     (width . 85)(height . 48)
-                    (font . "Menlo-13")));; Monaco, Consolas
+                    (font . "Menlo-13")
+                    (:family "Menlo-Italic")));; Monaco, Consolas
 
           (setq default-frame-alist
                 '((top . 0)(left . 0)
                   (width . 85)(height . 38)
                   (font . "Menlo-12")
+                  (:family "Menlo-Italic")
                   )))
         )))
+;;(set-face-attribute 'italic nil
+;;                    :family "Menlo-Italic")
+;;
 ;; (if (> (x-display-pixel-height) 1000)
 ;;        (add-to-list 'default-frame-alist (cons 'height 48))
 ;;        (add-to-list 'default-frame-alist (cons 'height 37)))
@@ -291,12 +296,14 @@
 (defun buffer-cleanup ()
   "Clean up the buffer"
   (interactive)
+  ;; the useless blanks lines at the end of the file
   (delete-blank-lines)
   (delete-trailing-whitespace)
   (untabify (point-min) (point-max))
+  ;; will cause format problem
   (indent-region (point-min) (point-max)))
-(global-set-key (kbd "C-c n") 'buffer-cleanup)
-;; donot use buffer-cleanup, it is too much
+;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
+;; do not use buffer-cleanup, it is too much
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
 
@@ -414,6 +421,7 @@ buffer-local variable `show-trailing-whitespace'."
     (select-window (active-minibuffer-window))))
 (global-set-key (kbd "<f7>") 'switch-to-minibuffer-window)
 (global-set-key (kbd "C-c b") 'ibuffer)
+(setq ibuffer-use-other-window t)
 ;; improve the profermance of the minibuffer
 (setq echo-keystrokes 0.001)
 ;; use minibuffer recursively, don't know what does it mean
@@ -611,10 +619,15 @@ searches all buffers."
 (global-set-key (kbd "C-x <up>") 'windmove-up)
 (global-set-key (kbd "C-x <down>") 'windmove-down)
 
-(setq recentf-max-saved-items 100)
+;; save recent files
+(setq recentf-save-file (concat user-emacs-directory "recentf")
+      recentf-max-saved-items 100
+      recentf-max-menu-items 15)
+(recentf-mode t)
+
 ;;
 ;; revert buffer without confirmation
-;; (global-auto-revert-mode 1)
+(global-auto-revert-mode 1)
 (defun rev()
   (interactive)
   (revert-buffer nil t))
@@ -834,15 +847,6 @@ searches all buffers."
 (require 'cperl-mode)
 (define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
 
-;; Code folding using built-in hs-minor-mode
-;; F1-b to see the key binding
-;; mapc: http://tuhdo.github.io/emacs-tutor3.html
-(mapc (lambda (mode-hook) (add-hook mode-hook 'hs-minor-mode))
-	  '(c-mode-common-hook
-		java-mode-hook
-		python-mode-hook
-		emacs-lisp-mode-hook
-		lisp-mode-hook))
 ;; ediff split horizontal, default is vertically
 (setq ediff-split-window-function 'split-window-horizontally)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
@@ -1076,7 +1080,7 @@ searches all buffers."
 ;; (setq ac-auto-start nil)
 ;;
 (add-to-list 'ac-dictionary-directories
-			 "~/.emacs.d/elpa/auto-complete-20140726.303/dict")
+			 "~/.emacs.d/elpa/auto-complete-20140803.2118/dict")
 (setq ac-comphist-file (expand-file-name
 						"~/.emacs.d/ac-comphist.dat"))
 (setq ac-use-quick-help t)
@@ -1151,26 +1155,11 @@ searches all buffers."
 (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
 (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
 
-
-;; ;; tabbar for tabs
-;; (require 'tabbar)
-;; (setq tabbar-buffer-groups-function
-;;		 (lambda ()
-;;		   (list "All")))
-;; ;; uncomment the next line to default showing the tabbar
-;; ;;(tabbar-mode)
-;; ;; when tabbar-mode is enabled, use the following shortkeys
-;; ;; You can also use C-c C-<left>/<right> do the tricks
-;; (define-key tabbar-mode-map	(kbd "C-S-<iso-lefttab>") 'tabbar-backward)
-;; (define-key tabbar-mode-map (kbd "C-<tab>") 'tabbar-forward)
-
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
 ;; comment out the lines of undo-tree.el because of two sets for them
 ;; (define-key map (kbd "C-/") 'undo-tree-undo)
 ;; (define-key map (kbd "C-?") 'undo-tree-redo)
-;; change the (defcustom undo-tree-mode-lighter " Undo-Tree"
-;; the " Undo-Tree" into " ut", shorter
 (require 'undo-tree)
 ;; replace the standard undo system
 (global-undo-tree-mode)
@@ -1375,33 +1364,75 @@ searches all buffers."
 ;; Find Files or url: ~/ el$
 ;;	Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
+;; M-<prior>/<next> 'helm-scroll-other-window/-down
+;; 'helm-info-gnu/emacs/...
+;; in Helm session,
+;; use 'C-c ?' to get help(C-c to go back)
+;; M-n to yank the symbol at point into the minibuffer
 (require 'helm-config)
+(require 'helm-files)
+;; make TAB to complete the existence 
+(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 (helm-mode 1)
 (setq enable-recursive-minibuffers t)
-(global-set-key (kbd "C-x C-r") 'helm-recentf)
 ;; view the content of the both the local and global mark rings in a friendly interface,
-;; so you can always jump back to where you were, like the 'ggtags-view-tag-history
-(global-set-key (kbd "C-h SPC") 'helm-all-mark-rings)
+;; use C-h SPC to jump back to where you were, like the 'ggtags-view-tag-history
+(global-set-key (kbd "C-h C-SPC") 'helm-all-mark-rings)
 ;; helm-apropos describes commands, functions, variables and faces - all in one command!
-(global-set-key (kbd "C-h a") 'helm-apropos)
-(global-set-key (kbd "<f1>-a") 'helm-apropos)
+(global-set-key (kbd "C-h o") 'helm-apropos)
+(global-set-key (kbd "<f1>-o") 'helm-apropos)
 ;; in dired(you have to go to the dir first), helm-find is like find in terminal,
 ;; helm-locate is like locate in terminal, to use local database with prefix argument C-u
-;; helm-for-files list buffers, recentf, bookmarks, files in current dir
-;; C-s after C-x C-f to search a file/directory on highlighted...
-;; (From within a helm-find-files session, you can invoke helm-ff-run-grep
-;; with C-s to search a file/directory on highlighted entry in the Helm buffer.
+;;
+;; helm-for-files
+;; list buffers, recentf, bookmarks, files in current dir and even in *locate* after typing
+;; but it won't create a new file/buffer/bookmark if it doesn't exist in emacs/disk
+(global-set-key (kbd "C-x C-a") 'helm-for-files)
+;;
+;; helm-mini is like helm-for-files(buffers and recentf only) = helm-buffers-list + helm-recentf
+;; but will create a new if a buffer(only buffer) doesn't exit
+;; use C/M-v or left/right to change part(buffers/recentf/create), up/down only work in one part
+;; use C-x C-f to create a new file C-x b to create a new buffer
+;; in helm-mini, *c/l to filter the c/l mode files(c/h), *c/l! show all the other but c/l
+;; /.emacs to filter only the files/buffers in .emacs.., !/.emacs show them not in .emacs...
+;; @elpa filter only the buffers contain the string 'elpa', then C-s to go to the positions
+;; in the buffer selected, maybe C-SPC to mark multi-files first, C-u C-s work on the current buffer
+;; you can combine the above cases, such as: *lisp, *c/l ^helm @helm-find-files(more than one mode using , to seperate)
+(global-set-key (kbd "C-x b") 'helm-mini)
+;; (global-set-key (kbd "C-x b") 'helm-buffers-list)
+(global-set-key (kbd "C-x C-r") 'helm-recentf)
+;; 
+;; C-s(helm-ff-run-grep) after C-x C-f to search a file/directory on highlighted...,
 ;; With prefix argument, recursively grep a selected directory. )
+;; In sessions such as helm-find-files or helm-mini, you can use C-SPC to
+;; select more than one candidates and execute actions on them, such as grep or open.
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-s") 'helm-occur)
 (global-set-key (kbd "M-x") 'helm-M-x)
 ;; M-y cycles the kill ring
 (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-/") 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
-;; fix the typing too fast and emacs won't be ready problem
-(setq helm-exit-idle-delay 0)
+(setq
+ helm-quick-update t	 ; do not display invisible candidates
+; fix the typing too fast and emacs won't be ready problem
+ helm-exit-idle-delay 0
+ helm-idle-delay 0.01	 ; be idle for this many seconds, before updating in delayed sources.
+ helm-input-idle-delay 0.01 ; be idle for this many seconds, before updating candidate buffer
+ helm-split-window-default-side 'other ; open helm buffer in another window
+ helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
+ helm-buffers-favorite-modes (append helm-buffers-favorite-modes
+                                     '(picture-mode artist-mode))
+; do not show these files in helm buffer
+ helm-boring-file-regexp-list
+ '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$") 
+; move to end or beginning of source when reaching top or bottom of source.
+ helm-move-to-line-cycle-in-source t 
+; fuzzy matching buffer names when non--nil, useful in helm-mini that lists buffers
+ helm-buffers-fuzzy-matching t 
+ )
+;; Save current position to mark ring when jumping to a different place
+(add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
@@ -1438,13 +1469,6 @@ searches all buffers."
 (require 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
-;; smartscan
-;; M-n and M-p move between symbols and type M-' to replace all symbols in the buffer
-;; matching the one under point, and C-u M-' to replace symbols in your current defun
-;; only (as used by narrow-to-defun.)
-(require 'smartscan)
-(global-smartscan-mode 1)
-
 ;; magit
 ;;
 ;; git-commit-mode required by magit
@@ -1457,6 +1481,7 @@ searches all buffers."
 (global-set-key (kbd "C-c m") 'magit-status)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
+;; mapc: http://tuhdo.github.io/emacs-tutor3.html
 (eval-after-load "magit"
   '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
 		 '("~/.emacs.d"
@@ -1464,17 +1489,6 @@ searches all buffers."
 		   )))
 ;; open link file such as .emacs to open just the link not the original file
 (setq vc-follow-symlinks 'nil)
-
-;; manage-minor-mode
-(setq manage-minor-mode-default
-	  '((global
-		 (on   rainbow-mode)
-		 (off  line-number-mode))
-		(emacs-lisp-mode
-		 (on   rainbow-delimiters-mode eldoc-mode show-paren-mode))
-		(js2-mode
-		 (on   color-identifiers-mode)
-		 (off  flycheck-mode))))
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
@@ -1523,15 +1537,46 @@ searches all buffers."
           (lambda () (yafolding-mode)))
 (require 'yafolding)
 
-;; projectile,
-;; it works in the dir containing GTAGS
-; https://github.com/bbatsov/projectile/
-(add-hook 'c-mode-common-hook 'projectile-on)
-;;Using Projectile everywhere(even without the presence of project file)
-(setq projectile-require-project-root nil)
-;; helm-projectile
-(global-set-key (kbd "C-c h") 'helm-projectile)
+;; highlight-symbol
+(require 'highlight-symbol)
+(highlight-symbol-nav-mode)
+(add-hook 'prog-mode-hook (lambda () (highlight-symbol-mode)))
+(add-hook 'org-mode-hook (lambda () (highlight-symbol-mode)))
+;; enable highlighting symbol at point automatically
+(setq highlight-symbol-on-navigation-p t)
+(global-set-key [(control shift mouse-1)]
+                (lambda (event)
+                  (interactive "e")
+                  (goto-char (posn-point (event-start event)))
+                  (highlight-symbol-at-point)))
+(global-set-key (kbd "M-n") 'highlight-symbol-next)
+(global-set-key (kbd "M-p") 'highlight-symbol-prev)
+(global-set-key (kbd "M-'") 'highlight-symbol-query-replace)
 
+;; makey required by discover-my-major
+
+;; discover-my-major -- Discover key bindings and meaning for the current Emacs major mode
+;; C-h C-m or C-h RET 'discover-my-major
+(global-set-key (kbd "C-h C-m") 'discover-my-major)
+
+;; diminish
+(require 'diminish)
+;; the diminish should be put at the end of .emacs so that any minor modes will
+;; already have been loaded by the time
+;; name is not the the in mode-line mode-line is just indicator,
+;; the true name to fill in the func
+(diminish 'helm-mode)
+;;(diminish 'Emacs-Lisp "elsp")
+;;(diminish 'eldoc-mode)
+(diminish 'undo-tree-mode)
+(diminish 'yas-minor-mode)
+(diminish 'auto-complete-mode)
+(diminish 'highlight-symbol-mode)
+(diminish 'magit-auto-revert-mode)
+(diminish 'emmet-mode)
+(diminish 'cwarn-mode)
+(diminish 'flyspell-mode)
+(diminish 'abbrev-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
