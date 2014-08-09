@@ -182,6 +182,15 @@
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
+;; the following two lines will make the pointer look better
+(global-hl-line-mode)
+(set-default 'cursor-type 'bar)
+
+;; displays the argument list for current func, work for all languages
+(turn-on-eldoc-mode)
+(add-hook 'prog-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'python-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
@@ -497,7 +506,7 @@ searches all buffers."
 ;; M-k kills to the left, C-k kill to the right
 ;; the default M-k is 'kill-sentence delete to the end of the sentence
 ;; C-x Backspace delete to the beginning of the sentence
-(global-set-key "\M-k" '(lambda () (interactive) (kill-line 0)) )
+(global-set-key (kbd "M-k") '(lambda () (interactive) (kill-line 0)) )
 ;; C-k kill the whole single line including \n
 (setq-default kill-whole-line t)
 
@@ -658,7 +667,9 @@ searches all buffers."
 (global-set-key (kbd "C-?") 'ispell-complete-word)
 ;; autoload flyspell-mode/flyspell-buffer
 (add-hook 'prog-mode-hook 'flyspell-mode)
+(add-hook 'python-mode-hook 'flyspell-mode)
 (add-hook 'org-mode-hook 'flyspell-mode)
+(add-hook 'ielm-mode-hook 'flyspell-mode)
 (add-hook 'markdown-mode 'flyspell-mode)
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -814,6 +825,8 @@ searches all buffers."
   ;; (local-set-key (kbd "`") 'skeleton-pair-insert-maybe)
   )
 (add-hook 'prog-mode-hook 'my-mode-auto-pair)
+(add-hook 'python-mode-hook 'my-mode-auto-pair)
+(add-hook 'ielm-mode-hook 'my-mode-auto-pair)
 (add-hook 'org-mode-hook 'my-mode-auto-pair)
 ;;
 ;; automatically insert new line with } and indent when typing {
@@ -846,6 +859,35 @@ searches all buffers."
 ;; Emacs will know cperl-mode-map only if the cperl-mode will be loaded
 (require 'cperl-mode)
 (define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
+
+;; toggle two windows between vertically and horizontally
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd
+              (not (and (<= (car this-win-edges)
+                            (car next-win-edges))
+                        (<= (cadr this-win-edges)
+                            (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+;; C-x 4 t 'toggle-window-split
+(define-key ctl-x-4-map "t" 'toggle-window-split)
 
 ;; ediff split horizontal, default is vertically
 (setq ediff-split-window-function 'split-window-horizontally)
@@ -1150,10 +1192,6 @@ searches all buffers."
 ;; c-eldoc
 ;; (setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../")
 (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
-;; eldoc for elisp
-(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
-(add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
-(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
 
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
@@ -1371,7 +1409,7 @@ searches all buffers."
 ;; M-n to yank the symbol at point into the minibuffer
 (require 'helm-config)
 (require 'helm-files)
-;; make TAB to complete the existence 
+;; make TAB to complete the existence
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 (helm-mode 1)
 (setq enable-recursive-minibuffers t)
@@ -1401,11 +1439,12 @@ searches all buffers."
 (global-set-key (kbd "C-x b") 'helm-mini)
 ;; (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
-;; 
+;;
 ;; C-s(helm-ff-run-grep) after C-x C-f to search a file/directory on highlighted...,
 ;; With prefix argument, recursively grep a selected directory. )
 ;; In sessions such as helm-find-files or helm-mini, you can use C-SPC to
 ;; select more than one candidates and execute actions on them, such as grep or open.
+;; helm-find-files will prompt y/n if the file doesn't exist, find-file won't
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-s") 'helm-occur)
 (global-set-key (kbd "M-x") 'helm-M-x)
@@ -1425,11 +1464,11 @@ searches all buffers."
                                      '(picture-mode artist-mode))
 ; do not show these files in helm buffer
  helm-boring-file-regexp-list
- '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$") 
+ '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$")
 ; move to end or beginning of source when reaching top or bottom of source.
- helm-move-to-line-cycle-in-source t 
+ helm-move-to-line-cycle-in-source t
 ; fuzzy matching buffer names when non--nil, useful in helm-mini that lists buffers
- helm-buffers-fuzzy-matching t 
+ helm-buffers-fuzzy-matching t
  )
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
@@ -1492,6 +1531,7 @@ searches all buffers."
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
+(add-hook 'python-mode-hook 'highlight-blocks-mode)
 
 ;; ;; evil, use C-z to switch between vim/Emacs
 ;; (setq evil-search-module 'evil-search
@@ -1533,15 +1573,17 @@ searches all buffers."
 ;; yafolding
 ;; C-S-return 'yafolding-toggle-all
 ;; C-return 'yafolding-toggle-element
-(add-hook 'prog-mode-hook
-          (lambda () (yafolding-mode)))
 (require 'yafolding)
+(add-hook 'python-mode-hook 'yafolding-mode)
+(add-hook 'prog-mode-hook 'yafolding-mode)
 
 ;; highlight-symbol
 (require 'highlight-symbol)
 (highlight-symbol-nav-mode)
-(add-hook 'prog-mode-hook (lambda () (highlight-symbol-mode)))
-(add-hook 'org-mode-hook (lambda () (highlight-symbol-mode)))
+(add-hook 'prog-mode-hook 'highlight-symbol-mode)
+(add-hook 'python-mode-hook 'highlight-symbol-mode)
+(add-hook 'org-mode-hook 'highlight-symbol-mode)
+(add-hook 'ielm-mode-hook 'highlight-symbol-mode)
 ;; enable highlighting symbol at point automatically
 (setq highlight-symbol-on-navigation-p t)
 (global-set-key [(control shift mouse-1)]
