@@ -1512,19 +1512,21 @@ searches all buffers."
 ;;
 ;; git-commit-mode required by magit
 ;; git-rebase-mode required by magit
-;; magit
-(eval-after-load 'info
-  '(progn (info-initialize)
-		  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
-(require 'magit)
-(global-set-key (kbd "C-c m") 'magit-status)
+;; (eval-after-load 'info
+;;   '(progn (info-initialize)
+;; 		  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
+;; (require 'magit)
+(autoload 'magit "magit: git for Emacs" t)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
 ;; mapc: http://tuhdo.github.io/emacs-tutor3.html
+;; use C-u C-c m to ask which repo to choose, C-c m to the current dir
+(global-set-key (kbd "C-c m") 'magit-status)
 (eval-after-load "magit"
   '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
-		 '("~/.emacs.d"
-		   ;; "~/dev/repo_b"
+		 '(
+           "~/.emacs.d"
+		   "~/.vim"
 		   )))
 ;; open link file such as .emacs to open just the link not the original file
 (setq vc-follow-symlinks 'nil)
@@ -1614,7 +1616,7 @@ searches all buffers."
 (diminish 'yas-minor-mode)
 (diminish 'auto-complete-mode)
 (diminish 'highlight-symbol-mode)
-(diminish 'magit-auto-revert-mode)
+;;(diminish 'magit-auto-revert-mode)
 (diminish 'emmet-mode)
 (diminish 'cwarn-mode)
 (diminish 'flyspell-mode)
