@@ -42,6 +42,8 @@
 ;; C-h b to show all the shortkeys
 ;;
 ;; shortcuts summary:
+;; M-x check-parens to quickly check for mismatched parentheses
+;; M-x info-apropos to search all info manuals
 ;; C-h e switch to buffer *Message*
 ;; C-h m 'describe-mode show all active modes and brief description
 ;; C-v to next page
@@ -326,20 +328,6 @@
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
 
-;; move line up
-(defun move-line-up ()
-  (interactive)
-  (transpose-lines 1)
-  (previous-line 2))
-;; move line down
-(defun move-line-down ()
-  (interactive)
-  (next-line 1)
-  (transpose-lines 1)
-  (previous-line 1))
-(global-set-key [(meta up)] 'move-line-up)
-(global-set-key [(meta down)] 'move-line-down)
-
 ;; Removing duplicated lines
 ;; Note that the last line should contain the EOF
 (defun delete-duplicated-lines (beg end)
@@ -368,7 +356,7 @@ BEG and END (region to sort)."
   (interactive)
   (set-buffer-file-coding-system 'unix 't))
 
-;; Display trailing whitespace at en of lines
+;; Display trailing whitespace at end of lines
 (defun toggle-trailing-whitespace-display ()
   "Toggle the display of trailing whitespace, by changing the
 buffer-local variable `show-trailing-whitespace'."
@@ -381,7 +369,6 @@ buffer-local variable `show-trailing-whitespace'."
   (message (concat "Display of EOL spaces "
                    (if show-trailing-whitespace
                        "enabled" "disabled"))))
-(setq-default show-trailing-whitespace nil)
 (global-set-key "\C-ce" 'show-ws-toggle-show-trailing-whitespace)
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation
 ;; M-Backspace delete to the previous word 'backword-kill-word
@@ -1284,6 +1271,8 @@ searches all buffers."
 ;;			   (local-set-key (kbd "C-c s m") 'gtags-make-complete-list)
 ;;			   ))
 (which-function-mode 1)
+;; replace ??? to n/a
+(setq which-func-unknown "n/a")
 ;; repalce the 8 with other number to change the position
 (let ((which-func '(which-func-mode ("" which-func-format " "))))
   (setq-default mode-line-format (remove which-func mode-line-format))
@@ -1339,7 +1328,7 @@ searches all buffers."
 (define-key org-mode-map (kbd "C-c c") 'org-capture)
 ;; show/unshow the descriptive and literal links, disable 'org*task
 ;; because it takes the C-c C-x t key after updates after a while
-;; (setq org-inlinetask-insert-task nil)
+(setq org-inlinetask-insert-task nil)
 (define-key org-mode-map (kbd "C-c C-x t") 'org-toggle-link-display)
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
@@ -1412,7 +1401,6 @@ searches all buffers."
 ;; make TAB to complete the existence
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 (helm-mode 1)
-(setq enable-recursive-minibuffers t)
 ;; view the content of the both the local and global mark rings in a friendly interface,
 ;; use C-h SPC to jump back to where you were, like the 'ggtags-view-tag-history
 (global-set-key (kbd "C-h C-SPC") 'helm-all-mark-rings)
@@ -1603,24 +1591,11 @@ searches all buffers."
 ;; C-h C-m or C-h RET 'discover-my-major
 (global-set-key (kbd "C-h C-m") 'discover-my-major)
 
-;; diminish
-(require 'diminish)
-;; the diminish should be put at the end of .emacs so that any minor modes will
-;; already have been loaded by the time
-;; name is not the the in mode-line mode-line is just indicator,
-;; the true name to fill in the func
-(diminish 'helm-mode)
-;;(diminish 'Emacs-Lisp "elsp")
-;;(diminish 'eldoc-mode)
-(diminish 'undo-tree-mode)
-(diminish 'yas-minor-mode)
-(diminish 'auto-complete-mode)
-(diminish 'highlight-symbol-mode)
-;;(diminish 'magit-auto-revert-mode)
-(diminish 'emmet-mode)
-(diminish 'cwarn-mode)
-(diminish 'flyspell-mode)
-(diminish 'abbrev-mode)
+;; drag-stuff
+;; word(s), line(s), region, C-<l/r/u/d> to move select if (s)
+;; change "(defvar drag-stuff-modifier 'meta" in drag-stuff.el into 'control, 
+(require 'drag-stuff)
+(drag-stuff-global-mode t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
@@ -1642,3 +1617,23 @@ searches all buffers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;	the plugin installed by el-get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; diminish
+(require 'diminish)
+;; the diminish should be put at the end of .emacs so that any minor modes will
+;; already have been loaded by the time
+;; name is not the the in mode-line mode-line is just indicator,
+;; the true name to fill in the func
+(diminish 'helm-mode)
+;;(diminish 'Emacs-Lisp "elsp")
+;;(diminish 'eldoc-mode)
+(diminish 'undo-tree-mode)
+(diminish 'yas-minor-mode)
+(diminish 'auto-complete-mode)
+(diminish 'highlight-symbol-mode)
+;;(diminish 'magit-auto-revert-mode)
+(diminish 'emmet-mode)
+(diminish 'cwarn-mode)
+(diminish 'flyspell-mode)
+(diminish 'abbrev-mode)
+(diminish 'drag-stuff-mode)
