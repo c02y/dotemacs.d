@@ -641,77 +641,7 @@ searches all buffers."
 
 ;; alias
 (defalias 'man 'woman)
-;; to check the whole buffer for wrong typo, no better than flyspell-mode
-(defalias 'ib 'ispell-buffer)
 (defalias 'eit 'emacs-init-time)
-
-;; C-$ 'spell-word
-;; C-S-/(C-?) is used in undo-tree plugin by default
-;; But the author set two different keys for 'undo-tree-redo/undo
-;; I only use M-_, comment out the two lines of file undo-tree.el
-;; (define-key map (kbd "C-/") 'undo-tree-undo)
-;; (define-key map (kbd "C-?") 'undo-tree-redo)
-(global-set-key (kbd "C-?") 'ispell-complete-word)
-;; autoload flyspell-mode/flyspell-buffer
-(add-hook 'prog-mode-hook 'flyspell-mode)
-(add-hook 'python-mode-hook 'flyspell-mode)
-(add-hook 'org-mode-hook 'flyspell-mode)
-(add-hook 'ielm-mode-hook 'flyspell-mode)
-(add-hook 'markdown-mode 'flyspell-mode)
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ;;
-;; ;; spell check set up for programmers, more:
-;; ;;
-;; ;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
-;; ;; http://blog.binchen.org/posts/effective-spell-check-in-emacs.html
-;; ;;
-;; ;; if (aspell installed) { use aspell}
-;; ;; else if (hunspell installed) { use hunspell }
-;; ;; whatever spell checker I use, I always use English dictionary
-;; ;; I prefer use aspell because:
-;; ;; 1. aspell is older
-;; ;; 2. looks Kevin Atkinson still get some road map for aspell:
-;; ;; @see http://lists.gnu.org/archive/html/aspell-announce/2011-09/msg00000.html
-;; (defun flyspell-detect-ispell-args (&optional RUN-TOGETHER)
-;;   "if RUN-TOGETHER is true, spell check the CamelCase words"
-;;   (let (args)
-;;     (cond
-;;      ((string-match  "aspell$" ispell-program-name)
-;;       ;; force the English dictionary, support Camel Case spelling check (tested with aspell 0.6)
-;;       (setq args (list "--sug-mode=ultra" "--lang=en_US"))
-;;       (if RUN-TOGETHER
-;;           (setq args (append args '("--run-together" "--run-together-limit=5" "--run-together-min=2")))))
-;;      ((string-match "hunspell$" ispell-program-name)
-;;       (setq args nil)))
-;;     args
-;;     ))
-
-;; (cond
-;;  ((executable-find "aspell")
-;;   (setq ispell-program-name "aspell"))
-;;  ((executable-find "hunspell")
-;;   (setq ispell-program-name "hunspell")
-;;   ;; just reset dictionary to the safe one "en_US" for hunspell.
-;;   ;; if we need use different dictionary, we specify it in command line arguments
-;;   (setq ispell-local-dictionary "en_US")
-;;   (setq ispell-local-dictionary-alist
-;;         '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil nil nil utf-8))))
-;;  (t (setq ispell-program-name nil)))
-
-;; ;; ispell-cmd-args is useless, it's the list of *extra* arguments we will append to the ispell process when "ispell-word" is called.
-;; ;; ispell-extra-args is the command arguments which will *always* be used when start ispell process
-;; (setq ispell-extra-args (flyspell-detect-ispell-args t))
-;; ;; (setq ispell-cmd-args (flyspell-detect-ispell-args))
-;; (defadvice ispell-word (around my-ispell-word activate)
-;;   (let ((old-ispell-extra-args ispell-extra-args))
-;;     (ispell-kill-ispell t)
-;;     (setq ispell-extra-args (flyspell-detect-ispell-args))
-;;     ad-do-it
-;;     (setq ispell-extra-args old-ispell-extra-args)
-;;     (ispell-kill-ispell t)
-;;     ))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Saveplace & desktop
 (setq-default save-place t)
@@ -724,6 +654,50 @@ searches all buffers."
 
 ;; show the possible errors in C/C++ source codes(cwarn mode)
 (global-cwarn-mode 1)
+
+;; spell check
+(require 'ispell)
+(defalias 'ib 'ispell-buffer)
+;; spell check engine
+(when (executable-find "hunspell")
+  (setq-default ispell-program-name "hunspell")
+  (setq ispell-really-hunspell t))
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'org-mode-hook 'flyspell-mode)
+;; flyspell-prog-mode is to spell check in the comments and string constants
+(dolist (mode '(prog-mode-hook
+                emacs-lisp-mode-hook
+                python-mode-hook
+                ielm-mode-hook))
+  (add-hook mode
+            '(lambda ()
+               (flyspell-prog-mode))))
+;; click the left button to show the correct words list
+(eval-after-load "flyspell"
+    '(progn
+       (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
+       ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
+       ))
+;; or use the M-f8 to check from the beginning and correct
+(defun flyspell-check-next-highlighted-word ()
+  "Custom function to spell check next highlighted word"
+  (interactive)
+  (flyspell-goto-next-error)
+  (ispell-word))
+(global-set-key (kbd "M-<f8>") 'flyspell-check-next-highlighted-word)
+;;
+(add-hook 'ispell-initialize-spellchecker-hook
+          (lambda ()
+            (setq ispell-base-dicts-override-alist
+                  '((nil ; default
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
+                    ("american" ; Yankee English
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
+                    ("british" ; British English
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Tab & indent
