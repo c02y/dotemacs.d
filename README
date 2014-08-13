@@ -1,25 +1,17 @@
 * This is the .el files for my Emacs.
 
-* el-get:
-  - packages installed from el-get, used to use, but it always fucked
-    itself up, already moved all the packages to elpa, so nothing yet
-
 * elpa:
-  - packages installed from elpa, mainly use
-
-* plugin:
-  - packages that are only one .el file, not using anything in it yet
+  - packages installed from packages
 
 * snippets:
-  - snippets for yasnippet, revision of the official, use this version only
+  - snippets for yasnippet, revision of the official, use this instead
+    of yasnippet/snippets
 
-* emacs:
-  - emacs file, link for ~/.emacs 
+* init.el:
+  - link for ~/.emacs
 
 * hunspell_en_US:
-  - personal dictionary from ispell
+  - personal dictionary from ispell/hunspell
 
 * bookmarks
-  - file bookmarks
-
-* ido.last
+  - file bookmarks, mostly inside init.el file
