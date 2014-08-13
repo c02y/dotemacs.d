@@ -71,7 +71,7 @@
 (defvar drag-stuff-except-modes ()
   "A list of modes in which `drag-stuff-mode' should not be activated.")
 
-(defvar drag-stuff-modifier 'control
+(defvar drag-stuff-modifier 'meta
   "Modifier key(s) for bindings in `drag-stuff-mode-map'.")
 
 (defvar drag-stuff-mode-map (make-sparse-keymap)
