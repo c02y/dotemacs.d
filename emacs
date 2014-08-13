@@ -1518,6 +1518,8 @@ searches all buffers."
 		   )))
 ;; open link file such as .emacs to open just the link not the original file
 (setq vc-follow-symlinks 'nil)
+(set-default 'magit-stage-all-confirm nil)
+(set-default 'magit-unstage-all-confirm nil)
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
@@ -1592,8 +1594,7 @@ searches all buffers."
 (global-set-key (kbd "C-h C-m") 'discover-my-major)
 
 ;; drag-stuff
-;; word(s), line(s), region, C-<l/r/u/d> to move select if (s)
-;; change "(defvar drag-stuff-modifier 'meta" in drag-stuff.el into 'control, 
+;; word(s), line(s), region, M-<l/r/u/d> to move select if (s)
 (require 'drag-stuff)
 (drag-stuff-global-mode t)
 
