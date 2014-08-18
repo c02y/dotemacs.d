@@ -1350,6 +1350,10 @@ searches all buffers."
 	(org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 (setq org-src-fontify-natively t)
+;; get rid of small straight arrow in the fringe in org-mode if the
+;; line is two long and make it continued onto multiple screen lines
+;; M-x toggle-truncate-lines to toggle the status
+(add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
 
@@ -1568,9 +1572,22 @@ searches all buffers."
 (global-set-key (kbd "C-h C-m") 'discover-my-major)
 
 ;; drag-stuff
-;; word(s), line(s), region, M-<l/r/u/d> to move select if (s)
+;; word(s), line(s), region, M-<left/right/up/down> to move select if (s)
 (require 'drag-stuff)
-(drag-stuff-global-mode t)
+(dolist (mode '(prog-mode-hook
+                emacs-lisp-mode-hook
+                python-mode-hook
+                ielm-mode-hook
+                text-mode-hook))
+  (add-hook mode
+            '(lambda ()
+               (drag-stuff-mode))))
+;; disable drag-stuff-mode in org-mode because of the M-... in it
+;; don't use remove-hook, it doesn't work here
+(add-hook 'org-mode-hook
+		  (lambda() (set
+					 (make-local-variable 'drag-stuff-mode) nil)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
