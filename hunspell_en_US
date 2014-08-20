@@ -190,3 +190,10 @@ commandline
 ENOENT
 perror
 jedi
+stdout
+getc
+putc
+fgetc
+fputc
+fputs
+fprintf
