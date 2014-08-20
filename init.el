@@ -160,6 +160,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (setq bookmark-save-flag t)
+;; Make Text mode the default mode for new buffers.
+(setq-default major-mode 'text-mode)
 (add-hook 'text-mode-hook 'auto-fill-mode)
 (global-linum-mode 1)
 (setq column-number-mode t)
@@ -712,10 +714,6 @@ searches all buffers."
 		  (lambda ()
             (setq indent-tabs-mode t)
             (setq tab-width 4)))
-(add-hook 'fundamental-mode-hook
-		  (lambda ()
-			(setq indent-tabs-mode t)
-			(setq tab-width 4)))
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
 			(setq indent-tabs-mode nil)
@@ -1617,13 +1615,11 @@ searches all buffers."
 ;; name is not the the in mode-line mode-line is just indicator,
 ;; the true name to fill in the func
 (diminish 'helm-mode)
-;;(diminish 'Emacs-Lisp "elsp")
 ;;(diminish 'eldoc-mode)
 (diminish 'undo-tree-mode)
 (diminish 'yas-minor-mode)
 (diminish 'auto-complete-mode)
 (diminish 'highlight-symbol-mode)
-;;(diminish 'magit-auto-revert-mode)
 (diminish 'emmet-mode)
 (diminish 'cwarn-mode)
 (diminish 'flyspell-mode)
