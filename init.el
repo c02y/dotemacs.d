@@ -676,10 +676,10 @@ searches all buffers."
                (flyspell-prog-mode))))
 ;; click the left button to show the correct words list
 (eval-after-load "flyspell"
-    '(progn
-       (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
-       ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
-       ))
+  '(progn
+     (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
+     ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
+     ))
 ;; or use the M-f8 to check from the beginning and correct
 (defun flyspell-check-next-highlighted-word ()
   "Custom function to spell check next highlighted word"
@@ -1496,6 +1496,10 @@ searches all buffers."
 (setq vc-follow-symlinks 'nil)
 (set-default 'magit-stage-all-confirm nil)
 (set-default 'magit-unstage-all-confirm nil)
+;; make git faster??
+(eval-after-load "magit"
+  '(progn
+    (setq magit-git-executable "/usr/bin/git")))
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
@@ -1586,6 +1590,9 @@ searches all buffers."
 		  (lambda() (set
 					 (make-local-variable 'drag-stuff-mode) nil)))
 
+;; gnus
+;; bbdb, w3m installed for gnus, check the
+;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
