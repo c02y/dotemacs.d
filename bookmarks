@@ -39,9 +39,9 @@
  (position . 6290))
 ("ac"
  (filename . "~/.emacs")
- (front-context-string . "\n;;;;;;;;;;;;;;;")
- (rear-context-string . "   auto-complete")
- (position . 48233))
+ (front-context-string . "\n;; undo-tree, C")
+ (rear-context-string . "-on-eldoc-mode)\n")
+ (position . 42458))
 ("cedet, semantic"
  (filename . "~/.emacs")
  (front-context-string . "\n;; more detail:")
