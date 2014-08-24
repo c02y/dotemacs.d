@@ -236,17 +236,28 @@
                   '((top . 0)(left . 0)
                     (width . 85)(height . 48)
                     (font . "Menlo-13")
-                    (:family "Menlo-Italic")));; Monaco, Consolas
-
+                    ;; (:family "Menlo-Italic");; Monaco, Consolas
+                    ))
           (setq default-frame-alist
                 '((top . 0)(left . 0)
                   (width . 85)(height . 38)
                   (font . "Menlo-12")
-                  (:family "Menlo-Italic")
+                  ;; (:family "Menlo-Italic")
                   )))
-        )))
-;;(set-face-attribute 'italic nil
-;;                    :family "Menlo-Italic")
+        ))
+  ;; the following two settings only work nicely along with the afternoon-theme
+  ;; the combination colors of highlighted line and comments
+  (custom-set-faces
+   '(font-lock-comment-face
+     ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
+     ))
+  (set-face-background 'highlight "gray30")
+)
+
+;; make the point easy to see
+(global-hl-line-mode 1)
+(set-default 'cursor-type 'bar)
+
 ;;
 ;; (if (> (x-display-pixel-height) 1000)
 ;;        (add-to-list 'default-frame-alist (cons 'height 48))
@@ -263,11 +274,6 @@
 
 ;; using a visible bell when error occurs
 (setq visible-bell t)
-
-;; make the point easy to see
-(global-hl-line-mode 1)
-(set-face-background 'highlight "#696969")
-(set-default 'cursor-type 'bar)
 
 ;; Using F8 to make the face transparent
 (global-set-key [(f8)] 'loop-alpha)
@@ -482,6 +488,7 @@ searches all buffers."
 ;; get rid of small straight arrow in the fringe if the line is too
 ;; long and make it continued onto multiple screen lines
 ;; use M-x toggle-truncate-lines to toggle the status
+;; http://www.emacswiki.org/emacs/TruncateLines
 (set-default 'truncate-lines nil)
 ;; what should be done when you ask Emacs to take you to the next
 ;; line and you already are located at the last line of the buffer
@@ -1629,7 +1636,6 @@ searches all buffers."
 (add-hook 'org-mode-hook
 		  (lambda() (set
 					 (make-local-variable 'drag-stuff-mode) nil)))
-
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
 ;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
