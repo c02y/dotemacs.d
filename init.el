@@ -49,6 +49,8 @@
 ;; C-v to next page
 ;; C-x C-x remakr the region
 ;; M-v to previous page
+;; C-M-a/e 'beginning/end-of-defun
+;; C-M-h 'mark-defun
 ;; M-g g to 'goto-line
 ;; C-S-m for 'menu-bar-mode
 ;; Enter or C-j to 'newline-and-indent
@@ -186,10 +188,6 @@
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
-;; the following two lines will make the pointer look better
-(global-hl-line-mode)
-(set-default 'cursor-type 'bar)
-
 ;; displays the argument list for current func, work for all languages
 (turn-on-eldoc-mode)
 (add-hook 'prog-mode-hook 'turn-on-eldoc-mode)
@@ -266,6 +264,10 @@
 ;; using a visible bell when error occurs
 (setq visible-bell t)
 
+;; make the point easy to see
+(global-hl-line-mode 1)
+(set-face-background 'highlight "#696969")
+(set-default 'cursor-type 'bar)
 
 ;; Using F8 to make the face transparent
 (global-set-key [(f8)] 'loop-alpha)
@@ -490,7 +492,7 @@ searches all buffers."
 (global-set-key (kbd "<f5>") 'kill-whole-line) ;;'kill-line -> C-k
 ;;
 ;; open a new line under/above the current line and jump to it
-(global-set-key (kbd "<S-return>") "\C-e\C-m")
+(global-set-key (kbd "<M-return>") "\C-e\C-m")
 (global-set-key (kbd "<M-S-return>") "\C-a\C-p\C-e\C-m")
 ;; M-k kills to the left, C-k kill to the right
 ;; the default M-k is 'kill-sentence delete to the end of the sentence
@@ -852,6 +854,17 @@ searches all buffers."
 (setq ediff-split-window-function 'split-window-horizontally)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
+;; gdb, Debugging with GDB Many Windows
+;; https://tuhdo.github.io/c-ide.html
+;; Use M-x gdb-display-* to show more functions
+;; M-x gdb --> gdb -i=mi gdb-many-windows
+(setq
+ ;; use gdb-many-windows by default
+ gdb-many-windows t
+ ;; Non-nil means display source file containing the main routine at startup
+ gdb-show-main t
+ )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; built-in projects
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1147,10 +1160,36 @@ searches all buffers."
 			   ac-source-filename))
 ;; auto-complete-c-headers
 (require 'auto-complete-c-headers)
-(add-to-list 'ac-sources 'ac-source-c-headers)
+;;(add-to-list 'ac-sources 'ac-source-c-headers)
 ;; c-eldoc
 ;; (setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../")
 (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
+;;
+;; auto-complete-clang
+(require 'auto-complete-clang)
+;; use cannot set it to M-S-/ or S-M-/, don't know why, just can't
+(global-set-key (kbd "M-?") 'ac-complete-clang)
+(defun my-ac-config ()
+  (add-hook 'emacs-lisp-mode-hook 'ac-emacs-lisp-mode-setup)
+  (add-hook 'ruby-mode-hook 'ac-ruby-mode-setup)
+  (add-hook 'css-mode-hook 'ac-css-mode-setup)
+  (add-hook 'auto-complete-mode-hook 'ac-common-setup)
+  )
+(defun my-ac-cc-mode-setup ()
+  (setq ac-sources (append '(ac-source-clang) ac-sources)))
+(add-hook 'c-mode-common-hook 'my-ac-cc-mode-setup)
+;; use `echo "" | g++ -v -x c++ -E - ` to show the include files, the g++ can be gcc
+(setq ac-clang-flags
+      (mapcar (lambda (item)(concat "-I" item))
+              (split-string
+               "
+ /usr/lib/gcc/i686-redhat-linux/4.8.3/include
+ /usr/local/include
+ /usr/include
+"
+               )))
+;; ac-source-gtags
+(my-ac-config)
 
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
@@ -1389,7 +1428,7 @@ searches all buffers."
 ;; helm-for-files
 ;; list buffers, recentf, bookmarks, files in current dir and even in *locate* after typing
 ;; but it won't create a new file/buffer/bookmark if it doesn't exist in emacs/disk
-(global-set-key (kbd "C-x C-a") 'helm-for-files)
+(global-set-key (kbd "C-x C-p") 'helm-for-files)
 ;;
 ;; helm-mini is like helm-for-files(buffers and recentf only) = helm-buffers-list + helm-recentf
 ;; but will create a new if a buffer(only buffer) doesn't exit
