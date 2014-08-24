@@ -40,8 +40,8 @@
 ("ac"
  (filename . "~/.emacs")
  (front-context-string . "\n;; undo-tree, C")
- (rear-context-string . "-on-eldoc-mode)\n")
- (position . 42458))
+ (rear-context-string . "\n(my-ac-config)\n")
+ (position . 43744))
 ("cedet, semantic"
  (filename . "~/.emacs")
  (front-context-string . "\n;; more detail:")
