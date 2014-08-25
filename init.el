@@ -203,8 +203,8 @@
 ;;
 ;; theme
 ;;
-;; Enabling a light theme temporarily, use M-x load-theme <TAB> flatui
-;; if you want to enable it after start up, add the two lines like below
+;; Enabling a light theme temporarily, use M-x load-theme <TAB> flatui if you
+;; want to enable it after start up, add the two lines like below
 ;;
 ;; the following will get rid of prompt when M-x load-theme, treat all
 ;; themes as safe
@@ -265,10 +265,9 @@
 ;;        (add-to-list 'default-frame-alist (cons 'height 48))
 ;;        (add-to-list 'default-frame-alist (cons 'height 37)))
 ;; )))
-;; for the height, subtract a couple hundred pixels
-;; from the screen height (for panels, menubars and
-;; whatnot), then divide by the height of a char to
-;; get the height we want
+;; for the height, subtract a couple hundred pixels from the screen height (for
+;; panels, menubars and whatnot), then divide by the height of a char to get the
+;; height we want
 ;; (add-to-list 'default-frame-alist
 ;;      (cons 'height (/ (- (x-display-pixel-height) 200)
 ;;                          (frame-char-height)))))))
@@ -507,17 +506,17 @@ searches all buffers."
 ;; open a new line under/above the current line and jump to it
 (global-set-key (kbd "<M-return>") "\C-e\C-m")
 (global-set-key (kbd "<M-S-return>") "\C-a\C-p\C-e\C-m")
-;; M-k kills to the left, C-k kill to the right
-;; the default M-k is 'kill-sentence delete to the end of the sentence
-;; C-x Backspace delete to the beginning of the sentence
+;; M-k kills to the left, C-k kill to the right the default M-k is
+;; 'kill-sentence delete to the end of the sentence C-x Backspace delete to the
+;; beginning of the sentence
 (global-set-key (kbd "M-k") '(lambda () (interactive) (kill-line 0)) )
 ;; C-k kill the whole single line including \n
 (setq-default kill-whole-line t)
 
-;; Actually, you can just use built-in M-;(add a comment), but you have to
-;; mark the region first if you want to un/comment the current line
-;; comment and uncomment and the jump to next line, use C-M-;
-;; if you like, you can rm the last line "(next-line)"
+;; Actually, you can just use built-in M-;(add a comment), but you have to mark
+;; the region first if you want to un/comment the current line comment and
+;; uncomment and the jump to next line, use C-M-; if you like, you can rm the
+;; last line "(next-line)"
 (defun comment-or-uncomment-region-or-line ()
   "Comments or uncomments the region or the current line if there's no active region."
   (interactive)
@@ -545,8 +544,8 @@ searches all buffers."
 (setq compilation-scroll-output t)
 ;; overwrite selected region when typing, yanking
 (delete-selection-mode t)
-;; When C-x n n/s to narrwow the marked region, don't ask whether for future session or not
-;; C-x n w to go back to normal
+;; When C-x n n/s to narrwow the marked region, don't ask whether for future
+;; session or not C-x n w to go back to normal
 (put 'narrow-to-region 'disabled nil)
 ;; make C-z(suspend-frame) to go away, and you can use C-z for others
 (define-key global-map [(control z)] nil)
@@ -556,9 +555,9 @@ searches all buffers."
 ;;
 ;; there are shell and eshell
 (global-set-key (kbd "C-x s") 'shell)
-;; shell will prompt if you try to kill the buffer, but eshell will not.
-;; eshell will not use the .bashrc/.fishrc, but shell will
-;; makes shell command always start a new shell, use C-u M-x eshell to create a new eshell,
+;; shell will prompt if you try to kill the buffer, but eshell will not.  eshell
+;; will not use the .bashrc/.fishrc, but shell will makes shell command always
+;; start a new shell, use C-u M-x eshell to create a new eshell,
 (defadvice shell (around always-new-shell)
   "Always start a new shell."
   (let ((buffer
@@ -998,10 +997,10 @@ searches all buffers."
 ;; (setq yas/indent-line nil)
 (global-set-key (kbd "C-c y") 'yas-reload-all)
 
-;; ecb, use M-x ecb-minor-mode, or Tools->Start Code Browser
-;; you'll be suprised
+;; ecb, use M-x ecb-minor-mode, or Tools->Start Code Browser you'll be suprised
 ;; If you want to load the ECB first after starting it by ecb-activate
-;; (Advantage: Fast loading. Disadvantage: ECB- and semantic-options first available after starting ECB):
+;; (Advantage: Fast loading. Disadvantage: ECB- and semantic-options first
+;; available after starting ECB):
 (require 'ecb-autoloads)
 (defalias 'emm 'ecb-minor-mode)
 ;; If you want to load the complete ECB at (X)Emacs-loadtime
@@ -1035,10 +1034,11 @@ searches all buffers."
 ;; multiple-cursors
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
 (autoload 'multiple-cursors "multiple-cursors" t)
-;; When you have an active region that spans multiple lines, the following will add a cursor to each line
+;; When you have an active region that spans multiple lines, the following will
+;; add a cursor to each line
 (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-;; When you want to add multiple cursors not based on continuous lines,
-;; but based on keywords in the buffer, first mark the word, then add more cursors:
+;; When you want to add multiple cursors not based on continuous lines, but
+;; based on keywords in the buffer, first mark the word, then add more cursors:
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
@@ -1510,9 +1510,9 @@ searches all buffers."
 ;;	The syntax check failed. Inspect the *Messages* buffer for details.
 ;; FlyC?
 ;;	The syntax check had a dubious result. The definition of the syntax checker
-;;	may be flawed. Inspect the *Messages* buffer for details. This indicator should
-;;	never be displayed for built-in syntax checkers. If it is, please report an
-;;	issue to the Flycheck developers, as by Reporting issues.
+;;	may be flawed. Inspect the *Messages* buffer for details. This indicator
+;;	should never be displayed for built-in syntax checkers. If it is, please
+;;	report an issue to the Flycheck developers, as by Reporting issues.
 ;; C-c ! l 'flycheck-list-errors
 ;; C-c ! n 'flycheck-next-error
 ;; C-c ! p 'flycheck-previous-error
@@ -1666,9 +1666,8 @@ searches all buffers."
 ;; diminish
 (require 'diminish)
 ;; the diminish should be put at the end of .emacs so that any minor modes will
-;; already have been loaded by the time
-;; name is not the the in mode-line mode-line is just indicator,
-;; the true name to fill in the func
+;; already have been loaded by the time name is not the the in mode-line
+;; mode-line is just indicator, the true name to fill in the func
 (diminish 'helm-mode)
 ;;(diminish 'eldoc-mode)
 (diminish 'undo-tree-mode)
