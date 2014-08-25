@@ -167,6 +167,8 @@
 (add-hook 'text-mode-hook 'auto-fill-mode)
 (global-linum-mode 1)
 (setq column-number-mode t)
+;; Set the max columns one line, wrap a line
+(setq-default fill-column 80)
 ;; file size in mode line
 (setq size-indication-mode t)
 (tool-bar-mode 0)
