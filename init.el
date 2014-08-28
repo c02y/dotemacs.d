@@ -178,15 +178,17 @@
 ;; line space between lines, default to 0
 ;; (setq line-spacing 2)
 ;;
-;; display time in modeline
-(display-time-mode 1)
-(defvar display-time-24hr-format)
-(setq display-time-day-and-date t)
-(display-time)
 ;; display buffer name or absolute file path name in the frame tittle
 ;; NOTE: you should comment the last line of
 ;; /usr/share/emacs/site-lisp/default.el, or this setting won't work
-(setq frame-title-format "%b@%f")
+;; and put time in frame-title to make the mode line clean
+(display-time-mode 1)
+(defvar display-time-24hr-format)
+(setq display-time-day-and-date t)
+(setq global-mode-string nil)
+;; this will not always show the day of week, weird
+(setq frame-title-format
+      '("%b@%f" "--" display-time-string))
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
@@ -1107,7 +1109,7 @@ searches all buffers."
 ;; (setq ac-auto-start nil)
 ;;
 (add-to-list 'ac-dictionary-directories
-			 "~/.emacs.d/elpa/auto-complete-20140803.2118/dict")
+			 "~/.emacs.d/elpa/auto-complete-20140824.1658/dict")
 (setq ac-comphist-file (expand-file-name
 						"~/.emacs.d/ac-comphist.dat"))
 (setq ac-use-quick-help t)
@@ -1460,6 +1462,14 @@ searches all buffers."
 ;; helm-find-files will prompt y/n if the file doesn't exist, find-file won't
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-s") 'helm-occur)
+;; Use C-S-s to search other-window, when this is used in more than 3 windows,
+;; it would be confused by 'other-window
+(defun helm-other-occur ()
+  (interactive)
+  (save-selected-window
+    (other-window 1)
+    (helm-occur)))
+(global-set-key (kbd "C-S-s") 'helm-other-occur)
 (global-set-key (kbd "M-x") 'helm-M-x)
 ;; M-y cycles the kill ring
 (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
@@ -1642,6 +1652,7 @@ searches all buffers."
 ;; bbdb, w3m installed for gnus, check the
 ;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1663,19 +1674,57 @@ searches all buffers."
 ;;;;;	the plugin installed by el-get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; diminish
-(require 'diminish)
-;; the diminish should be put at the end of .emacs so that any minor modes will
-;; already have been loaded by the time name is not the the in mode-line
-;; mode-line is just indicator, the true name to fill in the func
-(diminish 'helm-mode)
-;;(diminish 'eldoc-mode)
-(diminish 'undo-tree-mode)
-(diminish 'yas-minor-mode)
-(diminish 'auto-complete-mode)
-(diminish 'highlight-symbol-mode)
-(diminish 'emmet-mode)
-(diminish 'cwarn-mode)
-(diminish 'flyspell-mode)
-(diminish 'abbrev-mode)
-(diminish 'drag-stuff-mode)
+;; make the lighter in mode line shorter or disappeared
+;; C-h v minor-mode-alist to get the exact mode names
+(defvar mode-line-cleaner-alist
+  '(
+    (helm-mode . "")
+    (eldoc-mode . "")
+    (undo-tree-mode . "")
+    (yas-minor-mode . "")
+    (auto-complete-mode . "")
+    (highlight-symbol-mode . "")
+    (emmet-mode . "")
+    (cwarn-mode . "")
+    (flyspell-mode . "")
+    (abbrev-mode . "")
+    (drag-stuff-mode . "")
+    (ggtags-mode . "Ggtags")
+    (auto-fill-function . "") ;; not auto-fill-mode
+    ;; Major modes
+    (lisp-interaction-mode . "λ")
+    (emacs-lisp-mode . "El")
+    (hi-lock-mode . "")
+    (python-mode . "Py")
+    (nxhtml-mode . ""))
+  "Alist for `clean-mode-line'.
+When you add a new element to the alist, keep in mind that you
+must pass the correct minor/major mode symbol and a string you
+want to use in the modeline *in lieu of* the original.")
+(defun clean-mode-line ()
+  (interactive)
+  (loop for cleaner in mode-line-cleaner-alist
+        do (let* ((mode (car cleaner))
+                 (mode-str (cdr cleaner))
+                 (old-mode-str (cdr (assq mode minor-mode-alist))))
+             (when old-mode-str
+                 (setcar old-mode-str mode-str))
+               ;; major mode
+             (when (eq mode major-mode)
+               (setq mode-name mode-str)))))
+(add-hook 'after-change-major-mode-hook 'clean-mode-line)
+;;; alias the new `flymake-report-status-slim' to
+;;; `flymake-report-status'
+(defalias 'flymake-report-status 'flymake-report-status-slim)
+(defun flymake-report-status-slim (e-w &optional status)
+  "Show \"slim\" flymake status in mode line."
+  (when e-w
+    (setq flymake-mode-line-e-w e-w))
+  (when status
+    (setq flymake-mode-line-status status))
+  (let* ((mode-line " Φ"))
+    (when (> (length flymake-mode-line-e-w) 0)
+      (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
+    (setq mode-line (concat mode-line flymake-mode-line-status))
+    (setq flymake-mode-line mode-line)
+    (force-mode-line-update)))
