@@ -562,9 +562,6 @@ searches all buffers."
 ;; yes/no --> y/n
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;; shortkeys
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; when you edit a file, use C-x C-j to go to the dir which the current file lies
 (global-set-key (kbd "C-x C-j") 'dired-jump)
 ;; byte-comple and load *.el using "C-x c"
@@ -573,6 +570,9 @@ searches all buffers."
 (define-key lisp-mode-map (kbd "C-c c") 'eval-buffer)
 (defalias 'brd 'byte-recompile-directory)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; Window
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; resize the opened windows
 ;; firstly disable some shortkeys in org-mode
 ;; the following shortkeys are in shift-selection, org-support-shift-select
@@ -615,8 +615,71 @@ searches all buffers."
 (global-set-key (kbd "C-x 2") 'my-split-window-below)
 (global-set-key (kbd "C-x 3") 'my-split-window-right)
 ;; new window to vertically by default
-(setq split-height-threshold nil)
-(setq split-width-threshold 0)
+;; (setq split-height-threshold nil)
+;; (setq split-width-threshold 0)
+;; Automatically split window vertically if current window is wide enough
+(defun display-new-buffer (buffer force-other-window)
+  "If BUFFER is visible, select it.
+If it's not visible and there's only one window, split the
+current window and select BUFFER in the new window. If the
+current window (before the split) is more than 100 columns wide,
+split horizontally(left/right), else split vertically(up/down).
+If the current buffer contains more than one window, select
+BUFFER in the least recently used window.
+This function returns the window which holds BUFFER.
+FORCE-OTHER-WINDOW is ignored."
+  (or (get-buffer-window buffer)
+      (if (one-window-p)
+          (let ((new-win
+                 (if (> (window-width) 100)
+                     (split-window-horizontally)
+                   (split-window-vertically))))
+            (set-window-buffer new-win buffer)
+            new-win)
+        (let ((new-win (get-lru-window)))
+          (set-window-buffer new-win buffer)
+          new-win))))
+;; don't display-buffer-alist even it says the display-buffer-function is obsolete
+;; display-buffer-alist won't work
+(setq display-buffer-function 'display-new-buffer)
+
+;; toggle two windows between vertically and horizontally
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd
+              (not (and (<= (car this-win-edges)
+                            (car next-win-edges))
+                        (<= (cadr this-win-edges)
+                            (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+;; C-x 4 t 'toggle-window-split
+(define-key ctl-x-4-map "t" 'toggle-window-split)
+
+;; ediff split horizontal, default is vertically
+(eval-after-load "ediff"
+  '(progn
+     (setq ediff-split-window-function
+           'split-window-horizontally)
+     (setq ediff-window-setup-function
+           'ediff-setup-windows-plain)
+     ))
 
 ;; You can use C-x o 'other-window, but the following is better
 ;; move your point to another window in the specific direction
@@ -626,9 +689,13 @@ searches all buffers."
 (global-set-key (kbd "C-x <down>") 'windmove-down)
 
 ;; save recent files
-(setq recentf-save-file (concat user-emacs-directory "recentf")
-      recentf-max-saved-items 100
-      recentf-max-menu-items 15)
+(eval-after-load "gdb-mi"
+  '(progn
+     (setq recentf-save-file
+           (concat user-emacs-directory "recentf")
+           recentf-max-saved-items 100
+           recentf-max-menu-items 15)
+))
 (recentf-mode t)
 
 ;;
@@ -826,44 +893,6 @@ searches all buffers."
 ;; Emacs will know cperl-mode-map only if the cperl-mode will be loaded
 (require 'cperl-mode)
 (define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
-
-;; toggle two windows between vertically and horizontally
-(defun toggle-window-split ()
-  (interactive)
-  (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd
-              (not (and (<= (car this-win-edges)
-                            (car next-win-edges))
-                        (<= (cadr this-win-edges)
-                            (cadr next-win-edges)))))
-             (splitter
-              (if (= (car this-win-edges)
-                     (car (window-edges (next-window))))
-                  'split-window-horizontally
-                'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (if this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (if this-win-2nd (other-window 1))))))
-;; C-x 4 t 'toggle-window-split
-(define-key ctl-x-4-map "t" 'toggle-window-split)
-
-;; ediff split horizontal, default is vertically
-(eval-after-load "ediff"
-  '(progn
-     (setq ediff-split-window-function
-           'split-window-horizontally)
-     (setq ediff-window-setup-function
-           'ediff-setup-windows-plain)
-     ))
 
 ;; gdb, Debugging with GDB Many Windows layout
 ;; https://tuhdo.github.io/c-ide.html
