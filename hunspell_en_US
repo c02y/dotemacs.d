@@ -199,3 +199,5 @@ fputs
 fprintf
 processable
 alist
+goagent
+touchpad
