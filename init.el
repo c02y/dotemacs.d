@@ -46,17 +46,13 @@
 ;; M-x info-apropos to search all info manuals
 ;; C-h e switch to buffer *Message*
 ;; C-h m 'describe-mode show all active modes and brief description
-;; C-v to next page
-;; C-x C-x remakr the region
-;; M-v to previous page
 ;; C-M-a/e 'beginning/end-of-defun
 ;; C-M-h 'mark-defun
-;; M-g g to 'goto-line
 ;; C-S-m for 'menu-bar-mode
 ;; Enter or C-j to 'newline-and-indent
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
-;; F5 or C-S-Backsapce to 'cut-line-or-region
-;; F6 to 'copy-line-or-region
+;; F5 or C-S-Backsapce to 'kill-whole-line
+;; F6 to 'copy-line
 ;; F7 to 'switch-to-minibuffer-window
 ;; F8 to make the frame transparent
 ;; F9 to 'search-all-buffers
@@ -65,7 +61,6 @@
 ;; C-x C-r to 'recentf-open-files
 ;; C-k to 'kill-line to the end of the line
 ;; M-k to 'kill-line to the beginning of the line
-;; C-x b to switch buffers in minibuffer
 ;; S-C-<left> to 'shrink-window-horizontally
 ;; S-C-<right> to 'enlarge-window-horizontally
 ;; S-C-<down> to 'shrink-window
@@ -75,7 +70,7 @@
 ;; C-M-; to 'comment-or-uncomment-region-or-line
 ;; C-x C-j to 'dired-jump
 ;; C-c y to 'yas-reload-all
-;; C-c a to 'align-regexp, set it not working
+;; C-c a to 'align-regexp
 ;; C-M-n/p Move forward/backward over a parenthetical group
 ;; C-M-u/d Move up/down in parenthesis structure
 ;; M-$ -> i -> y to insert the string into personal dictionary
@@ -88,7 +83,7 @@
 ;; Windows style line endings (DOS support)
 ;; C-x RET f undecided-dos RET     --> \r\n (windows)
 ;; C-x RET f undecided-unix RET    --> \n  (unix/Linux)
-;; M-x tabify/untabify convert from spaces to tabs and vice versa
+;; M-x tabify/untabify convert from spaces to tabs and vice verse
 
 ;; (setq debug-on-error t)
 
@@ -230,7 +225,7 @@
   (interactive)
   (if window-system
       (progn
-        ;; use 120 char wide window for largeish displays
+        ;; use 120 char wide window for largish displays
         ;; and smaller 80 column windows for smaller displays
         ;; pick whatever numbers make sense for you
         (if (> (x-display-pixel-width) 1500)
@@ -257,11 +252,6 @@
      ))
   (set-face-background 'highlight "gray30")
 )
-
-;; make the point easy to see
-(global-hl-line-mode 1)
-(set-default 'cursor-type 'bar)
-
 ;;
 ;; (if (> (x-display-pixel-height) 1000)
 ;;        (add-to-list 'default-frame-alist (cons 'height 48))
@@ -274,6 +264,12 @@
 ;;      (cons 'height (/ (- (x-display-pixel-height) 200)
 ;;                          (frame-char-height)))))))
 (set-frame-size-according-to-resolution)
+
+;; make someWord two words for M-f/b, some-word, some_word are two words already
+(subword-mode)
+;; make the point easy to see
+(global-hl-line-mode 1)
+(set-default 'cursor-type 'bar)
 
 ;; using a visible bell when error occurs
 (setq visible-bell t)
@@ -296,10 +292,6 @@
     )
   )
 
-;; sroll smoothly using touchpad
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
-(setq mouse-wheel-progressive-speed nil)
-
 ;; set the query-replace from top
 (defun query-replace-from-top ()
   (interactive)
@@ -315,21 +307,6 @@
   (interactive "F")
   (set-buffer (find-file (concat "/sudo::" file))))
 (global-set-key (kbd "C-c C-f") 'sudo)
-
-;; clean buffer/format using C-c n
-(defun buffer-cleanup ()
-  "Clean up the buffer"
-  (interactive)
-  ;; the useless blanks lines at the end of the file
-  (delete-blank-lines)
-  (delete-trailing-whitespace)
-  (untabify (point-min) (point-max))
-  ;; will cause format problem
-  (indent-region (point-min) (point-max)))
-;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
-;; do not use buffer-cleanup, it is too much
-;; C-c e to 'show-ws-toggle-show-trailing-whitespace
-(global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;  defun
@@ -386,10 +363,22 @@ buffer-local variable `show-trailing-whitespace'."
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation
 ;; M-Backspace delete to the previous word 'backword-kill-word
 ;; M-\ delete kill _all_ spaces at point 'delete-horizontal-space
-;; C-Backspace delete to the previous non-whitespace char
-;; M-\ & C-Backspace are alike, but the previous will all the spaces
-;; and the latter one will replace all with only one
+;; C-Backspace replaces all spaces between two words with one
 (global-set-key (kbd "C-<backspace>") 'fixup-whitespace)
+;; clean buffer/format using C-c n
+;; (defun buffer-cleanup ()
+;;   "Clean up the buffer"
+;;   (interactive)
+;;   ;; the useless blanks lines at the end of the file
+;;   (delete-blank-lines)
+;;   (delete-trailing-whitespace)
+;;   (untabify (point-min) (point-max))
+;;   ;; will cause format problem
+;;   (indent-region (point-min) (point-max)))
+;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
+;; do not use buffer-cleanup, it is too much
+;; C-c e to 'show-ws-toggle-show-trailing-whitespace
+(global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
 
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
@@ -401,7 +390,7 @@ buffer-local variable `show-trailing-whitespace'."
     (indent-region (point-min) (point-max))
     (save-buffer)
     (kill-buffer nil)))
-
+;; C-x k to kill a buffer specified
 (global-set-key (kbd "C-S-k") 'kill-this-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -625,6 +614,9 @@ searches all buffers."
     (set-frame-selected-window (selected-frame) win)))
 (global-set-key (kbd "C-x 2") 'my-split-window-below)
 (global-set-key (kbd "C-x 3") 'my-split-window-right)
+;; new window to vertically by default
+(setq split-height-threshold nil)
+(setq split-width-threshold 0)
 
 ;; You can use C-x o 'other-window, but the following is better
 ;; move your point to another window in the specific direction
@@ -865,19 +857,26 @@ searches all buffers."
 (define-key ctl-x-4-map "t" 'toggle-window-split)
 
 ;; ediff split horizontal, default is vertically
-(setq ediff-split-window-function 'split-window-horizontally)
-(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+(eval-after-load "ediff"
+  '(progn
+     (setq ediff-split-window-function
+           'split-window-horizontally)
+     (setq ediff-window-setup-function
+           'ediff-setup-windows-plain)
+     ))
 
-;; gdb, Debugging with GDB Many Windows
+;; gdb, Debugging with GDB Many Windows layout
 ;; https://tuhdo.github.io/c-ide.html
 ;; Use M-x gdb-display-* to show more functions
-;; M-x gdb --> gdb -i=mi gdb-many-windows
-(setq
- ;; use gdb-many-windows by default
- gdb-many-windows t
- ;; Non-nil means display source file containing the main routine at startup
- gdb-show-main t
- )
+;; M-x tool-bar-mode to show the tools
+;; M-x gdb --> gdb -i=mi bin-file
+(eval-after-load "gdb-mi"
+  '(progn
+     ;; use gdb-many-windows by default
+     (setq gdb-many-windows t)
+     ;; Non-nil means display source file containing the main routine at startup
+     (setq gdb-show-main t)
+     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; built-in projects
@@ -1152,7 +1151,6 @@ searches all buffers."
 ;; Ignore case if completion target string doesn't include upper characters, nil -> smart
 (setq ac-ignore-case nil)
 (defalias 'ac 'auto-complete)
-(setq ac-fuzzy-complete t)
 ;;
 ;; ac-c-headers,  auto-complete source for C headers
 (require 'ac-c-headers)
@@ -1208,7 +1206,9 @@ searches all buffers."
 
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
-;; comment out the lines of undo-tree.el because of two sets for them
+;; C-S-/(C-?) is used in undo-tree plugin by default
+;; But the author set two different keys for 'undo-tree-redo/undo
+;; I only use M-_, comment out the two lines of file undo-tree.el
 ;; (define-key map (kbd "C-/") 'undo-tree-undo)
 ;; (define-key map (kbd "C-?") 'undo-tree-redo)
 (require 'undo-tree)
@@ -1579,6 +1579,9 @@ searches all buffers."
 (setq sublimity-scroll-weight 5
 	  sublimity-scroll-drift-length 10)
 (sublimity-mode 1)
+;; scroll smoothly using touchpad better along with sublimity-mode
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
+(setq mouse-wheel-progressive-speed nil)
 
 ;; emmet for web development
 (require 'emmet-mode)
@@ -1591,6 +1594,8 @@ searches all buffers."
 (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 (setq lua-indent-level 4)
+
+;; anaphora required by workgroup2
 
 ;; ;; workgroup2
 ;; (require 'workgroups2)
@@ -1628,7 +1633,8 @@ searches all buffers."
 
 ;; makey required by discover-my-major
 
-;; discover-my-major -- Discover key bindings and meaning for the current Emacs major mode
+;; discover-my-major
+;; Discover key bindings and meaning for the current Emacs major mode
 ;; C-h C-m or C-h RET 'discover-my-major
 (global-set-key (kbd "C-h C-m") 'discover-my-major)
 
@@ -1705,26 +1711,26 @@ want to use in the modeline *in lieu of* the original.")
   (interactive)
   (loop for cleaner in mode-line-cleaner-alist
         do (let* ((mode (car cleaner))
-                 (mode-str (cdr cleaner))
-                 (old-mode-str (cdr (assq mode minor-mode-alist))))
+                  (mode-str (cdr cleaner))
+                  (old-mode-str (cdr (assq mode minor-mode-alist))))
              (when old-mode-str
-                 (setcar old-mode-str mode-str))
-               ;; major mode
+               (setcar old-mode-str mode-str))
+             ;; major mode
              (when (eq mode major-mode)
                (setq mode-name mode-str)))))
 (add-hook 'after-change-major-mode-hook 'clean-mode-line)
 ;;; alias the new `flymake-report-status-slim' to
 ;;; `flymake-report-status'
 (defalias 'flymake-report-status 'flymake-report-status-slim)
-(defun flymake-report-status-slim (e-w &optional status)
-  "Show \"slim\" flymake status in mode line."
-  (when e-w
-    (setq flymake-mode-line-e-w e-w))
-  (when status
-    (setq flymake-mode-line-status status))
-  (let* ((mode-line " Φ"))
-    (when (> (length flymake-mode-line-e-w) 0)
-      (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
-    (setq mode-line (concat mode-line flymake-mode-line-status))
-    (setq flymake-mode-line mode-line)
-    (force-mode-line-update)))
+;; (defun flymake-report-status-slim (e-w &optional status)
+  ;; "Show \"slim\" flymake status in mode line."
+  ;; (when e-w
+    ;; (setq flymake-mode-line-e-w e-w))
+  ;; (when status
+    ;; (setq flymake-mode-line-status status))
+  ;; (let* ((mode-line " Φ"))
+    ;; (when (> (length flymake-mode-line-e-w) 0)
+      ;; (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
+    ;; (setq mode-line (concat mode-line flymake-mode-line-status))
+    ;; (setq flymake-mode-line mode-line)
+    ;; (force-mode-line-update)))
