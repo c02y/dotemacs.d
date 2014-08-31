@@ -592,14 +592,24 @@ searches all buffers."
 ;; you can C-x 1 to close other windows and C-c <left> to restore
 ;; (winner-mode 1)
 ;; use the following functions is better
-(defun toggle-maximize-buffer () "Maximize buffer"
+(defun toggle-maximize-buffer ()
+  "Maximize buffer"
   (interactive)
   (if (= 1 (length (window-list)))
       (jump-to-register '_)
     (progn
       (window-configuration-to-register '_)
       (delete-other-windows))))
+(defun toggle-maximize-other-buffer ()
+  "Maximize other buffer"
+  (interactive)
+  (if (= 1 (length (window-list)))
+      (jump-to-register '_)
+    (progn
+      (window-configuration-to-register '_)
+      (delete-window))))
 (global-set-key (kbd "C-x z") 'toggle-maximize-buffer)
+(global-set-key (kbd "C-x C-z") 'toggle-maximize-other-buffer)
 
 ;; Try C-x 4 C-h for C-x 4 info
 ;; change the default action of C-x 2/3
@@ -639,8 +649,7 @@ FORCE-OTHER-WINDOW is ignored."
         (let ((new-win (get-lru-window)))
           (set-window-buffer new-win buffer)
           new-win))))
-;; don't display-buffer-alist even it says the display-buffer-function is obsolete
-;; display-buffer-alist won't work
+;; use display-buffer-alist instead of display-buffer-function if the following line won't work
 (setq display-buffer-function 'display-new-buffer)
 
 ;; toggle two windows between vertically and horizontally
@@ -1119,119 +1128,62 @@ FORCE-OTHER-WINDOW is ignored."
 							  mark-page))))
 (er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
 
-;;;; popup required by ac
-;; (require 'popup)
-
-;;;; fuzzy required for ac-fuzzy-complete
-;; (require 'fuzzy)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;	 auto-complete... ~/Org/ac
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;	 auto-complete
+;;;;;;;;;;	 company-mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'auto-complete)
-(require 'auto-complete-config)
-;; since the dropdown menu shows up too slow, so use trigger key TAB
-;; (ac-set-trigger-key "TAB")
-;; (define-key ac-mode-map (kbd "<tab>") 'auto-complete)
-;; Generally, trigger key is used with auto-auto-start being nil.
-;; (setq ac-auto-start nil)
-;;
-(add-to-list 'ac-dictionary-directories
-			 "~/.emacs.d/elpa/auto-complete-20140824.1658/dict")
-(setq ac-comphist-file (expand-file-name
-						"~/.emacs.d/ac-comphist.dat"))
-(setq ac-use-quick-help t)
-(setq ac-quick-help-delay 1)
-;; The following line uses auto-complete-mode-maybe, which turn AC on
-;; only those listed in ac-modes
-(global-auto-complete-mode t)
-;; ;; Enable AC only for few modes
-;; ;; (setq ac-modes '(c++-mode sql-mode))
-;; or enable it everywhere(not in minibuffer)
-(defun auto-complete-mode-maybe ()
-  "No maybe for you. Only AC!"
-  (unless (minibufferp (current-buffer))
-	(auto-complete-mode 1)))
-;;
-;; t could be time
-(setq ac-auto-show-menu t)
-(setq ac-menu-height 15)
-;; the next line will make ac popup instantly
-(ac-flyspell-workaround)
-;;
-;; (setq ac-show-menu-immediately-on-auto-complete t)
-;;
-;; (set-face-background 'ac-candidate-face "lightgray")
-;; (set-face-underline-p 'ac-candidate-face "darkgray")
-;; (set-face-background 'ac-selection-face "royalblue")
-(define-key ac-completing-map "\M-n" 'ac-next)
-(define-key ac-completing-map "\M-p" 'ac-previous)
-;; the menu and RET issue
-;; (define-key ac-complete-mode-map "<return>" 'nil)
-;; completion starts more than a length of the completion target string.
-;;`t` means always starting completion automatically,
-;; t could be an integer, which is the num of characters you type
-(setq ac-auto-start 3)
-;; t means:
-;;	  After selecting candidates, TAB will behave as RET
-;;	  TAB will behave as RET only on candidate remains
-(setq ac-dwim t)
-;; Distinguish case, if ignore case, nil -> t
-;; Ignore case if completion target string doesn't include upper characters, nil -> smart
-(setq ac-ignore-case nil)
-(defalias 'ac 'auto-complete)
-;;
-;; ac-c-headers,  auto-complete source for C headers
-(require 'ac-c-headers)
-(add-hook 'c-mode-common-hook
-		  (lambda ()
-			(add-to-list 'ac-sources 'ac-source-c-headers)
-			(add-to-list 'ac-sources 'ac-source-c-header-symbols t)
-			;; the following two lines are from cebet, names completion with auto-complete package
-			(add-to-list 'ac-sources 'ac-source-gtags)
-			(add-to-list 'ac-sources 'ac-source-semantic)))
-(ac-config-default)
-(set-default 'ac-sources
-			 '(ac-source-semantic
-			   ac-source-yasnippet
-			   ac-source-abbrev
-			   ac-source-words-in-buffer
-			   ac-source-words-in-all-buffer
-			   ac-source-imenu
-			   ac-source-files-in-current-dir
-			   ac-source-filename))
-;; auto-complete-c-headers
-(require 'auto-complete-c-headers)
-;;(add-to-list 'ac-sources 'ac-source-c-headers)
-;; c-eldoc
-;; (setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../")
-(add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
-;;
-;; auto-complete-clang
-(require 'auto-complete-clang)
-;; use cannot set it to M-S-/ or S-M-/, don't know why, just can't
-(global-set-key (kbd "M-?") 'ac-complete-clang)
-(defun my-ac-config ()
-  (add-hook 'emacs-lisp-mode-hook 'ac-emacs-lisp-mode-setup)
-  (add-hook 'ruby-mode-hook 'ac-ruby-mode-setup)
-  (add-hook 'css-mode-hook 'ac-css-mode-setup)
-  (add-hook 'auto-complete-mode-hook 'ac-common-setup)
-  )
-(defun my-ac-cc-mode-setup ()
-  (setq ac-sources (append '(ac-source-clang) ac-sources)))
-(add-hook 'c-mode-common-hook 'my-ac-cc-mode-setup)
-;; use `echo "" | g++ -v -x c++ -E - ` to show the include files, the g++ can be gcc
-(setq ac-clang-flags
-      (mapcar (lambda (item)(concat "-I" item))
-              (split-string
-               "
- /usr/lib/gcc/i686-redhat-linux/4.8.3/include
- /usr/local/include
- /usr/include
-"
-               )))
-;; ac-source-gtags
-(my-ac-config)
+(require 'company)
+(setq company-global-modes t)
+(setq company-tooltip-limit 30)
+(setq company-minimum-prefix-length 3)
+(setq company-show-numbers t)
+(setq company-dabbrev-other-buffers t)
+(setq company-transformers '(company-sort-by-occurrence))
+(setq company-auto-complete t)
+(add-hook 'after-init-hook 'global-company-mode)
+;; use F1 or C-h in the drop list to show the doc, Use C-s/C-M-s to search the candidates,
+;; M-NUM to select specific one, C-w to view its source file
+(global-set-key (kbd "C-c <tab>") 'company-complete)
+;; this will show a lot of garbage, use it only necessary
+;; (add-to-list 'company-backends 'company-ispell)
+(defalias 'ci 'company-ispell)
+(add-hook 'org-mode-hook
+          (lambda ()
+            (company-mode)
+            (set (make-local-variable 'company-backends)
+                 '(
+                   company-dabbrev
+                   company-dabbrev-code
+                   company-ispell
+                   company-files
+                   ))))
+;; grouped back-ends
+(add-to-list 'company-backends
+             (quote
+              (
+               company-clang
+               company-semantic
+               company-keywords
+               company-dabbrev
+               company-dabbrev-code
+               company-c-headers
+               company-gtags
+               company-elisp
+               company-bbdb
+               company-nxml
+               company-css
+               company-eclim
+               company-xcode
+               company-ropemacs
+               company-cmake
+               company-capf
+               company-etags
+               company-oddmuse
+               company-files)))
+
 
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
@@ -1718,13 +1670,14 @@ FORCE-OTHER-WINDOW is ignored."
     (undo-tree-mode . "")
     (yas-minor-mode . "")
     (auto-complete-mode . "")
+    (company-mode . "")
     (highlight-symbol-mode . "")
     (emmet-mode . "")
     (cwarn-mode . "")
     (flyspell-mode . "")
     (abbrev-mode . "")
     (drag-stuff-mode . "")
-    (ggtags-mode . "Ggtags")
+    (ggtags-mode . " Ggtags")
     (auto-fill-function . "") ;; not auto-fill-mode
     ;; Major modes
     (lisp-interaction-mode . "λ")
