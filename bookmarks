@@ -2,7 +2,17 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-(("helm"
+(("company"
+ (filename . "~/.emacs")
+ (front-context-string . "ny-mode\n;;;;;;;;")
+ (rear-context-string . ";;;;;;;;;	 compa")
+ (position . 42092))
+("window"
+ (filename . "~/.emacs")
+ (front-context-string . "\n;; resize the o")
+ (rear-context-string . ";;;;;;;;;;;;;;;;")
+ (position . 21412))
+("helm"
  (filename . "~/.emacs")
  (front-context-string . "\n;; https://gith")
  (rear-context-string . "ontrib\n\n\n;; helm")
@@ -37,11 +47,6 @@
  (front-context-string)
  (rear-context-string . "[struct]] L21\n	\n")
  (position . 6290))
-("ac"
- (filename . "~/.emacs")
- (front-context-string . "\n;; undo-tree, C")
- (rear-context-string . "\n(my-ac-config)\n")
- (position . 43744))
 ("cedet, semantic"
  (filename . "~/.emacs")
  (front-context-string . "\n;; more detail:")
@@ -52,11 +57,6 @@
  (front-context-string . "\n;;;;;;;;;;;;;;;")
  (rear-context-string . ";   theme & font")
  (position . 5237))
-("shortkeys"
- (filename . "~/.emacs")
- (front-context-string . "s\n;;;;;;;;;;;;;;")
- (rear-context-string . ";;;;;;; shortkey")
- (position . 18624))
 ("shortkeys-comment"
  (filename . "~/.emacs")
  (front-context-string . "\n\n\n;; Windows st")
