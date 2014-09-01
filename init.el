@@ -557,8 +557,15 @@ searches all buffers."
 ;; make shell in emacs load .bashrc/.fishrc
 (setq shell-command-switch "-lc")
 (ad-activate 'shell)
-;; support copy&paste through different apps
+
+;; copy/paste between system/Emacs
+;; 1. after copy Ctrl+c in Linux X11, you can C-y in emacs
 (setq x-select-enable-clipboard t)
+;; 2. after mouse selection in X11, you can C-y in emacs primary selection.
+;; When you select a text using mouse, the text is automatically put into
+;; the primary selection, and middle click will paste it.
+;; (setq x-select-enable-primary t)
+
 ;; yes/no --> y/n
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -1154,35 +1161,65 @@ FORCE-OTHER-WINDOW is ignored."
           (lambda ()
             (company-mode)
             (set (make-local-variable 'company-backends)
-                 '(
-                   company-dabbrev
-                   company-dabbrev-code
-                   company-ispell
-                   company-files
-                   ))))
+                 '((
+                    company-dabbrev
+                    company-dabbrev-code
+                    company-ispell
+                    company-files
+                    company-yasnippet
+                    ))
+                 )))
+(add-hook 'c-mode-common-hook
+          (lambda()
+            (company-mode)
+            (set (make-local-variable 'company-backends)
+                 '((
+                    company-c-headers
+                    company-clang
+                    company-dabbrev
+                    company-dabbrev-code
+                    company-gtags
+                    company-semantic
+                    company-yasnippet
+                    company-keywords
+                    ))
+                 )))
+(add-hook 'emacs-lisp-mode-hook
+          (lambda()
+            (company-mode)
+            (set (make-local-variable 'company-backends)
+                 '((
+                    company-elisp
+                    company-dabbrev
+                    company-dabbrev-code
+                    company-semantic
+                    company-yasnippet
+                    ))
+                 )))
 ;; grouped back-ends
-(add-to-list 'company-backends
-             (quote
-              (
-               company-clang
-               company-semantic
-               company-keywords
-               company-dabbrev
-               company-dabbrev-code
-               company-c-headers
-               company-gtags
-               company-elisp
-               company-bbdb
-               company-nxml
-               company-css
-               company-eclim
-               company-xcode
-               company-ropemacs
-               company-cmake
-               company-capf
-               company-etags
-               company-oddmuse
-               company-files)))
+;; (add-to-list 'company-backends
+;;              '(
+;;                (
+;;                company-clang
+;;                company-gtags
+;;                company-elisp
+;;                company-semantic
+;;                company-dabbrev
+;;                company-dabbrev-code
+;;                company-c-headers
+;;                company-keywords)
+;;                ;; company-yasnippet
+;;                company-bbdb
+;;                company-nxml
+;;                company-css
+;;                company-eclim
+;;                company-xcode
+;;                company-ropemacs
+;;                company-cmake
+;;                company-capf
+;;                company-etags
+;;                company-oddmuse
+;;                company-files))
 
 
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
@@ -1333,10 +1370,8 @@ FORCE-OTHER-WINDOW is ignored."
 (setq org-completion-use-ido t)
 (define-key org-mode-map (kbd "C-c a") 'org-agenda)
 (define-key org-mode-map (kbd "C-c c") 'org-capture)
-;; show/unshow the descriptive and literal links, disable 'org*task
-;; because it takes the C-c C-x t key after updates after a while
-(setq org-inlinetask-insert-task nil)
-(define-key org-mode-map (kbd "C-c C-x t") 'org-toggle-link-display)
+;; show/unshow the descriptive and literal links
+(define-key org-mode-map (kbd "C-c C-x l") 'org-toggle-link-display)
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
 (require 'org-inlinetask)
@@ -1347,9 +1382,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; 2. Archive inactive items to separate files.
 ;; C-c C-x C-s (org-archive-subtree)
 ;; 3. Do not include the global todo list in your agenda view.
-(setq org-agenda-include-all-todo nil)
 ;; 4. Make sure that your org files are byte-compiled.
-(add-to-list 'auto-mode-alist '("\\.\\(\\|README\\|txt\\)$" . org-mode))
+(add-to-list 'auto-mode-alist '("README$" . org-mode))
 ;; TODO
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
