@@ -519,9 +519,8 @@ searches all buffers."
     (next-logical-line) ;; next-line will cause warning
     ))
 (global-set-key (kbd "C-M-;") 'comment-or-uncomment-region-or-line)
-;; comment-box
-(defalias 'cb 'comment-box)
-(setq comment-style 'extra-line)
+;; use rebox2 instead of builtin comment-box
+
 (setq byte-compile-warnings nil)
 ;; comment in C code,`M-;` means /* */, use // in C++ code
 (add-hook 'c++-mode-hook (lambda () (setq comment-start "//"
@@ -695,6 +694,8 @@ FORCE-OTHER-WINDOW is ignored."
            'split-window-horizontally)
      (setq ediff-window-setup-function
            'ediff-setup-windows-plain)
+     ;; delete these buffers (if they are not modified) after q
+     (setq ediff-keep-variants nil)
      ))
 
 ;; You can use C-x o 'other-window, but the following is better
@@ -999,6 +1000,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
+;; if one or more of these repos are hard to load, just delete ~/.emacs.d/elpa/archives/
 (setq package-archives
       '(
         ("gnu" . "http://elpa.gnu.org/packages/")
@@ -1673,6 +1675,39 @@ FORCE-OTHER-WINDOW is ignored."
 ;; bbdb, w3m installed for gnus, check the
 ;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
 
+;; rebox2 to replace comment-box
+(require 'rebox2)
+;; default style,
+(setq rebox-style-loop '(11 15 111))
+;; no need to format, directly to comment
+(global-set-key (kbd "M-r") 'rebox-cycle)
+;; rebox-dwim to fill first
+(global-set-key (kbd "M-S-r") 'rebox-dwim)
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (set (make-local-variable 'rebox-style-loop) '(21 25 111))
+            (set (make-local-variable  'rebox-min-fill-column) 40)
+            (rebox-mode 1)
+            ))
+(add-hook 'c-mode-hook
+          (lambda ()
+            (set (make-local-variable 'rebox-style-loop) '(243 241 111))
+            (set (make-local-variable  'rebox-min-fill-column) 40)
+            (rebox-mode 1)
+            ))
+(add-hook 'c++-mode-hook
+          (lambda ()
+            (set (make-local-variable 'rebox-style-loop) '(25 21 111))
+            (set (make-local-variable  'rebox-min-fill-column) 40)
+            (rebox-mode 1)
+            ))
+
+(add-hook 'text-mode-hook
+          (lambda ()
+            (set (make-local-variable 'rebox-style-loop) '(113 123 111))
+            (set (make-local-variable  'rebox-min-fill-column) 40)
+            ;; (rebox-mode 1)
+            ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
