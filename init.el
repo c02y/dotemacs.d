@@ -1423,17 +1423,33 @@ FORCE-OTHER-WINDOW is ignored."
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
 
+;; icicles
+;; icicles & helm differences:
+;; http://lists.gnu.org/archive/html/help-gnu-emacs/2014-04/msg00500.html
+;; I would not recommend to try to run Icicles and Helm in parallel.  I would
+;; recommend to try them both, and decide to use only one of them.
+;;
+;; Generally, Helm is simpler and more straightforward, Icicles is more
+;; general and comes with more flexible concept.  In daily usage, I would
+;; say that you are faster with Helm, but you can do more stuff with
+;; Icicles.  I can't say if I would recommend any of the packages for an Emacs
+;; newbie.
+;;
+;; One mayor design difference is that Icicles does support multi-line candidates,
+;; Helm does not.  Icicles uses recursive Minibuffers in several ways, Helm does
+;; not.  OTOH, Helm completion is often faster than doing something similar in
+;; Helm.
 
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
 ;; Find Files or url: ~/
-;;	That show all ~/ directory.
+;;  That show all ~/ directory.
 ;; Find Files or url: ~/des
-;;	will show all what begin with "des"
+;;  will show all what begin with "des"
 ;; Find Files or url: ~/ esk
-;;	(Notice the space after ~/) will show all what contain esk.
+;;  (Notice the space after ~/) will show all what contain esk.
 ;; Find Files or url: ~/ el$
-;;	Will show all what finish with el
+;;  Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
 ;; M-<prior>/<next> 'helm-scroll-other-window/-down
 ;; 'helm-info-gnu/emacs/...
@@ -1493,21 +1509,21 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "C-/") 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
 (setq
- helm-quick-update t	 ; do not display invisible candidates
-; fix the typing too fast and emacs won't be ready problem
+ helm-quick-update t  ; do not display invisible candidates
+ ;; fix the typing too fast and emacs won't be ready problem
  helm-exit-idle-delay 0
- helm-idle-delay 0.01	 ; be idle for this many seconds, before updating in delayed sources.
+ helm-idle-delay 0.01     ; be idle for this many seconds, before updating in delayed sources.
  helm-input-idle-delay 0.01 ; be idle for this many seconds, before updating candidate buffer
  helm-split-window-default-side 'other ; open helm buffer in another window
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
  helm-buffers-favorite-modes (append helm-buffers-favorite-modes
                                      '(picture-mode artist-mode))
-; do not show these files in helm buffer
+                                        ; do not show these files in helm buffer
  helm-boring-file-regexp-list
  '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$")
-; move to end or beginning of source when reaching top or bottom of source.
+ ;; move to end or beginning of source when reaching top or bottom of source.
  helm-move-to-line-cycle-in-source t
-; fuzzy matching buffer names when non--nil, useful in helm-mini that lists buffers
+ ;; fuzzy matching buffer names when non--nil, useful in helm-mini that lists buffers
  helm-buffers-fuzzy-matching t
  )
 ;; Save current position to mark ring when jumping to a different place
@@ -1683,6 +1699,8 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "M-r") 'rebox-cycle)
 ;; rebox-dwim to fill first
 (global-set-key (kbd "M-S-r") 'rebox-dwim)
+;; you can change the style in the box(no mark needed) to such as 126
+;; using M-126 M-q, but only from the original to 126, not 126 to another again
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (set (make-local-variable 'rebox-style-loop) '(21 25 111))
@@ -1748,6 +1766,7 @@ FORCE-OTHER-WINDOW is ignored."
     (drag-stuff-mode . "")
     (ggtags-mode . " Ggtags")
     (auto-fill-function . "") ;; not auto-fill-mode
+    (rebox-mode . "")
     ;; Major modes
     (lisp-interaction-mode . "λ")
     (emacs-lisp-mode . "El")
