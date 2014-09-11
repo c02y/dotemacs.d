@@ -379,6 +379,7 @@ buffer-local variable `show-trailing-whitespace'."
 ;; do not use buffer-cleanup, it is too much
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
@@ -1426,19 +1427,17 @@ FORCE-OTHER-WINDOW is ignored."
 ;; icicles
 ;; icicles & helm differences:
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2014-04/msg00500.html
+;;
 ;; I would not recommend to try to run Icicles and Helm in parallel.  I would
 ;; recommend to try them both, and decide to use only one of them.
 ;;
-;; Generally, Helm is simpler and more straightforward, Icicles is more
-;; general and comes with more flexible concept.  In daily usage, I would
-;; say that you are faster with Helm, but you can do more stuff with
-;; Icicles.  I can't say if I would recommend any of the packages for an Emacs
-;; newbie.
+;; Generally, Helm is simpler and more straightforward, Icicles is more general
+;; and comes with more flexible concept.  In daily usage, I would say that you
+;; are faster with Helm, but you can do more stuff with Icicles.  I can't say if
+;; I would recommend any of the packages for an Emacs newbie.
 ;;
-;; One mayor design difference is that Icicles does support multi-line candidates,
-;; Helm does not.  Icicles uses recursive Minibuffers in several ways, Helm does
-;; not.  OTOH, Helm completion is often faster than doing something similar in
-;; Helm.
+;; Icicles uses recursive Minibuffers in several ways, Helm does not.
+
 
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
@@ -1516,9 +1515,9 @@ FORCE-OTHER-WINDOW is ignored."
  helm-input-idle-delay 0.01 ; be idle for this many seconds, before updating candidate buffer
  helm-split-window-default-side 'other ; open helm buffer in another window
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
- helm-buffers-favorite-modes (append helm-buffers-favorite-modes
-                                     '(picture-mode artist-mode))
-                                        ; do not show these files in helm buffer
+ helm-buffers-favorite-modes
+ (append helm-buffers-favorite-modes
+         '(picture-mode artist-mode)) ; do not show these files in helm buffer
  helm-boring-file-regexp-list
  '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$")
  ;; move to end or beginning of source when reaching top or bottom of source.
@@ -1528,6 +1527,7 @@ FORCE-OTHER-WINDOW is ignored."
  )
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
+
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
