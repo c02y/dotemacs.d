@@ -1,7 +1,5 @@
 # -*- mode: snippet -*-
-# name: utf8
-# key: utf
-# group : general
+# name: utf-8 encoding
+# key: utf8
 # --
-# -*- encoding: utf-8 -*-
-$0
+# -*- coding: utf-8 -*-
