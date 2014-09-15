@@ -206,11 +206,26 @@
 ;; the following will get rid of prompt when M-x load-theme, treat all
 ;; themes as safe
 (setq custom-safe-themes t)
+;;
 ;; afternoon
-(require 'afternoon-theme)
+;; (require 'afternoon-theme)
+;;
 ;; ;; molokai
 ;; (load-theme 'molokai t)
 ;; (require 'molokai-theme)
+;;
+;; moe-theme, a very colorful and powerful theme
+;; for more setting at https://github.com/kuanyui/moe-theme.el
+(require 'moe-theme)
+;; Colorful Mode-line
+;; (Available colors: blue, orange, green, magenta, yellow, purple, red, cyan, w/b.)
+;; (setq moe-theme-mode-line-color 'w/b)
+;; Resize titles
+(setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
+(setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
+;; disable default mode-line buffer-id highlight
+(setq moe-theme-highlight-buffer-id nil)
+(moe-dark)
 ;;
 ;; font and size of startup
 ;;
@@ -244,13 +259,13 @@
                   ;; (:family "Menlo-Italic")
                   )))
         ))
-  ;; the following two settings only work nicely along with the afternoon-theme
+  ;; the following two settings are specifically for afternoon-theme
   ;; the combination colors of highlighted line and comments
-  (custom-set-faces
-   '(font-lock-comment-face
-     ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
-     ))
-  (set-face-background 'highlight "gray30")
+  ;; (custom-set-faces
+  ;;  '(font-lock-comment-face
+  ;;    ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
+  ;;    ))
+  ;; (set-face-background 'highlight "gray30")
 )
 ;;
 ;; (if (> (x-display-pixel-height) 1000)
@@ -317,6 +332,19 @@
 (defun flush-blank-lines (start end)
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
+
+;; use M-x list-processes then d to delete
+(defalias 'lp 'list-processes)
+(defun delete-process-at-point ()
+  (interactive)
+  (let ((process (get-text-property (point) 'tabulated-list-id)))
+    (cond ((and process
+                (processp process))
+           (delete-process process)
+           (revert-buffer))
+          (t
+           (error "no process at point!")))))
+(define-key process-menu-mode-map (kbd "d") 'delete-process-at-point)
 
 ;; Removing duplicated lines
 ;; Note that the last line should contain the EOF
@@ -656,9 +684,11 @@ FORCE-OTHER-WINDOW is ignored."
         (let ((new-win (get-lru-window)))
           (set-window-buffer new-win buffer)
           new-win))))
-;; use display-buffer-alist instead of display-buffer-function if the following line won't work
+;; use display-buffer-alist instead of display-buffer-function if you cannot
+;; create a new buffer such as using just M-x
 (setq display-buffer-function 'display-new-buffer)
-
+;; reuse frames
+(setq-default display-buffer-reuse-frames t)
 ;; toggle two windows between vertically and horizontally
 (defun toggle-window-split ()
   (interactive)
@@ -853,10 +883,10 @@ FORCE-OTHER-WINDOW is ignored."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;; Parentheses
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; show the double paren
+;; show the double parenthesis/expression
 (show-paren-mode t)
-(setq show-paren-style 'parenthesis)
-;; show the open parentheses when typeing the closing one
+(setq show-paren-style 'expression)
+;; show the open parentheses when typing the closing one
 (setq blink-matching-paren t)
 ;;
 ;; auto insert the other half of parentheses
@@ -956,8 +986,12 @@ FORCE-OTHER-WINDOW is ignored."
 (global-semantic-mru-bookmark-mode t)
 ;; activates automatic parsing of source code in the idle time;
 (global-semantic-idle-scheduler-mode t)
-;; activates displaying of possible name completions in the idle time.
-;; Requires that global-semantic-idle-scheduler-mode was enabled;
+;; Show the function point is currently in(like which-function-mode) at the
+;; first line of the current buffer, more details than which-function, but not
+;; instantly sometimes:
+;; (global-semantic-stickyfunc-mode t)
+;; activates displaying of possible name completions in the idle time.  Requires
+;; that global-semantic-idle-scheduler-mode was enabled;
 (global-semantic-idle-completions-mode t)
 ;; activates displaying of information about current tag in the idle time.
 ;; Requires that global-semantic-idle-scheduler-mode was enabled.
@@ -1289,34 +1323,23 @@ FORCE-OTHER-WINDOW is ignored."
 			;; (local-set-key  (kbd "C-c s n") 'ascope-show-next-entry-other-window)
 			))
 
-;; ;; gtags, doesn't work  but ggtags works, weird
-;; (autoload 'gtags-mode "gtags" "" t)
-;; (add-hook 'c-mode-hook
-;;			 '(lambda ()
-;;				(gtags-mode 1)
-;;				))
-;; ;; Setting to make 'Gtags select mode' easy to see
-;; (add-hook 'gtags-select-mode-hook
-;;			 '(lambda ()
-;;				(setq hl-line-face 'underline)
-;;				(hl-line-mode 1)
-;;				))
-;; (setq gtags-mode-hook
-;; '(lambda ()
-;; (setq gtags-path-style 'relative)
-;; )) ;; relative can be root, relative and absolute
-;; (add-hook 'c-mode-common-hook
-;;			 (lambda()
-;;			   (local-set-key (kbd "C-c s g") 'gtags-find-tag-other-window)
-;;			   (local-set-key (kbd "C-c s G") 'gtags-find-tag-from-here)
-;;			   (local-set-key (kbd "C-c s s") 'gtags-find-symbol)
-;;			   (local-set-key (kbd "C-c s S") 'gtags-find-with-grep)
-;;			   (local-set-key (kbd "C-c s r") 'gtags-find-rtag)
-;;			   (local-set-key (kbd "C-c s p") 'gtags-find-pattern)
-;;			   (local-set-key (kbd "C-c s f") 'gtags-find-file)
-;;			   (local-set-key (kbd "C-c s b") 'gtags-pop-stack)
-;;			   (local-set-key (kbd "C-c s m") 'gtags-make-complete-list)
-;;			   ))
+;; ggtags
+;; ggtags supports jump/navigation
+;; cedet supports highlighting, project, smart jump, context-sensitive
+;; completion, symbol references, code generation...
+;; ggtags: https://github.com/leoliu/ggtags
+;; C-x d to the source dir, M-x ggtags-create-tags --> dir --> ctags(no)
+;; or just M-x ggtags-create-tags(ggtags-update-tags to update an existed tag)
+;; will create tags for source code or reference the ~/Recentchange/emacs
+;; M-n/p, M-* to go back, RET to exit ggtags status
+;; C-c M-h 'ggtags-view-tag-history, stores the places in files you visited
+;; C-c M-/ 'ggtags-view-search-history, stores the tag operations you performed
+(add-hook 'c-mode-common-hook
+		  (lambda ()
+			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
+			  (ggtags-mode 1))))
+
+;; show which function in mode-line
 (which-function-mode 1)
 ;; replace ??? to n/a
 (setq which-func-unknown "n/a")
@@ -1329,24 +1352,10 @@ FORCE-OTHER-WINDOW is ignored."
 		  (cons which-func
 				(cdr cell))))
 
-;; ggtags supports jump/navigation
-;; cedet supports highlighting, project, smart jump, context-sensitive completion, symbol references, code generation...
-;; ggtags: https://github.com/leoliu/ggtags
-;; C-x d to the source dir, M-x ggtags-create-tags --> dir --> ctags(no)
-;; will create tags for source code or reference the ~/Recentchange/emacs
-;; M-n/p, M-* to go back, RET to exit ggtags status
-;; C-c M-h 'ggtags-view-tag-history, stores the places in files you visited
-;; C-c M-/ 'ggtags-view-search-history, stores the tag operations you performed
-(add-hook 'c-mode-common-hook
-		  (lambda ()
-			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
-			  (ggtags-mode 1))))
-
-
 ;; org-mode
 (autoload 'package "package" t)
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
-;; then install both org and org-plus-contrib, they are all in contrib/ from org git repo.
+;; both org and org-plus-contrib are needed for full org-mode
 ;; org, http://orgmode.org/worg/org-faq.html
 ;;
 ;; ;; The following two set-key has the side affect that
