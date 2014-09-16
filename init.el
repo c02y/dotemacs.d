@@ -1042,7 +1042,7 @@ FORCE-OTHER-WINDOW is ignored."
         ("ELPA" . "http://tromey.com/elpa/")
         ("melpa" . "http://melpa.milkbox.net/packages/")
         ("melpa-stable1" . "http://melpa-stable.milkbox.net/packages/")
-        ("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
+        ;; ("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
         ("marmalade" . "http://marmalade-repo.org/packages/")
         ))
 ;;
