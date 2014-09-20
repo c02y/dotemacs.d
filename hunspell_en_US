@@ -208,3 +208,8 @@ repo
 rebase
 ggtags
 chmod
+Asm
+ld
+objdump
+disassembly
+disas
