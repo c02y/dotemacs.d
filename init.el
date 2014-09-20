@@ -566,7 +566,7 @@ searches all buffers."
 ;; When C-x n n/s to narrwow the marked region, don't ask whether for future
 ;; session or not C-x n w to go back to normal
 (put 'narrow-to-region 'disabled nil)
-;; make C-z(suspend-frame) to go away, and you can use C-z for others
+;; disable C-z(suspend-frame) , and you can use C-z for others
 (define-key global-map [(control z)] nil)
 ;; color
 (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
@@ -1728,13 +1728,13 @@ FORCE-OTHER-WINDOW is ignored."
             (set (make-local-variable  'rebox-min-fill-column) 40)
             (rebox-mode 1)
             ))
-
 (add-hook 'text-mode-hook
           (lambda ()
             (set (make-local-variable 'rebox-style-loop) '(113 123 111))
             (set (make-local-variable  'rebox-min-fill-column) 40)
             ;; (rebox-mode 1)
             ))
+(define-key rebox-mode-map [(control y)] nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
