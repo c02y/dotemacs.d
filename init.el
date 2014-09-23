@@ -334,7 +334,7 @@
   (flush-lines "^\\s-*$" start end nil))
 
 ;; use M-x list-processes then d to delete
-(defalias 'lp 'list-processes)
+(defalias 'lps 'list-processes)
 (defun delete-process-at-point ()
   (interactive)
   (let ((process (get-text-property (point) 'tabulated-list-id)))
@@ -1531,12 +1531,13 @@ FORCE-OTHER-WINDOW is ignored."
  helm-boring-file-regexp-list
  '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$")
  ;; move to end or beginning of source when reaching top or bottom of source.
- helm-move-to-line-cycle-in-source t
+ ;; helm-move-to-line-cycle-in-source t
  ;; fuzzy matching buffer names when non--nil, useful in helm-mini that lists buffers
  helm-buffers-fuzzy-matching t
  )
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
+(defalias 'hg 'helm-do-grep)
 
 
 ;;;; s required by flycheck
