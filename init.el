@@ -439,7 +439,37 @@ buffer-local variable `show-trailing-whitespace'."
 ;; same effect as wdired-change-to-wdired-mode, but the latter cannot disable the editable-mode
 ;; (even if you didn't change a thing)until you save your change or abort.
 ;; (global-set-key (kbd "C-x j") 'wdired-change-to-wdired-mode)
-;;
+;; sort dirs first in dired-mode
+(defun dired-sort-dirs-first ()
+  "Dired sort hook to list directories first."
+  (save-excursion
+    (let (buffer-read-only)
+      (forward-line 2) ;; beyond dir. header
+      (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max))))
+  (and (featurep 'xemacs)
+       (fboundp 'dired-insert-set-properties)
+       (dired-insert-set-properties (point-min) (point-max)))
+  (set-buffer-modified-p nil))
+(add-hook 'dired-after-readin-hook 'dired-sort-dirs-first)
+;; Use `s s/x/t/n` to sort by size/extension/time/name
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (interactive)
+            (make-local-variable  'dired-sort-map)
+            (setq dired-sort-map (make-sparse-keymap))
+            (define-key dired-mode-map "s" dired-sort-map)
+            (define-key dired-sort-map "s"
+              '(lambda () "sort by Size"
+                 (interactive) (dired-sort-other (concat dired-listing-switches "S"))))
+            (define-key dired-sort-map "x"
+              '(lambda () "sort by eXtension"
+                 (interactive) (dired-sort-other (concat dired-listing-switches "X"))))
+            (define-key dired-sort-map "t"
+              '(lambda () "sort by Time"
+                 (interactive) (dired-sort-other (concat dired-listing-switches "t"))))
+            (define-key dired-sort-map "n"
+              '(lambda () "sort by Name(default)"
+                 (interactive) (dired-sort-other (concat dired-listing-switches ""))))))
 ;; move cursor between minibuffer and buffers using F7
 (defun switch-to-minibuffer-window ()
   "switch to minibuffer window (if active)"
@@ -453,14 +483,6 @@ buffer-local variable `show-trailing-whitespace'."
 (setq echo-keystrokes 0.001)
 ;; use minibuffer recursively, don't know what does it mean
 (setq enable-recursive-minibuffers t)
-;;
-;; dired-x.el built-in
-;; You use F to open all the marked files now
-(add-hook 'dired-load-hook
-          (lambda () (load "dired-x")))
-;; 'find-name-dired find all the files in the dir recursively
-;; default to 'set-fill-column
-(global-set-key (kbd "C-x f") 'find-name-dired)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
 (defcustom search-all-buffers-ignored-files (list (rx-to-string '(and bos (or ".bash_history" "TAGS") eos)))
@@ -1738,19 +1760,27 @@ FORCE-OTHER-WINDOW is ignored."
             ))
 (define-key rebox-mode-map [(control y)] nil)
 
+;; grizzl required by fiplr
+
+;; fiplr - Find in Project for Emacs
+(global-set-key (kbd "C-x f") 'fiplr-find-file-other-window)
+;; if you accidentally used C-x f in a dir which is not Project(such as ~/), it
+;; cane be very laggy, use M-x fiplr-clear-cache to clear the
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;   el-get      ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;	el-get self setup
+;;  el-get self setup
 ;; ;;
 ;; (unless (require 'el-get nil 'noerror)
-;;	 (with-current-buffer
-;;		 (url-retrieve-synchronously
-;;		  "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-;;	   (let (el-get-master-branch)
-;;		 (goto-char (point-max))
-;;		 (eval-print-last-sexp))))
+;;   (with-current-buffer
+;;       (url-retrieve-synchronously
+;;        "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+;;     (let (el-get-master-branch)
+;;       (goto-char (point-max))
+;;       (eval-print-last-sexp))))
 ;; (el-get 'sync)
 ;; ;; solve the "Could not update git submodules" error
 ;; (setq el-get-github-default-url-type "https")
