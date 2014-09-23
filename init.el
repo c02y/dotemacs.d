@@ -158,7 +158,7 @@
 ;;
 (setq bookmark-save-flag t)
 ;; Make Text mode the default mode for new buffers.
-(setq-default major-mode 'text-mode)
+(setq-default major-mode 'org-mode)
 (add-hook 'text-mode-hook 'auto-fill-mode)
 (global-linum-mode 1)
 (setq column-number-mode t)
@@ -1447,6 +1447,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;;
 ;; Icicles uses recursive Minibuffers in several ways, Helm does not.
 
+;; async requird by helm
 
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
