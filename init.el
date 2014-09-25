@@ -1726,8 +1726,9 @@ FORCE-OTHER-WINDOW is ignored."
 
 ;; rebox2 to replace comment-box
 (require 'rebox2)
-;; default style,
-(setq rebox-style-loop '(11 15 111))
+;; default style
+;; (setq rebox-style-loop '(11 15 111))
+(setq rebox-min-fill-column 40)
 ;; no need to format, directly to comment
 (global-set-key (kbd "M-r") 'rebox-cycle)
 ;; rebox-dwim to fill first
@@ -1737,25 +1738,21 @@ FORCE-OTHER-WINDOW is ignored."
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (set (make-local-variable 'rebox-style-loop) '(21 25 111))
-            (set (make-local-variable  'rebox-min-fill-column) 40)
             (rebox-mode 1)
             ))
 (add-hook 'c-mode-hook
           (lambda ()
             (set (make-local-variable 'rebox-style-loop) '(243 241 111))
-            (set (make-local-variable  'rebox-min-fill-column) 40)
             (rebox-mode 1)
             ))
 (add-hook 'c++-mode-hook
           (lambda ()
             (set (make-local-variable 'rebox-style-loop) '(25 21 111))
-            (set (make-local-variable  'rebox-min-fill-column) 40)
             (rebox-mode 1)
             ))
 (add-hook 'text-mode-hook
           (lambda ()
             (set (make-local-variable 'rebox-style-loop) '(113 123 111))
-            (set (make-local-variable  'rebox-min-fill-column) 40)
             ;; (rebox-mode 1)
             ))
 (define-key rebox-mode-map [(control y)] nil)
