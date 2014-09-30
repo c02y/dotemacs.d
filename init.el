@@ -467,6 +467,12 @@ buffer-local variable `show-trailing-whitespace'."
             (define-key dired-sort-map "t"
               '(lambda () "sort by Time"
                  (interactive) (dired-sort-other (concat dired-listing-switches "t"))))
+            (define-key dired-sort-map "ct"
+              '(lambda () "sort by Create Time"
+                 (interactive) (dired-sort-other (concat dired-listing-switches "ct"))))
+            (define-key dired-sort-map "ut"
+              '(lambda () "sort by Access Time"
+                 (interactive) (dired-sort-other (concat dired-listing-switches "ut"))))
             (define-key dired-sort-map "n"
               '(lambda () "sort by Name(default)"
                  (interactive) (dired-sort-other (concat dired-listing-switches ""))))))
@@ -757,16 +763,6 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "C-x <right>") 'windmove-right)
 (global-set-key (kbd "C-x <up>") 'windmove-up)
 (global-set-key (kbd "C-x <down>") 'windmove-down)
-
-;; save recent files
-(eval-after-load "gdb-mi"
-  '(progn
-     (setq recentf-save-file
-           (concat user-emacs-directory "recentf")
-           recentf-max-saved-items 100
-           recentf-max-menu-items 15)
-))
-(recentf-mode t)
 
 ;;
 ;; revert buffer without confirmation
@@ -1518,6 +1514,13 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "C-x b") 'helm-mini)
 ;; (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
+;; (recentf-mode t)
+(setq
+ ;; recentf-save-file
+ ;; (concat user-emacs-directory "recentf")
+ recentf-max-saved-items 100
+ ;; recentf-max-menu-items 15
+ )
 ;;
 ;; C-s(helm-ff-run-grep) after C-x C-f to search a file/directory on highlighted...,
 ;; With prefix argument, recursively grep a selected directory. )
