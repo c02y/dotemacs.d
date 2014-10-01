@@ -217,15 +217,20 @@
 ;; moe-theme, a very colorful and powerful theme
 ;; for more setting at https://github.com/kuanyui/moe-theme.el
 (require 'moe-theme)
-;; Colorful Mode-line
-;; (Available colors: blue, orange, green, magenta, yellow, purple, red, cyan, w/b.)
-;; (setq moe-theme-mode-line-color 'w/b)
 ;; Resize titles
 (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
 (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
 ;; disable default mode-line buffer-id highlight
 (setq moe-theme-highlight-buffer-id nil)
 (moe-dark)
+;; mode-line color
+(custom-set-faces
+ ;; no special for which-func
+ '(which-func ((t (:background nil :foreground nil))))
+ '(mode-line ((t (:background "dim gray" :foreground "white"))))
+ '(mode-line-inactive ((t (:background "black-5"))))
+ '(mode-line-buffer-id ((t (:foreground nil))))
+ )
 ;;
 ;; font and size of startup
 ;;
@@ -268,16 +273,6 @@
   ;; (set-face-background 'highlight "gray30")
 )
 ;;
-;; (if (> (x-display-pixel-height) 1000)
-;;        (add-to-list 'default-frame-alist (cons 'height 48))
-;;        (add-to-list 'default-frame-alist (cons 'height 37)))
-;; )))
-;; for the height, subtract a couple hundred pixels from the screen height (for
-;; panels, menubars and whatnot), then divide by the height of a char to get the
-;; height we want
-;; (add-to-list 'default-frame-alist
-;;      (cons 'height (/ (- (x-display-pixel-height) 200)
-;;                          (frame-char-height)))))))
 (set-frame-size-according-to-resolution)
 
 ;; make someWord two words for M-f/b, some-word, some_word are two words already
@@ -451,31 +446,12 @@ buffer-local variable `show-trailing-whitespace'."
        (dired-insert-set-properties (point-min) (point-max)))
   (set-buffer-modified-p nil))
 (add-hook 'dired-after-readin-hook 'dired-sort-dirs-first)
-;; Use `s s/x/t/n` to sort by size/extension/time/name
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (interactive)
-            (make-local-variable  'dired-sort-map)
-            (setq dired-sort-map (make-sparse-keymap))
-            (define-key dired-mode-map "s" dired-sort-map)
-            (define-key dired-sort-map "s"
-              '(lambda () "sort by Size"
-                 (interactive) (dired-sort-other (concat dired-listing-switches "S"))))
-            (define-key dired-sort-map "x"
-              '(lambda () "sort by eXtension"
-                 (interactive) (dired-sort-other (concat dired-listing-switches "X"))))
-            (define-key dired-sort-map "t"
-              '(lambda () "sort by Time"
-                 (interactive) (dired-sort-other (concat dired-listing-switches "t"))))
-            (define-key dired-sort-map "ct"
-              '(lambda () "sort by Create Time"
-                 (interactive) (dired-sort-other (concat dired-listing-switches "ct"))))
-            (define-key dired-sort-map "ut"
-              '(lambda () "sort by Access Time"
-                 (interactive) (dired-sort-other (concat dired-listing-switches "ut"))))
-            (define-key dired-sort-map "n"
-              '(lambda () "sort by Name(default)"
-                 (interactive) (dired-sort-other (concat dired-listing-switches ""))))))
+;; change the format of the files(dirs)
+(setq dired-listing-switches "-Al --time-style long-iso")
+;; sort in dired, `C-u s` then -S(sort by size), -u(sort by access time),
+;; -c(sort by last modification time), -X(sort by file extension),
+;; another, in dired `s`
+;;
 ;; move cursor between minibuffer and buffers using F7
 (defun switch-to-minibuffer-window ()
   "switch to minibuffer window (if active)"
