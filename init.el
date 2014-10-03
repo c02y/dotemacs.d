@@ -1594,8 +1594,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
 ;; mapc: http://tuhdo.github.io/emacs-tutor3.html
-;; use C-u C-c m to ask which repo to choose, C-c m to the current dir
-(global-set-key (kbd "C-c m") 'magit-status)
+;; use C-u C-x g to ask which repo to choose, C-c m to the current dir
+(global-set-key (kbd "C-x g") 'magit-status)
 (eval-after-load "magit"
   '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
 		 '(
@@ -1787,7 +1787,7 @@ FORCE-OTHER-WINDOW is ignored."
 	(flyspell-mode . "")
 	(abbrev-mode . "")
 	(drag-stuff-mode . "")
-	(ggtags-mode . " Ggtags")
+	(ggtags-mode . " Gg")
 	(auto-fill-function . "") ;; not auto-fill-mode
 	(rebox-mode . "")
 	;; Major modes
