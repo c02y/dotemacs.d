@@ -74,15 +74,15 @@
 ;; C-M-n/p Move forward/backward over a parenthetical group
 ;; C-M-u/d Move up/down in parenthesis structure
 ;; M-$ -> i -> y to insert the string into personal dictionary
-;; 		 the personal dictionary asides in ~/.hunspell_en_US
-;; 		 file has already been linked to .emacs.d/
+;;			 the personal dictionary asides in ~/.hunspell_en_US
+;;			 file has already been linked to .emacs.d/
 ;; in the comment, if you want to insert another comment line, use M-j
 ;; M-m 'back-to-indentation move point to first non-whitespace character
 ;; M-x find-library will lead you to the right .el file
 
 ;; Windows style line endings (DOS support)
-;; C-x RET f undecided-dos RET     --> \r\n (windows)
-;; C-x RET f undecided-unix RET    --> \n  (unix/Linux)
+;; C-x RET f undecided-dos RET	   --> \r\n (windows)
+;; C-x RET f undecided-unix RET	   --> \n  (unix/Linux)
 ;; M-x tabify/untabify convert from spaces to tabs and vice verse
 
 ;; (setq debug-on-error t)
@@ -94,18 +94,18 @@
 ;;add timestamps in *Messages*
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
-         (now-ms (nth 2 nowtime)))
-    (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
+		 (now-ms (nth 2 nowtime)))
+	(concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
 (defadvice message (before test-symbol activate)
   (if (not (string-equal (ad-get-arg 0) "%s%s"))
-      (let ((deactivate-mark nil)
-            (inhibit-read-only t))
-        (save-excursion
-          (set-buffer "*Messages*")
-          (goto-char (point-max))
-          (if (not (bolp))
-              (newline))
-          (insert (current-time-microseconds))))))
+	  (let ((deactivate-mark nil)
+			(inhibit-read-only t))
+		(save-excursion
+		  (set-buffer "*Messages*")
+		  (goto-char (point-max))
+		  (if (not (bolp))
+			  (newline))
+		  (insert (current-time-microseconds))))))
 
 ;; encode, the last line will be the highest priority
 (set-language-environment 'UTF-8)
@@ -126,8 +126,8 @@
 (defun add-subdirs-to-load-path (dir)
   "Recursive add directories to `load-path'."
   (let ((default-directory (file-name-as-directory dir)))
-    (add-to-list 'load-path dir)
-    (normal-top-level-add-subdirs-to-load-path)))
+	(add-to-list 'load-path dir)
+	(normal-top-level-add-subdirs-to-load-path)))
 (add-subdirs-to-load-path "/usr/share/emacs/")
 (add-subdirs-to-load-path "~/.emacs.d/")
 
@@ -138,17 +138,17 @@
 ;; Delete the existed/no-existed .emacs.elc and recompile and reload
 (defun byte-compile-init-file ()
   (when (equal user-init-file buffer-file-name)
-    (when (file-exists-p (concat user-init-file ".elc"))
-      (delete-file (concat user-init-file ".elc")))
-    (emacs-lisp-byte-compile-and-load)))
+	(when (file-exists-p (concat user-init-file ".elc"))
+	  (delete-file (concat user-init-file ".elc")))
+	(emacs-lisp-byte-compile-and-load)))
 (add-hook 'after-save-hook 'byte-compile-init-file)
 ;; ;; combining the above two version:: WRONG
 ;; (defun byte-compile-and-reload-elisp ()
-;;   (interactive)
-;;   (when (and (eq major-mode 'emacs-lisp-mode)
-;;              (when (file-exists-p (byte-compile-dest-file buffer-file-name))
-;;                (delete-file (concat buffer-file-name ".elc")))
-;;              (emacs-lisp-byte-compile-and-load))))
+;;	 (interactive)
+;;	 (when (and (eq major-mode 'emacs-lisp-mode)
+;;				(when (file-exists-p (byte-compile-dest-file buffer-file-name))
+;;				  (delete-file (concat buffer-file-name ".elc")))
+;;				(emacs-lisp-byte-compile-and-load))))
 ;; (add-hook 'after-save-hook 'byte-compile-and-reload-elisp)
 
 
@@ -183,7 +183,7 @@
 (setq global-mode-string nil)
 ;; this will not always show the day of week, weird
 (setq frame-title-format
-      '("%b@%f" "--" display-time-string))
+	  '("%b@%f" "--" display-time-string))
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
@@ -237,39 +237,39 @@
 ;; (setq default-frame-alist '((font . "Menlo-12")))
 ;; set italic font for italic face, since Emacs does not set italic face automatically
 ;; (set-face-attribute 'italic nil
-;;                    :family "Menlo-Italic")
+;;					  :family "Menlo-Italic")
 ;;
 ;; set the default window size at startup according to the resolutions
 ;; (setq default-frame-alist '((height . 37) (width . 80)))
 (defun set-frame-size-according-to-resolution ()
   (interactive)
   (if window-system
-      (progn
-        ;; use 120 char wide window for largish displays
-        ;; and smaller 80 column windows for smaller displays
-        ;; pick whatever numbers make sense for you
-        (if (> (x-display-pixel-width) 1500)
-            ;; (add-to-list 'default-frame-alist (cons 'width 85))
-            ;; (add-to-list 'default-frame-alist (cons 'width 85)))
-            (setq default-frame-alist
-                  '((top . 0)(left . 0)
-                    (width . 85)(height . 48)
-                    (font . "Menlo-13")
-                    ;; (:family "Menlo-Italic");; Monaco, Consolas
-                    ))
-          (setq default-frame-alist
-                '((top . 0)(left . 0)
-                  (width . 85)(height . 38)
-                  (font . "Menlo-12")
-                  ;; (:family "Menlo-Italic")
-                  )))
-        ))
+	  (progn
+		;; use 120 char wide window for largish displays
+		;; and smaller 80 column windows for smaller displays
+		;; pick whatever numbers make sense for you
+		(if (> (x-display-pixel-width) 1500)
+			;; (add-to-list 'default-frame-alist (cons 'width 85))
+			;; (add-to-list 'default-frame-alist (cons 'width 85)))
+			(setq default-frame-alist
+				  '((top . 0)(left . 0)
+					(width . 85)(height . 48)
+					(font . "Menlo-13")
+					;; (:family "Menlo-Italic");; Monaco, Consolas
+					))
+		  (setq default-frame-alist
+				'((top . 0)(left . 0)
+				  (width . 85)(height . 38)
+				  (font . "Menlo-12")
+				  ;; (:family "Menlo-Italic")
+				  )))
+		))
   ;; the following two settings are specifically for afternoon-theme
   ;; the combination colors of highlighted line and comments
   ;; (custom-set-faces
   ;;  '(font-lock-comment-face
-  ;;    ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
-  ;;    ))
+  ;;	((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
+  ;;	))
   ;; (set-face-background 'highlight "gray30")
 )
 ;;
@@ -293,21 +293,21 @@
 (defun loop-alpha ()
   (interactive)
   (let ((h (car alpha-list)))
-    ((lambda (a ab)
-       (set-frame-parameter (selected-frame) 'alpha (list a ab))
-       (add-to-list 'default-frame-alist
-                    (cons 'alpha (list a ab))))
-     (car h)(car (cdr h)))
-    (setq alpha-list (cdr (append alpha-list (list h))))
-    )
+	((lambda (a ab)
+	   (set-frame-parameter (selected-frame) 'alpha (list a ab))
+	   (add-to-list 'default-frame-alist
+					(cons 'alpha (list a ab))))
+	 (car h)(car (cdr h)))
+	(setq alpha-list (cdr (append alpha-list (list h))))
+	)
   )
 
 ;; set the query-replace from top
 (defun query-replace-from-top ()
   (interactive)
   (save-excursion
-    (beginning-of-buffer)
-    (call-interactively 'query-replace)))
+	(beginning-of-buffer)
+	(call-interactively 'query-replace)))
 (global-set-key (kbd "M-%") 'query-replace-from-top)
 
 ;; sudo to edit
@@ -319,7 +319,7 @@
 (global-set-key (kbd "C-c C-f") 'sudo)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;  defun
+;;;;;;;;;;	defun
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; flush blank lines
@@ -333,12 +333,12 @@
 (defun delete-process-at-point ()
   (interactive)
   (let ((process (get-text-property (point) 'tabulated-list-id)))
-    (cond ((and process
-                (processp process))
-           (delete-process process)
-           (revert-buffer))
-          (t
-           (error "no process at point!")))))
+	(cond ((and process
+				(processp process))
+		   (delete-process process)
+		   (revert-buffer))
+		  (t
+		   (error "no process at point!")))))
 (define-key process-menu-mode-map (kbd "d") 'delete-process-at-point)
 
 ;; Removing duplicated lines
@@ -349,18 +349,18 @@ Called from a program, there are two arguments:
 BEG and END (region to sort)."
   (interactive "r")
   (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char (point-min))
-      (while (not (eobp))
-        (kill-line 1)
-        (yank)
-        (let ((next-line (point)))
-          (while
-              (re-search-forward
-               (format "^%s" (regexp-quote (car kill-ring))) nil t)
-            (replace-match "" nil nil))
-          (goto-char next-line))))))
+	(save-restriction
+	  (narrow-to-region beg end)
+	  (goto-char (point-min))
+	  (while (not (eobp))
+		(kill-line 1)
+		(yank)
+		(let ((next-line (point)))
+		  (while
+			  (re-search-forward
+			   (format "^%s" (regexp-quote (car kill-ring))) nil t)
+			(replace-match "" nil nil))
+		  (goto-char next-line))))))
 (defalias 'ddl 'delete-duplicated-lines)
 
 ;; convert DOS to UNIX
@@ -369,19 +369,25 @@ BEG and END (region to sort)."
   (interactive)
   (set-buffer-file-coding-system 'unix 't))
 
+;; format whole buffer
+(defun fb ()
+  "format whole buffer using `indent-region`"
+  (interactive)
+  (indent-region (point-min) (point-max)))
+
 ;; Display trailing whitespace at end of lines
 (defun toggle-trailing-whitespace-display ()
   "Toggle the display of trailing whitespace, by changing the
 buffer-local variable `show-trailing-whitespace'."
   (interactive)
   (save-excursion
-    (if show-trailing-whitespace
-        (setq show-trailing-whitespace nil)
-      (setq show-trailing-whitespace t))
-    (force-window-update (current-buffer)))
+	(if show-trailing-whitespace
+		(setq show-trailing-whitespace nil)
+	  (setq show-trailing-whitespace t))
+	(force-window-update (current-buffer)))
   (message (concat "Display of EOL spaces "
-                   (if show-trailing-whitespace
-                       "enabled" "disabled"))))
+				   (if show-trailing-whitespace
+					   "enabled" "disabled"))))
 (global-set-key "\C-ce" 'show-ws-toggle-show-trailing-whitespace)
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation
 ;; M-Backspace delete to the previous word 'backword-kill-word
@@ -390,14 +396,14 @@ buffer-local variable `show-trailing-whitespace'."
 (global-set-key (kbd "C-<backspace>") 'fixup-whitespace)
 ;; clean buffer/format using C-c n
 ;; (defun buffer-cleanup ()
-;;   "Clean up the buffer"
-;;   (interactive)
-;;   ;; the useless blanks lines at the end of the file
-;;   (delete-blank-lines)
-;;   (delete-trailing-whitespace)
-;;   (untabify (point-min) (point-max))
-;;   ;; will cause format problem
-;;   (indent-region (point-min) (point-max)))
+;;	 "Clean up the buffer"
+;;	 (interactive)
+;;	 ;; the useless blanks lines at the end of the file
+;;	 (delete-blank-lines)
+;;	 (delete-trailing-whitespace)
+;;	 (untabify (point-min) (point-max))
+;;	 ;; will cause format problem
+;;	 (indent-region (point-min) (point-max)))
 ;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
 ;; do not use buffer-cleanup, it is too much
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
@@ -410,10 +416,10 @@ buffer-local variable `show-trailing-whitespace'."
 (defun indent-marked-files ()
   (interactive)
   (dolist (file (dired-get-marked-files))
-    (find-file file)
-    (indent-region (point-min) (point-max))
-    (save-buffer)
-    (kill-buffer nil)))
+	(find-file file)
+	(indent-region (point-min) (point-max))
+	(save-buffer)
+	(kill-buffer nil)))
 ;; C-x k to kill a buffer specified
 (global-set-key (kbd "C-S-k") 'kill-this-buffer)
 
@@ -438,12 +444,12 @@ buffer-local variable `show-trailing-whitespace'."
 (defun dired-sort-dirs-first ()
   "Dired sort hook to list directories first."
   (save-excursion
-    (let (buffer-read-only)
-      (forward-line 2) ;; beyond dir. header
-      (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max))))
+	(let (buffer-read-only)
+	  (forward-line 2) ;; beyond dir. header
+	  (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max))))
   (and (featurep 'xemacs)
-       (fboundp 'dired-insert-set-properties)
-       (dired-insert-set-properties (point-min) (point-max)))
+	   (fboundp 'dired-insert-set-properties)
+	   (dired-insert-set-properties (point-min) (point-max)))
   (set-buffer-modified-p nil))
 (add-hook 'dired-after-readin-hook 'dired-sort-dirs-first)
 ;; change the format of the files(dirs)
@@ -457,7 +463,7 @@ buffer-local variable `show-trailing-whitespace'."
   "switch to minibuffer window (if active)"
   (interactive)
   (when (active-minibuffer-window)
-    (select-window (active-minibuffer-window))))
+	(select-window (active-minibuffer-window))))
 (global-set-key (kbd "<f7>") 'switch-to-minibuffer-window)
 (global-set-key (kbd "C-c b") 'ibuffer)
 (setq ibuffer-use-other-window t)
@@ -472,22 +478,22 @@ buffer-local variable `show-trailing-whitespace'."
   :type 'editable-list)
 (require 'grep)
 (defun search-all-buffers (regexp prefix)
-  "Searches file-visiting buffers for occurence of REGEXP.  With
+  "Searches file-visiting buffers for occurence of REGEXP.	With
 prefix > 1 (i.e., if you type C-u \\[search-all-buffers]),
 searches all buffers."
   (interactive (list (grep-read-regexp)
-                     current-prefix-arg))
+					 current-prefix-arg))
   (message "Regexp is %s; prefix is %s" regexp prefix)
   (multi-occur
    (if (member prefix '(4 (4)))
-       (buffer-list)
-     (remove-if
-      (lambda (b)
-        (some (lambda (rx)
-                (string-match rx (file-name-nondirectory
-                                  (buffer-file-name b))))
-              search-all-buffers-ignored-files))
-      (remove-if-not 'buffer-file-name (buffer-list))))
+	   (buffer-list)
+	 (remove-if
+	  (lambda (b)
+		(some (lambda (rx)
+				(string-match rx (file-name-nondirectory
+								  (buffer-file-name b))))
+			  search-all-buffers-ignored-files))
+	  (remove-if-not 'buffer-file-name (buffer-list))))
    regexp))
 (global-set-key [f9] 'search-all-buffers)
 
@@ -545,19 +551,20 @@ searches all buffers."
   "Comments or uncomments the region or the current line if there's no active region."
   (interactive)
   (let (beg end)
-    (if (region-active-p)
-        (setq beg (region-beginning) end (region-end))
-      (setq beg (line-beginning-position) end (line-end-position)))
-    (comment-or-uncomment-region beg end)
-    (next-logical-line) ;; next-line will cause warning
-    ))
+	(if (region-active-p)
+		(setq beg (region-beginning) end (region-end))
+	  (setq beg (line-beginning-position) end (line-end-position)))
+	(comment-or-uncomment-region beg end)
+	(next-logical-line) ;; next-line will cause warning
+	))
 (global-set-key (kbd "C-M-;") 'comment-or-uncomment-region-or-line)
+(setq comment-style 'extra-line)
 ;; use rebox2 instead of builtin comment-box
 
 (setq byte-compile-warnings nil)
 ;; comment in C code,`M-;` means /* */, use // in C++ code
 (add-hook 'c++-mode-hook (lambda () (setq comment-start "//"
-                                          comment-end   "")))
+										  comment-end	"")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; Default configuration change
@@ -584,8 +591,8 @@ searches all buffers."
 (defadvice shell (around always-new-shell)
   "Always start a new shell."
   (let ((buffer
-         (generate-new-buffer-name "*shell*")))
-    ad-do-it))
+		 (generate-new-buffer-name "*shell*")))
+	ad-do-it))
 ;; make shell in emacs load .bashrc/.fishrc
 (setq shell-command-switch "-lc")
 (ad-activate 'shell)
@@ -635,18 +642,18 @@ searches all buffers."
   "Maximize buffer"
   (interactive)
   (if (= 1 (length (window-list)))
-      (jump-to-register '_)
-    (progn
-      (window-configuration-to-register '_)
-      (delete-other-windows))))
+	  (jump-to-register '_)
+	(progn
+	  (window-configuration-to-register '_)
+	  (delete-other-windows))))
 (defun toggle-maximize-other-buffer ()
   "Maximize other buffer"
   (interactive)
   (if (= 1 (length (window-list)))
-      (jump-to-register '_)
-    (progn
-      (window-configuration-to-register '_)
-      (delete-window))))
+	  (jump-to-register '_)
+	(progn
+	  (window-configuration-to-register '_)
+	  (delete-window))))
 (global-set-key (kbd "C-x z") 'toggle-maximize-buffer)
 (global-set-key (kbd "C-x C-z") 'toggle-maximize-other-buffer)
 
@@ -656,11 +663,11 @@ searches all buffers."
 (defun my-split-window-below ()
   (interactive)
   (let ((win (split-window-below)))
-    (set-frame-selected-window (selected-frame) win)))
+	(set-frame-selected-window (selected-frame) win)))
 (defun my-split-window-right ()
   (interactive)
   (let ((win (split-window-right)))
-    (set-frame-selected-window (selected-frame) win)))
+	(set-frame-selected-window (selected-frame) win)))
 (global-set-key (kbd "C-x 2") 'my-split-window-below)
 (global-set-key (kbd "C-x 3") 'my-split-window-right)
 ;; new window to vertically by default
@@ -678,16 +685,16 @@ BUFFER in the least recently used window.
 This function returns the window which holds BUFFER.
 FORCE-OTHER-WINDOW is ignored."
   (or (get-buffer-window buffer)
-      (if (one-window-p)
-          (let ((new-win
-                 (if (> (window-width) 100)
-                     (split-window-horizontally)
-                   (split-window-vertically))))
-            (set-window-buffer new-win buffer)
-            new-win)
-        (let ((new-win (get-lru-window)))
-          (set-window-buffer new-win buffer)
-          new-win))))
+	  (if (one-window-p)
+		  (let ((new-win
+				 (if (> (window-width) 100)
+					 (split-window-horizontally)
+				   (split-window-vertically))))
+			(set-window-buffer new-win buffer)
+			new-win)
+		(let ((new-win (get-lru-window)))
+		  (set-window-buffer new-win buffer)
+		  new-win))))
 ;; use display-buffer-alist instead of display-buffer-function if you cannot
 ;; create a new buffer such as using just M-x
 (setq display-buffer-function 'display-new-buffer)
@@ -697,41 +704,41 @@ FORCE-OTHER-WINDOW is ignored."
 (defun toggle-window-split ()
   (interactive)
   (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd
-              (not (and (<= (car this-win-edges)
-                            (car next-win-edges))
-                        (<= (cadr this-win-edges)
-                            (cadr next-win-edges)))))
-             (splitter
-              (if (= (car this-win-edges)
-                     (car (window-edges (next-window))))
-                  'split-window-horizontally
-                'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (if this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (if this-win-2nd (other-window 1))))))
+	  (let* ((this-win-buffer (window-buffer))
+			 (next-win-buffer (window-buffer (next-window)))
+			 (this-win-edges (window-edges (selected-window)))
+			 (next-win-edges (window-edges (next-window)))
+			 (this-win-2nd
+			  (not (and (<= (car this-win-edges)
+							(car next-win-edges))
+						(<= (cadr this-win-edges)
+							(cadr next-win-edges)))))
+			 (splitter
+			  (if (= (car this-win-edges)
+					 (car (window-edges (next-window))))
+				  'split-window-horizontally
+				'split-window-vertically)))
+		(delete-other-windows)
+		(let ((first-win (selected-window)))
+		  (funcall splitter)
+		  (if this-win-2nd (other-window 1))
+		  (set-window-buffer (selected-window) this-win-buffer)
+		  (set-window-buffer (next-window) next-win-buffer)
+		  (select-window first-win)
+		  (if this-win-2nd (other-window 1))))))
 ;; C-x 4 t 'toggle-window-split
 (define-key ctl-x-4-map "t" 'toggle-window-split)
 
 ;; ediff split horizontal, default is vertically
 (eval-after-load "ediff"
   '(progn
-     (setq ediff-split-window-function
-           'split-window-horizontally)
-     (setq ediff-window-setup-function
-           'ediff-setup-windows-plain)
-     ;; delete these buffers (if they are not modified) after q
-     (setq ediff-keep-variants nil)
-     ))
+	 (setq ediff-split-window-function
+		   'split-window-horizontally)
+	 (setq ediff-window-setup-function
+		   'ediff-setup-windows-plain)
+	 ;; delete these buffers (if they are not modified) after q
+	 (setq ediff-keep-variants nil)
+	 ))
 
 ;; You can use C-x o 'other-window, but the following is better
 ;; move your point to another window in the specific direction
@@ -755,8 +762,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
 (add-hook 'c-mode-common-hook
-          (lambda()
-            (local-set-key  (kbd "C-c o") 'ff-find-other-file)))
+		  (lambda()
+			(local-set-key	(kbd "C-c o") 'ff-find-other-file)))
 
 ;; alias
 (defalias 'man 'woman)
@@ -785,18 +792,18 @@ FORCE-OTHER-WINDOW is ignored."
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; flyspell-prog-mode is to spell check in the comments and string constants
 (dolist (mode '(prog-mode-hook
-                emacs-lisp-mode-hook
-                python-mode-hook
-                ielm-mode-hook))
+				emacs-lisp-mode-hook
+				python-mode-hook
+				ielm-mode-hook))
   (add-hook mode
-            '(lambda ()
-               (flyspell-prog-mode))))
+			'(lambda ()
+			   (flyspell-prog-mode))))
 ;; click the left button to show the correct words list
 (eval-after-load "flyspell"
   '(progn
-     (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
-     ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
-     ))
+	 (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
+	 ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
+	 ))
 ;; or use the M-f8 to check from the beginning and correct
 (defun flyspell-check-next-highlighted-word ()
   "Custom function to spell check next highlighted word"
@@ -806,38 +813,37 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "M-<f8>") 'flyspell-check-next-highlighted-word)
 ;;
 (add-hook 'ispell-initialize-spellchecker-hook
-          (lambda ()
-            (setq ispell-base-dicts-override-alist
-                  '((nil ; default
-                     "[A-Za-z]" "[^A-Za-z]" "[']" t
-                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
-                    ("american" ; Yankee English
-                     "[A-Za-z]" "[^A-Za-z]" "[']" t
-                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
-                    ("british" ; British English
-                     "[A-Za-z]" "[^A-Za-z]" "[']" t
-                     ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
+		  (lambda ()
+			(setq ispell-base-dicts-override-alist
+				  '((nil ; default
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
+					("american" ; Yankee English
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
+					("british" ; British English
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Tab & indent
 ;;;;;;;;;;; '(global-)whitespace-mode to show tab/space
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defalias 'ws 'whitespace-mode)
-;; use spaces instead of tabs, nit->t -- don't replace
+;; nil-->use spaces instead of tabs, t -- don't replace
 (setq-default indent-tabs-mode t)
 (setq-default tab-width 4)
 ;; (setq indent-line-function 'insert-tab)
 (add-hook 'text-mode-hook
 		  (lambda ()
-            (setq indent-tabs-mode t)
-            (setq tab-width 4)))
+			(setq indent-tabs-mode t)
+			(setq tab-width 4)))
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
-			(setq indent-tabs-mode nil)
 			(setq tab-width 4)))
 (add-hook 'python-mode-hook
 		  (lambda ()
- 			(setq indent-tabs-mode nil)
+			(setq indent-tabs-mode nil)
 			(setq tab-width 4)
 			(setq python-indent-offset 4)))
 ;;
@@ -943,11 +949,11 @@ FORCE-OTHER-WINDOW is ignored."
 ;; M-x gdb --> gdb -i=mi bin-file
 (eval-after-load "gdb-mi"
   '(progn
-     ;; use gdb-many-windows by default
-     (setq gdb-many-windows t)
-     ;; Non-nil means display source file containing the main routine at startup
-     (setq gdb-show-main t)
-     ))
+	 ;; use gdb-many-windows by default
+	 (setq gdb-many-windows t)
+	 ;; Non-nil means display source file containing the main routine at startup
+	 (setq gdb-show-main t)
+	 ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; built-in projects
@@ -984,7 +990,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; first line of the current buffer, more details than which-function, but not
 ;; instantly sometimes:
 ;; (global-semantic-stickyfunc-mode t)
-;; activates displaying of possible name completions in the idle time.  Requires
+;; activates displaying of possible name completions in the idle time.	Requires
 ;; that global-semantic-idle-scheduler-mode was enabled;
 (global-semantic-idle-completions-mode t)
 ;; activates displaying of information about current tag in the idle time.
@@ -1031,14 +1037,14 @@ FORCE-OTHER-WINDOW is ignored."
 ;; Package repositories
 ;; if one or more of these repos are hard to load, just delete ~/.emacs.d/elpa/archives/
 (setq package-archives
-      '(
-        ("gnu" . "http://elpa.gnu.org/packages/")
-        ("ELPA" . "http://tromey.com/elpa/")
-        ("melpa" . "http://melpa.milkbox.net/packages/")
-        ("melpa-stable1" . "http://melpa-stable.milkbox.net/packages/")
-        ;; ("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
-        ("marmalade" . "http://marmalade-repo.org/packages/")
-        ))
+	  '(
+		("gnu" . "http://elpa.gnu.org/packages/")
+		("ELPA" . "http://tromey.com/elpa/")
+		("melpa" . "http://melpa.milkbox.net/packages/")
+		("melpa-stable1" . "http://melpa-stable.milkbox.net/packages/")
+		;; ("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
+		("marmalade" . "http://marmalade-repo.org/packages/")
+		))
 ;;
 (defun eval-url (url)
   (let ((buffer (url-retrieve-synchronously url)))
@@ -1189,68 +1195,68 @@ FORCE-OTHER-WINDOW is ignored."
 ;; (add-to-list 'company-backends 'company-ispell)
 (defalias 'ci 'company-ispell)
 (add-hook 'org-mode-hook
-          (lambda ()
-            (company-mode)
-            (set (make-local-variable 'company-backends)
-                 '((
-                    company-dabbrev
-                    company-dabbrev-code
-                    company-ispell
-                    company-files
-                    company-yasnippet
-                    ))
-                 )))
+		  (lambda ()
+			(company-mode)
+			(set (make-local-variable 'company-backends)
+				 '((
+					company-dabbrev
+					company-dabbrev-code
+					company-ispell
+					company-files
+					company-yasnippet
+					))
+				 )))
 (add-hook 'c-mode-common-hook
-          (lambda()
-            (company-mode)
-            (set (make-local-variable 'company-backends)
-                 '((
-                    company-c-headers
-                    company-clang
-                    company-dabbrev
-                    company-dabbrev-code
-                    company-gtags
-                    company-semantic
-                    company-yasnippet
-                    company-keywords
-                    ))
-                 )))
+		  (lambda()
+			(company-mode)
+			(set (make-local-variable 'company-backends)
+				 '((
+					company-c-headers
+					company-clang
+					company-dabbrev
+					company-dabbrev-code
+					company-gtags
+					company-semantic
+					company-yasnippet
+					company-keywords
+					))
+				 )))
 (add-hook 'emacs-lisp-mode-hook
-          (lambda()
-            (company-mode)
-            (set (make-local-variable 'company-backends)
-                 '((
-                    company-elisp
-                    company-dabbrev
-                    company-dabbrev-code
-                    company-semantic
-                    company-yasnippet
-                    ))
-                 )))
+		  (lambda()
+			(company-mode)
+			(set (make-local-variable 'company-backends)
+				 '((
+					company-elisp
+					company-dabbrev
+					company-dabbrev-code
+					company-semantic
+					company-yasnippet
+					))
+				 )))
 ;; grouped back-ends
 ;; (add-to-list 'company-backends
-;;              '(
-;;                (
-;;                company-clang
-;;                company-gtags
-;;                company-elisp
-;;                company-semantic
-;;                company-dabbrev
-;;                company-dabbrev-code
-;;                company-c-headers
-;;                company-keywords)
-;;                ;; company-yasnippet
-;;                company-bbdb
-;;                company-nxml
-;;                company-css
-;;                company-eclim
-;;                company-xcode
-;;                company-ropemacs
-;;                company-cmake
-;;                company-capf
-;;                company-etags
-;;                company-oddmuse
-;;                company-files))
+;;				'(
+;;				  (
+;;				  company-clang
+;;				  company-gtags
+;;				  company-elisp
+;;				  company-semantic
+;;				  company-dabbrev
+;;				  company-dabbrev-code
+;;				  company-c-headers
+;;				  company-keywords)
+;;				  ;; company-yasnippet
+;;				  company-bbdb
+;;				  company-nxml
+;;				  company-css
+;;				  company-eclim
+;;				  company-xcode
+;;				  company-ropemacs
+;;				  company-cmake
+;;				  company-capf
+;;				  company-etags
+;;				  company-oddmuse
+;;				  company-files))
 
 
 ;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
@@ -1446,13 +1452,13 @@ FORCE-OTHER-WINDOW is ignored."
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
 ;; Find Files or url: ~/
-;;  That show all ~/ directory.
+;;	That show all ~/ directory.
 ;; Find Files or url: ~/des
-;;  will show all what begin with "des"
+;;	will show all what begin with "des"
 ;; Find Files or url: ~/ esk
-;;  (Notice the space after ~/) will show all what contain esk.
+;;	(Notice the space after ~/) will show all what contain esk.
 ;; Find Files or url: ~/ el$
-;;  Will show all what finish with el
+;;	Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
 ;; M-<prior>/<next> 'helm-scroll-other-window/-down
 ;; 'helm-info-gnu/emacs/...
@@ -1510,8 +1516,8 @@ FORCE-OTHER-WINDOW is ignored."
 (defun helm-other-occur ()
   (interactive)
   (save-selected-window
-    (other-window 1)
-    (helm-occur)))
+	(other-window 1)
+	(helm-occur)))
 (global-set-key (kbd "C-S-s") 'helm-other-occur)
 (global-set-key (kbd "M-x") 'helm-M-x)
 ;; M-y cycles the kill ring
@@ -1522,13 +1528,13 @@ FORCE-OTHER-WINDOW is ignored."
  helm-quick-update t  ; do not display invisible candidates
  ;; fix the typing too fast and emacs won't be ready problem
  helm-exit-idle-delay 0
- helm-idle-delay 0.01     ; be idle for this many seconds, before updating in delayed sources.
+ helm-idle-delay 0.01	  ; be idle for this many seconds, before updating in delayed sources.
  helm-input-idle-delay 0.01 ; be idle for this many seconds, before updating candidate buffer
  helm-split-window-default-side 'other ; open helm buffer in another window
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
  helm-buffers-favorite-modes
  (append helm-buffers-favorite-modes
-         '(picture-mode artist-mode)) ; do not show these files in helm buffer
+		 '(picture-mode artist-mode)) ; do not show these files in helm buffer
  helm-boring-file-regexp-list
  '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$")
  ;; move to end or beginning of source when reaching top or bottom of source.
@@ -1581,8 +1587,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; git-commit-mode required by magit
 ;; git-rebase-mode required by magit
 ;; (eval-after-load 'info
-;;   '(progn (info-initialize)
-;; 		  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
+;;	 '(progn (info-initialize)
+;;			  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
 ;; (require 'magit)
 (autoload 'magit "magit: git for Emacs" t)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
@@ -1593,7 +1599,7 @@ FORCE-OTHER-WINDOW is ignored."
 (eval-after-load "magit"
   '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
 		 '(
-           "~/.emacs.d"
+		   "~/.emacs.d"
 		   "~/.vim"
 		   )))
 ;; open link file such as .emacs to open just the link not the original file
@@ -1603,7 +1609,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; make git faster??
 (eval-after-load "magit"
   '(progn
-    (setq magit-git-executable "/usr/bin/git")))
+	 (setq magit-git-executable "/usr/bin/git")))
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
@@ -1668,10 +1674,10 @@ FORCE-OTHER-WINDOW is ignored."
 ;; enable highlighting symbol at point automatically
 (setq highlight-symbol-on-navigation-p t)
 (global-set-key [(control shift mouse-1)]
-                (lambda (event)
-                  (interactive "e")
-                  (goto-char (posn-point (event-start event)))
-                  (highlight-symbol-at-point)))
+				(lambda (event)
+				  (interactive "e")
+				  (goto-char (posn-point (event-start event)))
+				  (highlight-symbol-at-point)))
 (global-set-key (kbd "M-n") 'highlight-symbol-next)
 (global-set-key (kbd "M-p") 'highlight-symbol-prev)
 (global-set-key (kbd "M-'") 'highlight-symbol-query-replace)
@@ -1687,13 +1693,13 @@ FORCE-OTHER-WINDOW is ignored."
 ;; word(s), line(s), region, M-<left/right/up/down> to move select if (s)
 (require 'drag-stuff)
 (dolist (mode '(prog-mode-hook
-                emacs-lisp-mode-hook
-                python-mode-hook
-                ielm-mode-hook
-                text-mode-hook))
+				emacs-lisp-mode-hook
+				python-mode-hook
+				ielm-mode-hook
+				text-mode-hook))
   (add-hook mode
-            '(lambda ()
-               (drag-stuff-mode))))
+			'(lambda ()
+			   (drag-stuff-mode))))
 ;; disable drag-stuff-mode in org-mode because of the M-... in it
 ;; don't use remove-hook, it doesn't work here
 (add-hook 'org-mode-hook
@@ -1715,25 +1721,25 @@ FORCE-OTHER-WINDOW is ignored."
 ;; you can change the style in the box(no mark needed) to such as 126
 ;; using M-126 M-q, but only from the original to 126, not 126 to another again
 (add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (set (make-local-variable 'rebox-style-loop) '(21 25 111))
-            (rebox-mode 1)
-            ))
+		  (lambda ()
+			(set (make-local-variable 'rebox-style-loop) '(21 25 111))
+			(rebox-mode 1)
+			))
 (add-hook 'c-mode-hook
-          (lambda ()
-            (set (make-local-variable 'rebox-style-loop) '(243 241 111))
-            (rebox-mode 1)
-            ))
+		  (lambda ()
+			(set (make-local-variable 'rebox-style-loop) '(243 241 111))
+			(rebox-mode 1)
+			))
 (add-hook 'c++-mode-hook
-          (lambda ()
-            (set (make-local-variable 'rebox-style-loop) '(25 21 111))
-            (rebox-mode 1)
-            ))
+		  (lambda ()
+			(set (make-local-variable 'rebox-style-loop) '(25 21 111))
+			(rebox-mode 1)
+			))
 (add-hook 'text-mode-hook
-          (lambda ()
-            (set (make-local-variable 'rebox-style-loop) '(113 123 111))
-            ;; (rebox-mode 1)
-            ))
+		  (lambda ()
+			(set (make-local-variable 'rebox-style-loop) '(113 123 111))
+			;; (rebox-mode 1)
+			))
 (define-key rebox-mode-map [(control y)] nil)
 
 ;; grizzl required by fiplr
@@ -1745,18 +1751,18 @@ FORCE-OTHER-WINDOW is ignored."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;   el-get      ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;  el-get self setup
+;;	el-get self setup
 ;; ;;
 ;; (unless (require 'el-get nil 'noerror)
-;;   (with-current-buffer
-;;       (url-retrieve-synchronously
-;;        "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-;;     (let (el-get-master-branch)
-;;       (goto-char (point-max))
-;;       (eval-print-last-sexp))))
+;;	 (with-current-buffer
+;;		 (url-retrieve-synchronously
+;;		  "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+;;	   (let (el-get-master-branch)
+;;		 (goto-char (point-max))
+;;		 (eval-print-last-sexp))))
 ;; (el-get 'sync)
 ;; ;; solve the "Could not update git submodules" error
 ;; (setq el-get-github-default-url-type "https")
@@ -1769,27 +1775,27 @@ FORCE-OTHER-WINDOW is ignored."
 ;; C-h v minor-mode-alist to get the exact mode names
 (defvar mode-line-cleaner-alist
   '(
-    (helm-mode . "")
-    (eldoc-mode . "")
-    (undo-tree-mode . "")
-    (yas-minor-mode . "")
-    (auto-complete-mode . "")
-    (company-mode . "")
-    (highlight-symbol-mode . "")
-    (emmet-mode . "")
-    (cwarn-mode . "")
-    (flyspell-mode . "")
-    (abbrev-mode . "")
-    (drag-stuff-mode . "")
-    (ggtags-mode . " Ggtags")
-    (auto-fill-function . "") ;; not auto-fill-mode
-    (rebox-mode . "")
-    ;; Major modes
-    (lisp-interaction-mode . "λ")
-    (emacs-lisp-mode . "El")
-    (hi-lock-mode . "")
-    (python-mode . "Py")
-    (nxhtml-mode . ""))
+	(helm-mode . "")
+	(eldoc-mode . "")
+	(undo-tree-mode . "")
+	(yas-minor-mode . "")
+	(auto-complete-mode . "")
+	(company-mode . "")
+	(highlight-symbol-mode . "")
+	(emmet-mode . "")
+	(cwarn-mode . "")
+	(flyspell-mode . "")
+	(abbrev-mode . "")
+	(drag-stuff-mode . "")
+	(ggtags-mode . " Ggtags")
+	(auto-fill-function . "") ;; not auto-fill-mode
+	(rebox-mode . "")
+	;; Major modes
+	(lisp-interaction-mode . "λ")
+	(emacs-lisp-mode . "El")
+	(hi-lock-mode . "")
+	(python-mode . "Py")
+	(nxhtml-mode . ""))
   "Alist for `clean-mode-line'.
 When you add a new element to the alist, keep in mind that you
 must pass the correct minor/major mode symbol and a string you
@@ -1797,14 +1803,14 @@ want to use in the modeline *in lieu of* the original.")
 (defun clean-mode-line ()
   (interactive)
   (loop for cleaner in mode-line-cleaner-alist
-        do (let* ((mode (car cleaner))
-                  (mode-str (cdr cleaner))
-                  (old-mode-str (cdr (assq mode minor-mode-alist))))
-             (when old-mode-str
-               (setcar old-mode-str mode-str))
-             ;; major mode
-             (when (eq mode major-mode)
-               (setq mode-name mode-str)))))
+		do (let* ((mode (car cleaner))
+				  (mode-str (cdr cleaner))
+				  (old-mode-str (cdr (assq mode minor-mode-alist))))
+			 (when old-mode-str
+			   (setcar old-mode-str mode-str))
+			 ;; major mode
+			 (when (eq mode major-mode)
+			   (setq mode-name mode-str)))))
 (add-hook 'after-change-major-mode-hook 'clean-mode-line)
 ;;; alias the new `flymake-report-status-slim' to
 ;;; `flymake-report-status'
@@ -1812,12 +1818,12 @@ want to use in the modeline *in lieu of* the original.")
 ;; (defun flymake-report-status-slim (e-w &optional status)
   ;; "Show \"slim\" flymake status in mode line."
   ;; (when e-w
-    ;; (setq flymake-mode-line-e-w e-w))
+	;; (setq flymake-mode-line-e-w e-w))
   ;; (when status
-    ;; (setq flymake-mode-line-status status))
+	;; (setq flymake-mode-line-status status))
   ;; (let* ((mode-line " Φ"))
-    ;; (when (> (length flymake-mode-line-e-w) 0)
-      ;; (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
-    ;; (setq mode-line (concat mode-line flymake-mode-line-status))
-    ;; (setq flymake-mode-line mode-line)
-    ;; (force-mode-line-update)))
+	;; (when (> (length flymake-mode-line-e-w) 0)
+	  ;; (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
+	;; (setq mode-line (concat mode-line flymake-mode-line-status))
+	;; (setq flymake-mode-line mode-line)
+	;; (force-mode-line-update)))
