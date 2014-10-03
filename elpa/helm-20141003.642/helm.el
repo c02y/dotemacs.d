@@ -3200,7 +3200,9 @@ Possible value of DIRECTION are 'next or 'previous."
                                       (assoc-default 'mode-line source))
                                  (default-value 'helm-mode-line-string))
                              source))
-  (let ((follow (and (eq (cdr (assq 'follow source)) 1) "(HF) ")))
+  (let ((follow (and (or helm-follow-mode
+                         (eq (cdr (assq 'follow source)) 1))
+                     "(HF) ")))
     ;; Setup mode-line.
     (if helm-mode-line-string
         (setq mode-line-format
@@ -4619,19 +4621,24 @@ This will enable `helm-follow-mode' automatically in `helm-source-buffers-list'.
                                              'name (symbol-value s)))
                            thereis (and sname (string= sname name) s)))
            (fol-attr (assq 'follow src))
-           (enabled  (or (< arg 0)      ; Assume follow is enabled.
-                         (eq (cdr fol-attr) 1))))
+           (enabled  (or
+                      ;; If `helm-follow-mode' is called with a negative
+                      ;; ARG, assume follow is already enabled.
+                      ;; i.e turn it off now.
+                      (< arg 0)
+                      (eq (cdr fol-attr) 1)
+                      helm-follow-mode)))
       (if (eq (cdr fol-attr) 'never)
           (message "helm-follow-mode not allowed in this source")
-        (helm-attrset 'follow (if enabled -1 1) src)
-        (setq helm-follow-mode (eq (cdr (assq 'follow src)) 1))
-        (message "helm-follow-mode is %s"
-                 (if helm-follow-mode
-                     "enabled" "disabled"))
-        (helm-display-mode-line src))
-      ;; Make follow attr persistent for this session.
-      (when (and helm-follow-mode-persistent sym)
-        (set (car `(,sym)) src)))))
+          ;; Make follow attr persistent for this emacs session.
+          (helm-attrset 'follow (if enabled -1 1) src)
+          (setq helm-follow-mode (not enabled))
+          (message "helm-follow-mode is %s"
+                   (if helm-follow-mode
+                       "enabled" "disabled"))
+          (helm-display-mode-line src))
+      (unless (and helm-follow-mode-persistent sym)
+        (set sym (remove (assq 'follow src) src))))))
 
 (defvar helm-follow-input-idle-delay nil
   "`helm-follow-mode' will execute its persistent action after this delay.
