@@ -396,14 +396,14 @@ buffer-local variable `show-trailing-whitespace'."
 (global-set-key (kbd "C-<backspace>") 'fixup-whitespace)
 ;; clean buffer/format using C-c n
 ;; (defun buffer-cleanup ()
-;;	 "Clean up the buffer"
-;;	 (interactive)
-;;	 ;; the useless blanks lines at the end of the file
-;;	 (delete-blank-lines)
-;;	 (delete-trailing-whitespace)
-;;	 (untabify (point-min) (point-max))
-;;	 ;; will cause format problem
-;;	 (indent-region (point-min) (point-max)))
+;;   "Clean up the buffer"
+;;   (interactive)
+;;   ;; the useless blanks lines at the end of the file
+;;   (delete-blank-lines)
+;;   (delete-trailing-whitespace)
+;;   (untabify (point-min) (point-max))
+;;   ;; will cause format problem
+;;   (indent-region (point-min) (point-max)))
 ;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
 ;; do not use buffer-cleanup, it is too much
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
@@ -954,6 +954,17 @@ FORCE-OTHER-WINDOW is ignored."
 	 ;; Non-nil means display source file containing the main routine at startup
 	 (setq gdb-show-main t)
 	 ))
+(defun va ()
+  "valgrind in Emacs, execute it in shell-mode after `va ./binary`
+- Put your corsor in the error line, type enter or use your mouse to jump into the line.
+- In shell, use M-n/p 'compilation-next/previous-error, use RET 'compile-goto-error
+- The 'complation' after 'Shell:run' in mode-line indicates the va is activated"
+  (interactive)
+  (if compilation-minor-mode
+	  (setq compilation-minor-mode nil)
+	  (compilation-minor-mode)
+	  ))
+(global-set-key (kbd "C-c v") 'va)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; built-in projects
