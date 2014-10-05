@@ -1,11 +1,11 @@
 *~
+*.swp
+*.elc
 .mc-lists.el
 ac-comphist.dat
 auto-save-list
 ede-projects.el
-ede-projects.elc
 elpa/archives/*
-org-clock-save.elc
 org-clock-save.el
 projectile-bookmarks.eld
 recentf
