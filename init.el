@@ -106,6 +106,8 @@
 		  (if (not (bolp))
 			  (newline))
 		  (insert (current-time-microseconds))))))
+;; Makes *scratch* empty.
+(setq initial-scratch-message "")
 
 ;; encode, the last line will be the highest priority
 (set-language-environment 'UTF-8)
@@ -471,6 +473,28 @@ buffer-local variable `show-trailing-whitespace'."
 (setq echo-keystrokes 0.001)
 ;; use minibuffer recursively, don't know what does it mean
 (setq enable-recursive-minibuffers t)
+
+;;ignore asterisked buffers like *helm..* and *Messages*...
+(defun previous-code-buffer ()
+  (interactive)
+  (let (( bread-crumb (buffer-name) ))
+    (previous-buffer)
+    (while
+        (and
+         (string-match-p "^\*" (buffer-name))
+         (not ( equal bread-crumb (buffer-name) )) )
+      (previous-buffer))))
+(defun next-code-buffer ()
+  (interactive)
+  (let (( bread-crumb (buffer-name) ))
+    (next-buffer)
+    (while
+        (and
+         (string-match-p "^\*" (buffer-name))
+         (not ( equal bread-crumb (buffer-name) )) )
+      (next-buffer))))
+(global-set-key [remap previous-buffer] 'previous-code-buffer)
+(global-set-key [remap next-buffer] 'next-code-buffer)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
 (defcustom search-all-buffers-ignored-files (list (rx-to-string '(and bos (or ".bash_history" "TAGS") eos)))
