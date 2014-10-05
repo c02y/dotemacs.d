@@ -971,7 +971,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; Use M-x gdb-display-* to show more functions
 ;; M-x tool-bar-mode to show the tools
 ;; M-x gdb --> gdb -i=mi bin-file
-(eval-after-load "gdb-mi"
+(require 'init-gdb)
+(eval-after-load "init-gdb"
   '(progn
 	 ;; use gdb-many-windows by default
 	 (setq gdb-many-windows t)
