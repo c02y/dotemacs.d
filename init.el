@@ -107,7 +107,7 @@
 			  (newline))
 		  (insert (current-time-microseconds))))))
 ;; Makes *scratch* empty.
-(setq initial-scratch-message "")
+;;(setq initial-scratch-message "")
 
 ;; encode, the last line will be the highest priority
 (set-language-environment 'UTF-8)
@@ -475,26 +475,22 @@ buffer-local variable `show-trailing-whitespace'."
 (setq enable-recursive-minibuffers t)
 
 ;;ignore asterisked buffers like *helm..* and *Messages*...
-(defun previous-code-buffer ()
+(defun prev-user-buffer ()
+  "Switch to the previous user buffer(not started with “*”.)"
   (interactive)
-  (let (( bread-crumb (buffer-name) ))
-    (previous-buffer)
-    (while
-        (and
-         (string-match-p "^\*" (buffer-name))
-         (not ( equal bread-crumb (buffer-name) )) )
-      (previous-buffer))))
-(defun next-code-buffer ()
+  (previous-buffer)
+  (let ((i 0))
+    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+      (setq i (1+ i)) (previous-buffer))))
+(defun next-user-buffer ()
+  "Switch to the next user buffer(not started with “*”.)"
   (interactive)
-  (let (( bread-crumb (buffer-name) ))
-    (next-buffer)
-    (while
-        (and
-         (string-match-p "^\*" (buffer-name))
-         (not ( equal bread-crumb (buffer-name) )) )
-      (next-buffer))))
-(global-set-key [remap previous-buffer] 'previous-code-buffer)
-(global-set-key [remap next-buffer] 'next-code-buffer)
+  (next-buffer)
+  (let ((i 0))
+    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+      (setq i (1+ i)) (next-buffer))))
+(global-set-key [C-prior] 'prev-user-buffer)
+(global-set-key [C-next] 'next-user-buffer)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
 (defcustom search-all-buffers-ignored-files (list (rx-to-string '(and bos (or ".bash_history" "TAGS") eos)))
