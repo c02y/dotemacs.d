@@ -20,10 +20,11 @@
   Right now, I push all packages installed by built-in `packages`, and I got to
   make commit/push every time a package gets update. So a way like [[http://github.com/gmarik/Vundle.vim][Vundle]] for
   Vim to install(and skip if installed, update if getting new version) all
-  packages from a list is to be done, this is more GNU Emacs team's, right now
-  built-in is now good to use, I have to fetch a list of all available packages
-  and _open_ the list buffer and _mark_ the packages and then _hit_ a key to
-  install/update/delete, it's too much comparing with Vundle.
+  packages from a list is to be done, this is more GNU Emacs team's work, right
+  now built-in package manager isn't very good to use, I have to *fetch* a list
+  of all available packages and *open* the list buffer and *mark* the packages
+  and then *hit* a key to install/update/delete, it's too much comparing with
+  Vundle.
 
   If I can just login another computer and clone my repo and execute a command
   in Emacs, and then all packages will be downloaded and compiled
