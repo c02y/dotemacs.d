@@ -491,6 +491,13 @@ buffer-local variable `show-trailing-whitespace'."
       (setq i (1+ i)) (next-buffer))))
 (global-set-key [C-prior] 'prev-user-buffer)
 (global-set-key [C-next] 'next-user-buffer)
+;; switch to last visited buffer
+(defun last-visited-buffer ()
+  "Switch to last visited buffer.
+Repeated invocations toggle between the two most recently open buffers."
+  (interactive)
+  (switch-to-buffer (other-buffer (current-buffer) 1)))
+(global-set-key (kbd "C-x x") 'last-visited-buffer)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
 (defcustom search-all-buffers-ignored-files (list (rx-to-string '(and bos (or ".bash_history" "TAGS") eos)))
@@ -1202,10 +1209,6 @@ FORCE-OTHER-WINDOW is ignored."
 							'(mark-paragraph
 							  mark-page))))
 (er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;	 auto-complete... ~/Org/ac
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	 company-mode
