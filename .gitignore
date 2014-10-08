@@ -8,6 +8,7 @@ ede-projects.el
 elpa/archives/*
 org-clock-save.el
 projectile-bookmarks.eld
+projectile.cache
 recentf
 semanticdb
 saved-places
