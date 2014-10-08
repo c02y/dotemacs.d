@@ -1067,14 +1067,13 @@ FORCE-OTHER-WINDOW is ignored."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
-;; if one or more of these repos are hard to load, just delete ~/.emacs.d/elpa/archives/
 (setq package-archives
 	  '(
 		("gnu" . "http://elpa.gnu.org/packages/")
 		("ELPA" . "http://tromey.com/elpa/")
 		("melpa" . "http://melpa.milkbox.net/packages/")
 		("melpa-stable1" . "http://melpa-stable.milkbox.net/packages/")
-		;; ("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
+		("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
 		("marmalade" . "http://marmalade-repo.org/packages/")
 		))
 ;;
@@ -1774,35 +1773,31 @@ FORCE-OTHER-WINDOW is ignored."
 			))
 (define-key rebox-mode-map [(control y)] nil)
 
-;; grizzl required by fiplr
+;; projectile required by helm-projectile
 
-;; fiplr - Find in Project for Emacs
-(global-set-key (kbd "C-x f") 'fiplr-find-file-other-window)
-;; if you accidentally used C-x f in a dir which is not Project(such as ~/), it
-;; cane be very laggy, use M-x fiplr-clear-cache to clear the
+;; helm-projectile
+;; http://tuhdo.github.io/helm-projectile.html
+;; all projectile & helm-projectile commands has prefix C-c p
+(require 'helm-projectile)
+(projectile-global-mode)
+(setq projectile-completion-system 'helm)
+(helm-projectile-on)
+;; for large projects
+(setq helm-projectile-sources-list
+	  '(helm-source-projectile-projects
+		helm-source-projectile-files-list))
+(setq projectile-enable-caching t)
+;; change projectile to helm-projectile
+;; projectile can create a file or dir if not found, but helm-projectile cannot
+(setq projectile-switch-project-action
+	  'helm-projectile-find-file)
+(setq projectile-switch-project-action
+	  'helm-projectile)
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;   el-get	   ;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;; Put the following lines at the end of this file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;	el-get self setup
-;; ;;
-;; (unless (require 'el-get nil 'noerror)
-;;	 (with-current-buffer
-;;		 (url-retrieve-synchronously
-;;		  "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-;;	   (let (el-get-master-branch)
-;;		 (goto-char (point-max))
-;;		 (eval-print-last-sexp))))
-;; (el-get 'sync)
-;; ;; solve the "Could not update git submodules" error
-;; (setq el-get-github-default-url-type "https")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;	the plugin installed by el-get
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;; make the lighter in mode line shorter or disappeared
 ;; C-h v minor-mode-alist to get the exact mode names
 (defvar mode-line-cleaner-alist
