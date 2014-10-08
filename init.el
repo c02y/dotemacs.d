@@ -1211,6 +1211,10 @@ FORCE-OTHER-WINDOW is ignored."
 (er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;	 auto-complete... ~/Org/ac
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	 company-mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'company)
@@ -1352,9 +1356,9 @@ FORCE-OTHER-WINDOW is ignored."
 			(local-set-key	(kbd "C-c s s") 'ascope-find-this-symbol)
 			(local-set-key	(kbd "C-c s t") 'ascope-find-this-text-string)
 			(local-set-key	(kbd "C-c s a") 'ascope-all-symbol-assignments)
-			;; (local-set-key  (kbd "C-c s o") 'ascope-show-entry-other-window)
-			;; (local-set-key  (kbd "C-c s p") 'ascope-show-prev-entry-other-window)
-			;; (local-set-key  (kbd "C-c s n") 'ascope-show-next-entry-other-window)
+			(local-set-key  (kbd "C-c s o") 'ascope-show-entry-other-window)
+			(local-set-key  (kbd "C-c s p") 'ascope-show-prev-entry-other-window)
+			(local-set-key  (kbd "C-c s n") 'ascope-show-next-entry-other-window)
 			))
 
 ;; ggtags
