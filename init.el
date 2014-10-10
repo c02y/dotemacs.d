@@ -819,9 +819,10 @@ FORCE-OTHER-WINDOW is ignored."
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; flyspell-prog-mode is to spell check in the comments and string constants
 (dolist (mode '(prog-mode-hook
-				emacs-lisp-mode-hook
-				python-mode-hook
-				ielm-mode-hook))
+				;; emacs-lisp-mode-hook
+				;; python-mode-hook
+				;; ielm-mode-hook
+				))
   (add-hook mode
 			'(lambda ()
 			   (flyspell-prog-mode))))
