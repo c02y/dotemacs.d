@@ -1350,16 +1350,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; n/p in popup window
 (add-hook 'c-mode-common-hook
 		  (lambda()
-			(cscope-minor-mode t)
-			(local-set-key	(kbd "C-c s g") 'ascope-find-global-definition)
-			(local-set-key	(kbd "C-c s c") 'ascope-find-functions-calling-this-function)
-			(local-set-key	(kbd "C-c s h") 'ascope-find-files-including-file)
-			(local-set-key	(kbd "C-c s s") 'ascope-find-this-symbol)
-			(local-set-key	(kbd "C-c s t") 'ascope-find-this-text-string)
-			(local-set-key	(kbd "C-c s a") 'ascope-all-symbol-assignments)
-			(local-set-key  (kbd "C-c s o") 'ascope-show-entry-other-window)
-			(local-set-key  (kbd "C-c s p") 'ascope-show-prev-entry-other-window)
-			(local-set-key  (kbd "C-c s n") 'ascope-show-next-entry-other-window)
+			(cscope-minor-mode)
 			))
 
 ;; ggtags
@@ -1794,6 +1785,9 @@ FORCE-OTHER-WINDOW is ignored."
 (setq helm-projectile-sources-list
 	  '(helm-source-projectile-projects
 		helm-source-projectile-files-list))
+;; cache make it quick for large project, but cache will make the `C-c c p` only
+;; work for cached files, use `C-c p i` or prefix `C-u` to make the cache invalidated
+(setq projectile-enable-caching t)
 ;; change projectile to helm-projectile
 ;; projectile can create a file or dir if not found, but helm-projectile cannot
 (setq projectile-switch-project-action
