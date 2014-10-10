@@ -256,13 +256,13 @@
 			(setq default-frame-alist
 				  '((top . 0)(left . 0)
 					(width . 85)(height . 48)
-					(font . "Menlo-13")
+					(font . "PragmataPro-13")
 					;; (:family "Menlo-Italic");; Monaco, Consolas
 					))
 		  (setq default-frame-alist
 				'((top . 0)(left . 0)
 				  (width . 85)(height . 38)
-				  (font . "Menlo-12")
+				  (font . "PragmataPro-13")
 				  ;; (:family "Menlo-Italic")
 				  )))
 		))
@@ -1079,9 +1079,9 @@ FORCE-OTHER-WINDOW is ignored."
 		("gnu" . "http://elpa.gnu.org/packages/")
 		("ELPA" . "http://tromey.com/elpa/")
 		("melpa" . "http://melpa.milkbox.net/packages/")
+		("marmalade" . "http://marmalade-repo.org/packages/")
 		("melpa-stable1" . "http://melpa-stable.milkbox.net/packages/")
 		("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
-		("marmalade" . "http://marmalade-repo.org/packages/")
 		))
 ;;
 (defun eval-url (url)
@@ -1793,7 +1793,6 @@ FORCE-OTHER-WINDOW is ignored."
 (setq helm-projectile-sources-list
 	  '(helm-source-projectile-projects
 		helm-source-projectile-files-list))
-(setq projectile-enable-caching t)
 ;; change projectile to helm-projectile
 ;; projectile can create a file or dir if not found, but helm-projectile cannot
 (setq projectile-switch-project-action
