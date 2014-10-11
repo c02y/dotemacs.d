@@ -166,6 +166,9 @@
 (setq column-number-mode t)
 ;; Set the max columns one line, wrap a line
 (setq-default fill-column 80)
+;; C-x </> 'scroll-left/right if line is too long
+;; fill-column is not working for magit buffer long commit messages
+(put 'scroll-left 'disabled nil)
 ;; file size in mode line
 (setq size-indication-mode t)
 (tool-bar-mode 0)
@@ -189,6 +192,10 @@
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
+;; Turn on font lock mode in all the files
+(setq font-lock-maximum-decoration t)
+;; syntax highlight for any config file ends with rc, not work for .vimrc(" to comment)
+(add-to-list 'auto-mode-alist '("\\.*rc$" . conf-unix-mode))
 ;; displays the argument list for current func, work for all languages
 (turn-on-eldoc-mode)
 (add-hook 'prog-mode-hook 'turn-on-eldoc-mode)
@@ -1341,15 +1348,24 @@ FORCE-OTHER-WINDOW is ignored."
 ;; markdown-mode+
 (autoload 'markdown-mode+ "markdown-mode+" t)
 
+;; xcscope -- requird by ascope
+
 ;; ascope
-(require 'ascope)
-;; in the *Result* buffer, n/p 'ascope-next/prev-symbol
-;; " "(blank) 'ascope-show-entry-other-window
-;; RET 'ascope-select-entry-other-window-delete-window
+;; Almost all the features are provided by xcscope(cscope-* commands), ascope is
+;; extension to xcscope, it allow cscope to keep the history of jumping in one
+;; *cscope* buffer and M-n/p commands
+;; In *cscope* buffer:
+;; M-n/p to navigate between the found files,
+;; n/p 'ascope-next/prev-symbol between the results(sometimes multiple positions
+;; in one file)
+;; " "(blank) 'ascope-show-entry-other-window, show the result in other buffer
+;; but keep point
+;; RET 'ascope-select-entry-other-window-delete-window, but jump into result
 ;; C-c s u 'cscope-pop-mark to go back
-;; n/p in popup window
+(require 'ascope)
 (add-hook 'c-mode-common-hook
 		  (lambda()
+			;; defined in xcscope
 			(cscope-minor-mode)
 			))
 
