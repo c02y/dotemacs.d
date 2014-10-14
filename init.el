@@ -194,6 +194,23 @@
 (global-font-lock-mode t)
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
+;;
+;; font-lock and linum-mode will slow Emacs
+;; To improve performance when editing large size of file
+;; If this is not enough, using vlfi(https://github.com/m00natic/vlfi)
+(setq font-lock-support-mode 'jit-lock-mode)
+(setq jit-lock-stealth-time 16
+	  jit-lock-defer-contextually t
+	  jit-lock-stealth-nice 0.5)
+(setq-default font-lock-multiline t)
+(defun check-large-file-hook ()
+  "If a file is over a given size, turn off linum-mode for the buffer."
+  (when (> (buffer-size) (* 1024 100))	;; 100kb
+	(linum-mode -1)
+    ;; (global-font-lock-mode -1)
+	))
+(add-hook 'find-file-hooks 'check-large-file-hook)
+
 ;; syntax highlight for any config file ends with rc, not work for .vimrc(" to comment)
 (add-to-list 'auto-mode-alist '("\\.*rc$" . conf-unix-mode))
 ;; displays the argument list for current func, work for all languages
@@ -1002,11 +1019,7 @@ FORCE-OTHER-WINDOW is ignored."
 	  ))
 (global-set-key (kbd "C-c v") 'va)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;; built-in projects
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; built-in cedet
+;; cedet -- built-in
 ;; more detail: http://alexott.net/en/writings/emacs-devenv/EmacsCedet.html
 ;; and: http://www.logilab.org/blogentry/173886
 ;; the following add-to-list should be put before (semantic-mode 1)
@@ -1072,10 +1085,8 @@ FORCE-OTHER-WINDOW is ignored."
 					 (make-local-variable 'semantic-mode) nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;	   plugin in .emacs.d/plugin
+;;;;;;;;;;;;;;;;;;;    plugin in .emacs.d/plugin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; load plugin
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packages from  elpa, marmelade and melpa.
@@ -1217,10 +1228,6 @@ FORCE-OTHER-WINDOW is ignored."
 							'(mark-paragraph
 							  mark-page))))
 (er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;	 auto-complete... ~/Org/ac
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	 company-mode
