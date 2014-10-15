@@ -1,4 +1,27 @@
-;; .emacs
+;;; init.el --- Emacs configuration of Cody Chan
+;;
+;; Copyright (c) 2012-2014 Cody Chan <cody.chan.cz@gmail.com>
+;;
+;; Author: Cody Chan <cody.chan.cz@gmail.com>
+;; URL: https://gihub.com/codychan/dotemacs.d
+;; Keywords: convenience
+;;
+;; This file is not part of GNU Emacs.
+;; This program is free software; you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation; either version 3 of the License, or (at your option) any later
+;; version.
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+;; details.
+;; You should have received a copy of the GNU General Public License along with
+;; GNU Emacs; see the file COPYING. If not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+;; USA.
+
+;; If you want to using package manager like Vundle, use
+;; https://github.com/lunaryorn/.emacs.d/blob/master/init.el#L176 to do that
 
 ;; byte compile emacs lisp files of current dir
 ;; emacs -batch -f batch-byte-compile *.el
@@ -841,6 +864,8 @@ FORCE-OTHER-WINDOW is ignored."
   (setq ispell-really-hunspell t))
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'org-mode-hook 'flyspell-mode)
+;; if you don't know how to spell the rest of a word
+(global-set-key (kbd "C-?") 'ispell-complete-word)
 ;; flyspell-prog-mode is to spell check in the comments and string constants
 (dolist (mode '(prog-mode-hook
 				;; emacs-lisp-mode-hook
