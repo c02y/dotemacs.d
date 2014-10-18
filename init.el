@@ -277,8 +277,8 @@
  ;; no special for which-func
  '(which-func ((t (:background nil :foreground nil))))
  '(mode-line ((t (:background "dim gray" :foreground "white"))))
- '(mode-line-inactive ((t (:background "black-5"))))
- '(mode-line-buffer-id ((t (:foreground nil))))
+ '(mode-line-inactive ((t (:background nil))))
+ '(mode-line-buffer-id ((t (:foreground nil :background nil))))
  )
 ;;
 ;; font and size of startup
@@ -308,7 +308,7 @@
 					))
 		  (setq default-frame-alist
 				'((top . 0)(left . 0)
-				  (width . 85)(height . 38)
+				  (width . 85)(height . 35)
 				  (font . "PragmataPro-13")
 				  ;; (:family "Menlo-Italic")
 				  )))
@@ -571,12 +571,18 @@ searches all buffers."
    regexp))
 (global-set-key [f9] 'search-all-buffers)
 
-;; lock the buffer
-(define-minor-mode sticky-buffer-mode
+;; lock/stick the buffer
+(defun stick-buffer ()
   "Make the current window always display this buffer."
-  nil " locked" nil
-  (set-window-dedicated-p (selected-window) sticky-buffer-mode))
-(global-set-key [f11] 'sticky-buffer-mode)
+  (interactive)
+  (let* ((window (get-buffer-window (current-buffer)))
+         (dedicated (window-dedicated-p window)))
+    (if (not dedicated)
+		(face-remap-add-relative 'mode-line-buffer-id '(:background "blue"))
+      (face-remap-add-relative 'mode-line-buffer-id '(:background "dim gray")))
+    (set-window-dedicated-p window (not dedicated))))
+(global-set-key [f11] 'stick-buffer)
+
 ;; Generate unique buffer names if you open many files with same basename
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)
