@@ -1,7 +1,7 @@
 #name: int main(argc, argv) { ... }
 # key: main
 # --
-int main(${1:int argc, char *argv[]})
+int main(${1:int argc, char **argv})
 {
 	$0
 
