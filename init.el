@@ -90,15 +90,14 @@
 ;; S-C-<up> to 'enlarge-window
 ;; C-x c to 'emacs-lisp-byte-compile-and-load
 ;; C-c d to 'delete-trailing-whitespace
-;; C-M-; to 'comment-or-uncomment-region-or-line
 ;; C-x C-j to 'dired-jump
 ;; C-c y to 'yas-reload-all
 ;; C-c a to 'align-regexp
 ;; C-M-n/p Move forward/backward over a parenthetical group
 ;; C-M-u/d Move up/down in parenthesis structure
 ;; M-$ -> i -> y to insert the string into personal dictionary
-;;			 the personal dictionary asides in ~/.hunspell_en_US
-;;			 file has already been linked to .emacs.d/
+;;           the personal dictionary asides in ~/.hunspell_en_US
+;;           file has already been linked to .emacs.d/
 ;; in the comment, if you want to insert another comment line, use M-j
 ;; M-m 'back-to-indentation move point to first non-whitespace character
 ;; M-x find-library will lead you to the right .el file
@@ -192,6 +191,7 @@
 ;; C-x </> 'scroll-left/right if line is too long
 ;; fill-column is not working for magit buffer long commit messages
 (put 'scroll-left 'disabled nil)
+(setq comment-style 'extra-line)
 ;; file size in mode line
 (setq size-indication-mode t)
 (tool-bar-mode 0)
@@ -622,24 +622,6 @@ searches all buffers."
 (global-set-key (kbd "M-k") '(lambda () (interactive) (kill-line 0)) )
 ;; C-k kill the whole single line including \n
 (setq-default kill-whole-line t)
-
-;; Actually, you can just use built-in M-;(add a comment), but you have to mark
-;; the region first if you want to un/comment the current line comment and
-;; uncomment and the jump to next line, use C-M-; if you like, you can rm the
-;; last line "(next-line)"
-(defun comment-or-uncomment-region-or-line ()
-  "Comments or uncomments the region or the current line if there's no active region."
-  (interactive)
-  (let (beg end)
-	(if (region-active-p)
-		(setq beg (region-beginning) end (region-end))
-	  (setq beg (line-beginning-position) end (line-end-position)))
-	(comment-or-uncomment-region beg end)
-	(next-logical-line) ;; next-line will cause warning
-	))
-(global-set-key (kbd "C-M-;") 'comment-or-uncomment-region-or-line)
-(setq comment-style 'extra-line)
-;; use rebox2 instead of builtin comment-box
 
 (setq byte-compile-warnings nil)
 ;; comment in C code,`M-;` means /* */, use // in C++ code
@@ -1825,6 +1807,15 @@ FORCE-OTHER-WINDOW is ignored."
 			;; (rebox-mode 1)
 			))
 (define-key rebox-mode-map [(control y)] nil)
+
+;; comment-dwim-2 to replace default comment-dwim
+;; comment-dwim can also be repeated several times to switch between the
+;; different behaviors.
+;; repeating comment-dwim-2 will by default reindent the comment instead of
+;; killing it, and that calling with a prefix argument will kill the comment
+;; instead of reindenting it.
+(global-set-key (kbd "M-;") 'comment-dwim-2)
+(setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
 ;; projectile required by helm-projectile
 
