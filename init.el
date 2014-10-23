@@ -21,7 +21,10 @@
 ;; USA.
 
 ;; If you want to using package manager like Vundle, use
-;; https://github.com/lunaryorn/.emacs.d/blob/master/init.el#L176 to do that
+;; 1. https://github.com/lunaryorn/.emacs.d/blob/master/init.el#L176 to do that
+;; 2. http://oli.me.uk/2014/10/20/making-package-el-behave-like-vundle/
+;;    https://github.com/Wolfy87/dotfiles/blob/d24591ebd7b3a36f629fb5a4ebd921c72f2b5b91/emacs/init.el#L61-L96
+;;    http://www.reddit.com/r/emacs/comments/2jtojf/packageel_didnt_prune_my_unused_packages_so_i/
 
 ;; byte compile emacs lisp files of current dir
 ;; emacs -batch -f batch-byte-compile *.el
@@ -438,11 +441,49 @@ buffer-local variable `show-trailing-whitespace'."
 				   (if show-trailing-whitespace
 					   "enabled" "disabled"))))
 (global-set-key "\C-ce" 'show-ws-toggle-show-trailing-whitespace)
-;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation
+;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation, combine two lines
 ;; M-Backspace delete to the previous word 'backword-kill-word
 ;; M-\ delete kill _all_ spaces at point 'delete-horizontal-space
-;; C-Backspace replaces all spaces between two words with one
-(global-set-key (kbd "C-<backspace>") 'fixup-whitespace)
+(defun shrink-whitespaces ()
+  "Remove whitespaces around cursor to just one or none.
+If current line does have visible characters: shrink whitespace around cursor to just one space.
+If current line does not have visible chars, then shrink all neighboring blank lines to just one.
+Repeat the function will remove the remaining one space or blank line.
+If current line is a single space, remove that space.
+`shrink-whitespaces` combine `delete-blank-lines`, `just-one-space`, `fixup-whitespace`,
+`delete-horizontal-space`, and `cycle-spacing`(in emacs 24.4) into one.
+--URL http://ergoemacs.org/emacs/emacs_shrink_whitespace.html version 2014-10-21"
+  (interactive)
+  (let ((pos (point))
+        line-has-meat-p ; current line contains non-white space chars
+        space-tab-neighbor-p
+        whitespace-begin whitespace-end
+        space-or-tab-begin space-or-tab-end)
+    (save-excursion
+      (setq space-tab-neighbor-p (if (or (looking-at " \\|\t") (looking-back " \\|\t")) t nil))
+      (beginning-of-line)
+      (setq line-has-meat-p (search-forward-regexp "[[:graph:]]" (line-end-position) t))
+      (goto-char pos)
+      (skip-chars-backward "\t ")
+      (setq space-or-tab-begin (point))
+      (skip-chars-backward "\t \n")
+      (setq whitespace-begin (point))
+      (goto-char pos)
+      (skip-chars-forward "\t ")
+      (setq space-or-tab-end (point))
+      (skip-chars-forward "\t \n")
+      (setq whitespace-end (point)))
+    (if line-has-meat-p
+        (let (deleted-text)
+          (when space-tab-neighbor-p
+            ;; remove all whitespaces in the range
+            (setq deleted-text (delete-and-extract-region space-or-tab-begin space-or-tab-end))
+			;; insert a whitespace only if we have removed something different than a simple whitespace
+            (if (not (string= deleted-text " "))
+                (insert " "))))
+      (progn (delete-blank-lines)))))
+(global-set-key (kbd "C-<backspace>") 'shrink-whitespaces)
+;;
 ;; clean buffer/format using C-c n
 ;; (defun buffer-cleanup ()
 ;;   "Clean up the buffer"
