@@ -1151,9 +1151,9 @@ FORCE-OTHER-WINDOW is ignored."
 	  '(
 		("gnu" . "http://elpa.gnu.org/packages/")
 		("ELPA" . "http://tromey.com/elpa/")
-		("melpa" . "http://melpa.milkbox.net/packages/")
+		("melpa" . "http://melpa.org/packages/")
 		("marmalade" . "http://marmalade-repo.org/packages/")
-		("melpa-stable1" . "http://melpa-stable.milkbox.net/packages/")
+		("melpa-stable1" . "http://stable.melpa.org/packages/")
 		("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
 		))
 ;;
@@ -1535,7 +1535,11 @@ FORCE-OTHER-WINDOW is ignored."
   (let (org-log-done org-log-states)   ; turn off logging
 	(org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
+;; syntax highlight in the source code snippet
 (setq org-src-fontify-natively t)
+;; TAB to indent the _whole_(not lines) code snippet block comparing with "#+BEGIN_SRC" part
+(setq org-src-tab-acts-natively t)
+;; in code snippet block, `C-c '` and then TAB to format code snippet lines
 (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
@@ -1881,6 +1885,12 @@ FORCE-OTHER-WINDOW is ignored."
 (setq projectile-switch-project-action
 	  'helm-projectile)
 
+;; names -- required by aggressive-indent
+
+;; aggressive-indent
+(require 'aggressive-indent)
+(global-aggressive-indent-mode 1)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1904,6 +1914,7 @@ FORCE-OTHER-WINDOW is ignored."
 	(ggtags-mode . " Gg")
 	(auto-fill-function . "") ;; not auto-fill-mode
 	(rebox-mode . "")
+	(aggressive-indent-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
