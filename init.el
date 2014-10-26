@@ -960,6 +960,20 @@ FORCE-OTHER-WINDOW is ignored."
 			(setq indent-tabs-mode t)  ;;default in linux kernel
 			(setq c-basic-offset 8)))
 
+;; http://blog.binchen.org/posts/ccjava-code-indentation-in-emacs.html
+(defun fix-c-indent-offset-according-to-syntax-context (key val)
+  ;; remove the old element
+  (setq c-offsets-alist (delq (assoc key c-offsets-alist) c-offsets-alist))
+  ;; new value
+  (add-to-list 'c-offsets-alist '(key . val)))
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+              ;; indent
+              (fix-c-indent-offset-according-to-syntax-context 'substatement 0)
+              (fix-c-indent-offset-according-to-syntax-context 'func-decl-cont 0))
+            ))
+
 ;; ;;;;;;;Documentation/CodingStyle
 ;; ;;Using spaces for alignment, but tabs for indentation
 ;; (defun c-lineup-arglist-tabs-only (ignored)
@@ -1890,6 +1904,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; aggressive-indent
 (require 'aggressive-indent)
 (global-aggressive-indent-mode 1)
+(add-to-list 'aggressive-indent-excluded-modes 'lisp-interaction-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
