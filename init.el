@@ -186,7 +186,7 @@
 (setq bookmark-save-flag t)
 ;; Make Text mode the default mode for new buffers.
 (setq-default major-mode 'org-mode)
-(add-hook 'text-mode-hook 'auto-fill-mode)
+;;(add-hook 'text-mode-hook 'auto-fill-mode)
 (global-linum-mode 1)
 (setq column-number-mode t)
 ;; Set the max columns one line, wrap a line
