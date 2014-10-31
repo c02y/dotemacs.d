@@ -5,7 +5,7 @@
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
 ;; Keywords: project, convenience
-;; Version: 20141027.853
+;; Version: 20141030.53
 ;; X-Original-Version: 0.11.0
 ;; Package-Requires: ((s "1.6.0") (dash "1.5.0") (pkg-info "0.4"))
 
@@ -877,7 +877,9 @@ looping at a single point."
                (mapcar (lambda (f)
                          (concat s f))
                        (projectile-files-via-ext-command projectile-git-command))))
-           (projectile-get-all-sub-projects (projectile-project-root)))))
+           (condition-case nil
+               (projectile-get-all-sub-projects (projectile-project-root))
+             nil))))
 
 (defun projectile-get-repo-files ()
   "Get a list of the files in the project, including sub-projects."
@@ -2421,6 +2423,10 @@ is chosen."
 (def-projectile-commander-method ?v
   "Open project root in vc-dir or magit."
   (projectile-vc))
+
+(def-projectile-commander-method ?r
+  "Replace a string in the project."
+  (projectile-replace))
 
 (def-projectile-commander-method ?R
   "Regenerate the project's [e|g]tags."
