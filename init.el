@@ -116,21 +116,21 @@
 ;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
 
 
-;; ;;add timestamps in *Messages*, this will cause error for aggressive-indent
-;; (defun current-time-microseconds ()
-;;   (let* ((nowtime (current-time))
-;;       (now-ms (nth 2 nowtime)))
-;;  (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
-;; (defadvice message (before test-symbol activate)
-;;   (if (not (string-equal (ad-get-arg 0) "%s%s"))
-;;    (let ((deactivate-mark nil)
-;;          (inhibit-read-only t))
-;;      (save-excursion
-;;        (set-buffer "*Messages*")
-;;        (goto-char (point-max))
-;;        (if (not (bolp))
-;;            (newline))
-;;        (insert (current-time-microseconds))))))
+;;add timestamps in *Messages*, this will cause error for aggressive-indent
+(defun current-time-microseconds ()
+  (let* ((nowtime (current-time))
+      (now-ms (nth 2 nowtime)))
+ (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
+(defadvice message (before test-symbol activate)
+  (if (not (string-equal (ad-get-arg 0) "%s%s"))
+	  (let ((deactivate-mark nil)
+			(inhibit-read-only t))
+		(save-excursion
+		  (set-buffer "*Messages*")
+		  (goto-char (point-max))
+		  (if (not (bolp))
+			  (newline))
+		  (insert (current-time-microseconds))))))
 
 ;; Makes *scratch* empty.
 ;;(setq initial-scratch-message "")
@@ -238,8 +238,6 @@
 	))
 (add-hook 'find-file-hooks 'check-large-file-hook)
 
-;; syntax highlight for any config file ends with rc, not work for .vimrc(" to comment)
-(add-to-list 'auto-mode-alist '("\\.*rc$" . conf-unix-mode))
 ;; displays the argument list for current func, work for all languages
 (turn-on-eldoc-mode)
 (add-hook 'prog-mode-hook 'turn-on-eldoc-mode)
@@ -634,6 +632,15 @@ searches all buffers."
 ;; don't muck with special buffers
 (setq uniquify-ignore-buffers-re "^\\*")
 
+;; highlight buffer modifications
+;; you can also:
+;; 1. M-x diff-buffer-with-file
+;; 2. After C-x C-c, type d to differ
+(global-set-key (kbd "C-h C-b") 'diff-buffer-with-file)
+(global-set-key (kbd "C-h C-v") 'highlight-changes-visible-mode)
+(global-highlight-changes-mode t)
+;; initial invisible, use C-h C-v to toggle the highlight of changes
+(setq highlight-changes-visibility-initial-state nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; line issues
@@ -1394,7 +1401,6 @@ FORCE-OTHER-WINDOW is ignored."
 (defadvice undo-tree-visualizer-mode(after undo-tree-face activate)
   (buffer-face-mode))
 
-;;
 ;; findr
 (autoload 'findr "findr" "Find file name." t)
 (define-key global-map [(meta control S)] 'findr)
@@ -1402,18 +1408,6 @@ FORCE-OTHER-WINDOW is ignored."
 (define-key global-map [(meta control s)] 'findr-search)
 (autoload 'findr-query-replace "findr" "Replace text in files." t)
 (define-key global-map [(meta control r)] 'findr-query-replace)
-
-;; iy-go-to-char better work with multiple-cursors
-(autoload 'iy-go-to-char "iy-go-to-char" t)
-(global-set-key (kbd "C-c f") 'iy-go-to-char)
-(global-set-key (kbd "C-c F") 'iy-go-to-char-backward)
-;; (global-set-key (kbd "C-c ;") 'iy-go-to-or-up-to-continue)
-;; (global-set-key (kbd "C-c ,") 'iy-go-to-or-up-to-continue-backward)
-;;
-;; To make `iy-go-to-char' works better with `multiple-cursors`, add
-;; `iy-go-to-char-start-pos' to `mc/cursor-specific-vars' when mc is loaded:
-;; The following one line should be put after multiple-cursors plugin
-;; (add-to-list 'mc/cursor-specific-vars 'iy-go-to-char-start-pos)
 
 ;; markdown-mode, http://jblevins.org/projects/markdown-mode/
 (autoload 'markdown-mode "markdown-mode"
@@ -1899,13 +1893,6 @@ FORCE-OTHER-WINDOW is ignored."
 	  'helm-projectile-find-file)
 (setq projectile-switch-project-action
 	  'helm-projectile)
-
-;; names -- required by aggressive-indent
-
-;; aggressive-indent
-(require 'aggressive-indent)
-(global-aggressive-indent-mode 1)
-(add-to-list 'aggressive-indent-excluded-modes 'lisp-interaction-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
