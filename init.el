@@ -645,11 +645,6 @@ searches all buffers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; line issues
 ;;;;;;;;;;;;;;;;;;;;;;;;;
-;; get rid of small straight arrow in the fringe if the line is too
-;; long and make it continued onto multiple screen lines
-;; use M-x toggle-truncate-lines to toggle the status
-;; http://www.emacswiki.org/emacs/TruncateLines
-(set-default 'truncate-lines nil)
 ;; what should be done when you ask Emacs to take you to the next
 ;; line and you already are located at the last line of the buffer
 ;; t means inserting a new line(t is the default option)
@@ -1549,6 +1544,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; TAB to indent the _whole_(not lines) code snippet block comparing with "#+BEGIN_SRC" part
 (setq org-src-tab-acts-natively t)
 ;; in code snippet block, `C-c '` and then TAB to format code snippet lines
+;; display one lone line in one window, get rid of straight right arrow
 (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
@@ -1730,6 +1726,11 @@ FORCE-OTHER-WINDOW is ignored."
 (eval-after-load "magit"
   '(progn
 	 (setq magit-git-executable "/usr/bin/git")))
+;; make `truncate-lines` nil in magit and `auto-fill-mode` off in commit buffers
+(add-hook 'magit-status-mode-hook
+		  (lambda ()
+			(setq truncate-lines nil)))
+(add-hook 'git-commit-mode-hook 'turn-off-auto-fill)
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
