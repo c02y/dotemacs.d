@@ -652,8 +652,6 @@ searches all buffers."
 ;; t means inserting a new line(t is the default option)
 ;; nil means ringing the bell
 (setq next-line-add-newlines nil)
-;; Always end a file with a newline
-(setq require-final-newline nil)
 ;; using <enter> to the next line and indent it automatically
 (global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "<f6>") 'copy-line)
@@ -1539,6 +1537,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; in code snippet block, `C-c '` and then TAB to format code snippet lines
 ;; display one lone line in one window, get rid of straight right arrow
 (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
+;; DO NOT end a org file with a newline, default is t(with newline)
+(add-hook 'org-mode-hook (lambda () (setq require-final-newline nil)))
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
 
