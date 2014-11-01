@@ -116,7 +116,7 @@
 ;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
 
 
-;;add timestamps in *Messages*, this will cause error for aggressive-indent
+;;add timestamps in *Messages*
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
       (now-ms (nth 2 nowtime)))
@@ -633,7 +633,7 @@ searches all buffers."
 (setq uniquify-ignore-buffers-re "^\\*")
 
 ;; highlight buffer modifications
-;; you can also:
+;; you can also(before saving):
 ;; 1. M-x diff-buffer-with-file
 ;; 2. After C-x C-c, type d to differ
 (global-set-key (kbd "C-h C-b") 'diff-buffer-with-file)
@@ -641,6 +641,8 @@ searches all buffers."
 (global-highlight-changes-mode t)
 ;; initial invisible, use C-h C-v to toggle the highlight of changes
 (setq highlight-changes-visibility-initial-state nil)
+(global-set-key (kbd "C-c C-p") 'highlight-changes-previous-change)
+(global-set-key (kbd "C-c C-n") 'highlight-changes-next-change)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; line issues
@@ -658,6 +660,10 @@ searches all buffers."
 (global-set-key (kbd "<f5>") 'kill-whole-line) ;;'kill-line -> C-k
 ;;
 ;; open a new line under/above the current line and jump to it
+(global-set-key (kbd "C-o") 'newline)
+;; jump-new-not_indent using S-return
+(global-set-key (kbd "<S-return>") "\C-e\C-o")
+;; jump-new-indent using M-return
 (global-set-key (kbd "<M-return>") "\C-e\C-m")
 (global-set-key (kbd "<M-S-return>") "\C-a\C-p\C-e\C-m")
 ;; M-k kills to the left, C-k kill to the right the default M-k is
@@ -720,7 +726,7 @@ searches all buffers."
 (define-key emacs-lisp-mode-map (kbd "C-x c") 'emacs-lisp-byte-compile-and-load)
 (define-key emacs-lisp-mode-map (kbd "C-c c") 'eval-buffer)
 (define-key lisp-mode-map (kbd "C-c c") 'eval-buffer)
-(defalias 'brd 'byte-recompile-directory)
+(defalias 'bd 'byte-recompile-directory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; Window
@@ -940,6 +946,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defalias 'ws 'whitespace-mode)
 ;; nil-->use spaces instead of tabs, t -- don't replace
+(require 'cc-vars)
 (setq-default indent-tabs-mode t)
 (setq-default tab-width 4)
 ;; (setq indent-line-function 'insert-tab)
@@ -954,7 +961,7 @@ FORCE-OTHER-WINDOW is ignored."
 		  (lambda ()
 			(setq indent-tabs-mode nil)
 			(setq tab-width 4)
-			(setq python-indent-offset 4)))
+			))
 ;;
 (add-hook 'c-mode-common-hook
 		  (lambda ()
@@ -962,20 +969,6 @@ FORCE-OTHER-WINDOW is ignored."
 			(setq tab-width 8)
 			(setq indent-tabs-mode t)  ;;default in linux kernel
 			(setq c-basic-offset 8)))
-
-;; http://blog.binchen.org/posts/ccjava-code-indentation-in-emacs.html
-(defun fix-c-indent-offset-according-to-syntax-context (key val)
-  ;; remove the old element
-  (setq c-offsets-alist (delq (assoc key c-offsets-alist) c-offsets-alist))
-  ;; new value
-  (add-to-list 'c-offsets-alist '(key . val)))
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-              ;; indent
-              (fix-c-indent-offset-according-to-syntax-context 'substatement 0)
-              (fix-c-indent-offset-according-to-syntax-context 'func-decl-cont 0))
-            ))
 
 ;; ;;;;;;;Documentation/CodingStyle
 ;; ;;Using spaces for alignment, but tabs for indentation
@@ -1407,7 +1400,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; markdown-mode, http://jblevins.org/projects/markdown-mode/
 (autoload 'markdown-mode "markdown-mode"
   "Major mode for editing Markdown files" t)
-(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.txt\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 ;; markdown-mode+
@@ -1779,7 +1772,7 @@ FORCE-OTHER-WINDOW is ignored."
 (defalias 'hc 'hide/show-comments-toggle)
 
 ;; yafolding
-;; C-S-return 'yafolding-toggle-all
+;; C-M-return 'yafolding-toggle-all
 ;; C-return 'yafolding-toggle-element
 (require 'yafolding)
 (add-hook 'python-mode-hook 'yafolding-mode)
@@ -1862,6 +1855,7 @@ FORCE-OTHER-WINDOW is ignored."
 			;; (rebox-mode 1)
 			))
 (define-key rebox-mode-map [(control y)] nil)
+(define-key rebox-mode-map [(shift return )] nil)
 
 ;; comment-dwim-2 to replace default comment-dwim
 ;; comment-dwim can also be repeated several times to switch between the
@@ -1895,6 +1889,16 @@ FORCE-OTHER-WINDOW is ignored."
 (setq projectile-switch-project-action
 	  'helm-projectile)
 
+;; SmartTabs --  tabs for indentation, spaces for alignment
+;; http://www.emacswiki.org/emacs/SmartTabs
+(autoload 'smart-tabs-mode "smart-tabs-mode"
+  "Intelligently indent with tabs, align with spaces!")
+(autoload 'smart-tabs-mode-enable "smart-tabs-mode")
+(autoload 'smart-tabs-advice "smart-tabs-mode")
+(autoload 'smart-tabs-insinuate "smart-tabs-mode")
+(smart-tabs-insinuate 'c 'c++ 'python)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1918,7 +1922,6 @@ FORCE-OTHER-WINDOW is ignored."
 	(ggtags-mode . " Gg")
 	(auto-fill-function . "") ;; not auto-fill-mode
 	(rebox-mode . "")
-	(aggressive-indent-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
