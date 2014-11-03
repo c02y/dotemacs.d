@@ -240,7 +240,7 @@
   "If a file is over a given size, turn off linum-mode for the buffer."
   (when (> (buffer-size) (* 1024 100))	;; 100kb
 	(linum-mode -1)
-    ;; (global-font-lock-mode -1)
+	;; (global-font-lock-mode -1)
 	))
 (add-hook 'find-file-hooks 'check-large-file-hook)
 
@@ -464,45 +464,45 @@ If current line is a single space, remove that space.
 --URL http://ergoemacs.org/emacs/emacs_shrink_whitespace.html version 2014-10-21"
   (interactive)
   (let ((pos (point))
-        line-has-meat-p ; current line contains non-white space chars
-        space-tab-neighbor-p
-        whitespace-begin whitespace-end
-        space-or-tab-begin space-or-tab-end)
-    (save-excursion
-      (setq space-tab-neighbor-p (if (or (looking-at " \\|\t") (looking-back " \\|\t")) t nil))
-      (beginning-of-line)
-      (setq line-has-meat-p (search-forward-regexp "[[:graph:]]" (line-end-position) t))
-      (goto-char pos)
-      (skip-chars-backward "\t ")
-      (setq space-or-tab-begin (point))
-      (skip-chars-backward "\t \n")
-      (setq whitespace-begin (point))
-      (goto-char pos)
-      (skip-chars-forward "\t ")
-      (setq space-or-tab-end (point))
-      (skip-chars-forward "\t \n")
-      (setq whitespace-end (point)))
-    (if line-has-meat-p
-        (let (deleted-text)
-          (when space-tab-neighbor-p
-            ;; remove all whitespaces in the range
-            (setq deleted-text (delete-and-extract-region space-or-tab-begin space-or-tab-end))
+		line-has-meat-p ; current line contains non-white space chars
+		space-tab-neighbor-p
+		whitespace-begin whitespace-end
+		space-or-tab-begin space-or-tab-end)
+	(save-excursion
+	  (setq space-tab-neighbor-p (if (or (looking-at " \\|\t") (looking-back " \\|\t")) t nil))
+	  (beginning-of-line)
+	  (setq line-has-meat-p (search-forward-regexp "[[:graph:]]" (line-end-position) t))
+	  (goto-char pos)
+	  (skip-chars-backward "\t ")
+	  (setq space-or-tab-begin (point))
+	  (skip-chars-backward "\t \n")
+	  (setq whitespace-begin (point))
+	  (goto-char pos)
+	  (skip-chars-forward "\t ")
+	  (setq space-or-tab-end (point))
+	  (skip-chars-forward "\t \n")
+	  (setq whitespace-end (point)))
+	(if line-has-meat-p
+		(let (deleted-text)
+		  (when space-tab-neighbor-p
+			;; remove all whitespaces in the range
+			(setq deleted-text (delete-and-extract-region space-or-tab-begin space-or-tab-end))
 			;; insert a whitespace only if we have removed something different than a simple whitespace
-            (if (not (string= deleted-text " "))
-                (insert " "))))
-      (progn (delete-blank-lines)))))
+			(if (not (string= deleted-text " "))
+				(insert " "))))
+	  (progn (delete-blank-lines)))))
 (global-set-key (kbd "C-<backspace>") 'shrink-whitespaces)
 ;;
 ;; clean buffer/format using C-c n
 ;; (defun buffer-cleanup ()
-;;   "Clean up the buffer"
-;;   (interactive)
-;;   ;; the useless blanks lines at the end of the file
-;;   (delete-blank-lines)
-;;   (delete-trailing-whitespace)
-;;   (untabify (point-min) (point-max))
-;;   ;; will cause format problem
-;;   (indent-region (point-min) (point-max)))
+;;	 "Clean up the buffer"
+;;	 (interactive)
+;;	 ;; the useless blanks lines at the end of the file
+;;	 (delete-blank-lines)
+;;	 (delete-trailing-whitespace)
+;;	 (untabify (point-min) (point-max))
+;;	 ;; will cause format problem
+;;	 (indent-region (point-min) (point-max)))
 ;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
 ;; do not use buffer-cleanup, it is too much
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
@@ -577,15 +577,15 @@ If current line is a single space, remove that space.
   (interactive)
   (previous-buffer)
   (let ((i 0))
-    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
-      (setq i (1+ i)) (previous-buffer))))
+	(while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+	  (setq i (1+ i)) (previous-buffer))))
 (defun next-user-buffer ()
   "Switch to the next user buffer(not started with “*”.)"
   (interactive)
   (next-buffer)
   (let ((i 0))
-    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
-      (setq i (1+ i)) (next-buffer))))
+	(while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+	  (setq i (1+ i)) (next-buffer))))
 (global-set-key [C-prior] 'prev-user-buffer)
 (global-set-key [C-next] 'next-user-buffer)
 ;; switch to last visited buffer
@@ -626,11 +626,11 @@ searches all buffers."
   "Make the current window always display this buffer."
   (interactive)
   (let* ((window (get-buffer-window (current-buffer)))
-         (dedicated (window-dedicated-p window)))
-    (if (not dedicated)
+		 (dedicated (window-dedicated-p window)))
+	(if (not dedicated)
 		(face-remap-add-relative 'mode-line-buffer-id '(:background "blue"))
-      (face-remap-add-relative 'mode-line-buffer-id '(:background "dim gray")))
-    (set-window-dedicated-p window (not dedicated))))
+	  (face-remap-add-relative 'mode-line-buffer-id '(:background "dim gray")))
+	(set-window-dedicated-p window (not dedicated))))
 (global-set-key [f11] 'stick-buffer)
 
 ;; Generate unique buffer names if you open many files with same basename
@@ -1242,7 +1242,6 @@ FORCE-OTHER-WINDOW is ignored."
 		try-complete-lisp-symbol-partially
 		try-complete-lisp-symbol))
 
-
 ;; multiple-cursors
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
 (autoload 'multiple-cursors "multiple-cursors" t)
@@ -1296,11 +1295,11 @@ FORCE-OTHER-WINDOW is ignored."
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
   (setq er/try-expand-list (append
-                            er/try-expand-list
-                            '(
+							er/try-expand-list
+							'(
 							  er/mark-sentence
 							  mark-paragraph
-                              mark-page))))
+							  mark-page))))
 (add-hook 'org-mode-hook 'er/add-text-mode-expansions)
 (add-hook 'markdown-mode-hook 'er/add-text-mode-expansions)
 
@@ -1773,13 +1772,6 @@ FORCE-OTHER-WINDOW is ignored."
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 (setq lua-indent-level 4)
 
-;; anaphora required by workgroup2
-
-;; ;; workgroup2
-;; (require 'workgroups2)
-;; (workgroups-mode 1)
-;; (setq wg-default-session-file "~/.emacs.d/emacs_workgroups")
-
 ;; hide-comments
 (require 'hide-comnt)
 (defalias 'hc 'hide/show-comments-toggle)
@@ -1911,6 +1903,10 @@ FORCE-OTHER-WINDOW is ignored."
 (autoload 'smart-tabs-insinuate "smart-tabs-mode")
 (smart-tabs-insinuate 'c 'c++ 'python)
 
+;; indent-guide
+(require 'indent-guide)
+(indent-guide-global-mode)
+(setq indent-guide-recursive t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
