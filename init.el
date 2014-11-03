@@ -170,6 +170,12 @@
 	  (delete-file (concat user-init-file ".elc")))
 	(emacs-lisp-byte-compile-and-load)))
 (add-hook 'after-save-hook 'byte-compile-init-file)
+;; reload .emacs in new session == open a new session
+(global-set-key (kbd "C-c C-r")
+				'(lambda ()
+				   (interactive)
+				   (load-file "~/.emacs")
+				   ))
 ;; ;; combining the above two version:: WRONG
 ;; (defun byte-compile-and-reload-elisp ()
 ;;	 (interactive)
@@ -378,6 +384,10 @@
 (defun flush-blank-lines (start end)
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
+
+;; make the default sentence ending with two spaces concept nil
+;; Now it work for expand-region to expand sentence
+(setq sentence-end-double-space nil)
 
 ;; use M-x list-processes then d to delete
 (defalias 'lps 'list-processes)
@@ -667,7 +677,7 @@ searches all buffers."
 ;; M-k kills to the left, C-k kill to the right the default M-k is
 ;; 'kill-sentence delete to the end of the sentence C-x Backspace delete to the
 ;; beginning of the sentence
-(global-set-key (kbd "M-k") '(lambda () (interactive) (kill-line 0)) )
+(global-set-key (kbd "M-k") '(lambda () (interactive) (kill-line 0)))
 ;; C-k kill the whole single line including \n
 (setq-default kill-whole-line t)
 
@@ -1282,14 +1292,17 @@ FORCE-OTHER-WINDOW is ignored."
 ;; expand-region
 (require 'expand-region)
 (global-set-key (kbd "C-=") 'er/expand-region)
-;; Want to work in text-mode
+;; mark word->sentence->paragraph->buffer
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
   (setq er/try-expand-list (append
-							er/try-expand-list
-							'(mark-paragraph
-							  mark-page))))
-(er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
+                            er/try-expand-list
+                            '(
+							  er/mark-sentence
+							  mark-paragraph
+                              mark-page))))
+(add-hook 'org-mode-hook 'er/add-text-mode-expansions)
+(add-hook 'markdown-mode-hook 'er/add-text-mode-expansions)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	 company-mode
