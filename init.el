@@ -1238,6 +1238,9 @@ FORCE-OTHER-WINDOW is ignored."
 ;;
 ;; dropdown-list required by yasnippet (optional)
 ;; yasnippet
+;; C-c & C-v('yas-visit-snippet-file) to edit a snippet in current mode
+;; C-c C-c('yas-load-snippet-buffer) to reload it
+;; C-c & C-n('yas-new-snippet) to create a new one for current mode
 (require 'yasnippet)
 (require 'dropdown-list)
 (setq yas-prompt-functions '(yas-dropdown-prompt
@@ -1449,7 +1452,19 @@ FORCE-OTHER-WINDOW is ignored."
 (autoload 'findr-query-replace "findr" "Replace text in files." t)
 (define-key global-map [(meta control r)] 'findr-query-replace)
 
+;; iy-go-to-char better work with multiple-cursors
+(autoload 'iy-go-to-char "iy-go-to-char" t)
+(global-set-key (kbd "C-c f") 'iy-go-to-char)
+(global-set-key (kbd "C-c F") 'iy-go-to-char-backward)
+;; (global-set-key (kbd "C-c ;") 'iy-go-to-or-up-to-continue)
+;; (global-set-key (kbd "C-c ,") 'iy-go-to-or-up-to-continue-backward)
+;;
+;; To make `iy-go-to-char' works better with `multiple-cursors`, add
+;; `iy-go-to-char-start-pos' to `mc/cursor-specific-vars' when mc is loaded:
+;; The following one line should be put after multiple-cursors plugin
+;; (add-to-list 'mc/cursor-specific-vars 'iy-go-to-char-start-pos)
 ;; markdown-mode, http://jblevins.org/projects/markdown-mode/
+
 (autoload 'markdown-mode "markdown-mode"
   "Major mode for editing Markdown files" t)
 (add-to-list 'auto-mode-alist '("\\.txt\\'" . markdown-mode))
