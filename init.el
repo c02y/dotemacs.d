@@ -717,9 +717,8 @@ searches all buffers."
 (global-set-key (kbd "<f5>") 'kill-whole-line) ;;'kill-line -> C-k
 ;;
 ;; open a new line under/above the current line and jump to it
-(global-set-key (kbd "C-o") 'newline)
 ;; jump-new-not_indent using S-return
-(global-set-key (kbd "<S-return>") "\C-e\C-o")
+(global-set-key (kbd "<S-return>") "\C-e\C-o\C-n")
 ;; jump-new-indent using M-return
 (global-set-key (kbd "<M-return>") "\C-e\C-m")
 (global-set-key (kbd "<M-S-return>") "\C-a\C-p\C-e\C-m")
@@ -732,8 +731,9 @@ searches all buffers."
 
 (setq byte-compile-warnings nil)
 ;; comment in C code,`M-;` means /* */, use // in C++ code
-(add-hook 'c++-mode-hook (lambda () (setq comment-start "//"
-										  comment-end	"")))
+(add-hook 'c++-mode-hook
+		  (lambda ()
+			(setq comment-start "//" comment-end "")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; Default configuration change
@@ -1311,10 +1311,8 @@ FORCE-OTHER-WINDOW is ignored."
   'ace-jump-mode
   "ace-jump-mode"
   "Emacs quick move minor mode" t)
-;; case insensitive-->nil
-;; (setq ace-jump-mode-case-fold nil)
-;; Show the message before jumping
-(add-hook 'ace-jump-mode-before-jump-hook (lambda () (message "I am jumping")))
+;; insensitive-->t
+(setq ace-jump-mode-case-fold nil)
 ;; enable a more powerful jump back function from ace jump mode
 (autoload
   'ace-jump-mode-pop-mark
@@ -1322,12 +1320,14 @@ FORCE-OTHER-WINDOW is ignored."
   "Ace jump back:-)" t)
 (eval-after-load "ace-jump-mode"
   '(ace-jump-mode-enable-mark-sync))
-;; Use C-x SPC jump back
-(define-key global-map (kbd "C-c C-j") 'ace-jump-mode-pop-mark)
-;; C-x SPC for the first char, C-u C-c SPC for non-first character,
-;; C-u C-u C-c SPC jump to the ?line
+;; Use C-x SPC or C-u C-SPC to jump back
+(define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
 (define-key global-map (kbd "C-c j") 'ace-jump-mode)
+(define-key global-map (kbd "C-c J") 'ace-jump-char-mode)
 (define-key global-map (kbd "C-c l") 'ace-jump-line-mode)
+;; use numbers to jump
+(setq ace-jump-mode-move-keys
+      (loop for i from ?0 to ?9 collect i))
 ;;
 ;; dash required by ace-jump-buffer
 (autoload 'dash "dash" t)
