@@ -721,7 +721,7 @@ searches all buffers."
 (global-set-key (kbd "<S-return>") "\C-e\C-o\C-n")
 ;; jump-new-indent using M-return
 (global-set-key (kbd "<M-return>") "\C-e\C-m")
-(global-set-key (kbd "<M-S-return>") "\C-a\C-p\C-e\C-m")
+(global-set-key (kbd "<M-S-return>") "\C-a\C-o")
 ;; M-k kills to the left, C-k kill to the right the default M-k is
 ;; 'kill-sentence delete to the end of the sentence C-x Backspace delete to the
 ;; beginning of the sentence
