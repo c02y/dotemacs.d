@@ -548,8 +548,15 @@ If current line is a single space, remove that space.
 ;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
 ;; do not use buffer-cleanup, it is too much
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
-(global-set-key (kbd "C-c d") 'delete-trailing-whitespace)
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(global-set-key (kbd "C-c d")
+				'(lambda ()
+				   (interactive)
+				   (yafolding-show-all)
+				   (delete-trailing-whitespace)))
+(add-hook 'before-save-hook
+		  '(lambda ()
+			 (yafolding-show-all)
+			 (delete-trailing-whitespace)))
 
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
@@ -1959,11 +1966,6 @@ FORCE-OTHER-WINDOW is ignored."
 (autoload 'smart-tabs-advice "smart-tabs-mode")
 (autoload 'smart-tabs-insinuate "smart-tabs-mode")
 (smart-tabs-insinuate 'c 'c++ 'python)
-
-;; indent-guide
-(require 'indent-guide)
-(indent-guide-global-mode)
-(setq indent-guide-recursive t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
