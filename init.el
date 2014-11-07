@@ -1615,6 +1615,8 @@ FORCE-OTHER-WINDOW is ignored."
 (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
 ;; DO NOT end a org file with a newline, default is t(with newline)
 (add-hook 'org-mode-hook (lambda () (setq require-final-newline nil)))
+;; disable '_' to subscript or '^' to superscript export
+(setq org-export-with-sub-superscripts nil)
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
 
