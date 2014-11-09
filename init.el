@@ -231,17 +231,17 @@
 ;; font-lock and linum-mode will slow Emacs
 ;; To improve performance when editing large size of file
 ;; If this is not enough, using vlfi(https://github.com/m00natic/vlfi)
-(setq font-lock-support-mode 'jit-lock-mode)
-(setq jit-lock-stealth-time 16
-	  jit-lock-defer-contextually t
-	  jit-lock-stealth-nice 0.5)
-(setq-default font-lock-multiline t)
 (defun check-large-file-hook ()
-  "If a file is over a given size, turn off linum-mode for the buffer."
-  (when (> (buffer-size) (* 1024 100))	;; 100kb
-	(linum-mode -1)
-	;; (global-font-lock-mode -1)
-	))
+  "If a file is over a given size, turn off minor modes"
+  (when (> (buffer-size) (* 1024 100))	;; 100 KB
+	(when (> (buffer-size) (* 1024 1024)) ;; 1 MB
+	  (fundamental-mode)
+	  (font-lock-mode -1)
+	  (setq buffer-read-only t)
+	  (buffer-disable-undo)
+	  )
+	(linum-mode -1))
+  )
 (add-hook 'find-file-hooks 'check-large-file-hook)
 
 ;; displays the argument list for current func, work for all languages
@@ -924,6 +924,23 @@ FORCE-OTHER-WINDOW is ignored."
   (revert-buffer nil t))
 (global-set-key (kbd "C-c r") 'rev)
 (defalias 'rtf 'recover-this-file)
+;;
+;; reopen killed buffer
+(defvar killed-buffers-list nil
+  "List of recently killed buffers.")
+(defun add-file-to-killed-buffers-list ()
+  "If buffer is associated with a file name, add that file to the
+`killed-buffers-list' when killing the buffer."
+  (when buffer-file-name
+    (push buffer-file-name killed-buffers-list)))
+(add-hook 'kill-buffer-hook #'add-file-to-killed-buffers-list)
+(defun reopen-killed-buffer ()
+  "Reopen the most recently killed file, if one exists."
+  (interactive)
+  (when killed-buffers-list
+    (find-file (pop killed-buffers-list))))
+(global-set-key (kbd "C-S-t") 'reopen-killed-buffer)
+
 ;;
 ;; set M-x align-regexp to C-c a
 (global-set-key (kbd "C-c a") 'align-regexp)
