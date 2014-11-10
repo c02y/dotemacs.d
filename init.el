@@ -192,7 +192,7 @@
 ;;
 (setq bookmark-save-flag t)
 ;; Make Text mode the default mode for new buffers.
-(setq-default major-mode 'org-mode)
+;;(setq-default major-mode 'org-mode)
 ;;(add-hook 'text-mode-hook 'auto-fill-mode)
 (global-linum-mode 1)
 (setq column-number-mode t)
@@ -230,19 +230,20 @@
 ;;
 ;; font-lock and linum-mode will slow Emacs
 ;; To improve performance when editing large size of file
-;; If this is not enough, using vlfi(https://github.com/m00natic/vlfi)
+;; If not enough, using vlf(https://github.com/m00natic/vlfi)
 (defun check-large-file-hook ()
   "If a file is over a given size, turn off minor modes"
   (when (> (buffer-size) (* 1024 100))	;; 100 KB
 	(when (> (buffer-size) (* 1024 1024)) ;; 1 MB
 	  (fundamental-mode)
+	  (setq truncate-lines nil)	;; for long lines buffer
 	  (font-lock-mode -1)
-	  (setq buffer-read-only t)
+	  ;; (setq buffer-read-only t)
 	  (buffer-disable-undo)
 	  )
 	(linum-mode -1))
   )
-(add-hook 'find-file-hooks 'check-large-file-hook)
+(add-hook 'find-file-hook 'check-large-file-hook)
 
 ;; displays the argument list for current func, work for all languages
 (turn-on-eldoc-mode)
