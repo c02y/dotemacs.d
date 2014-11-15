@@ -247,10 +247,10 @@
 
 ;; displays the argument list for current func, work for all languages
 (turn-on-eldoc-mode)
-(add-hook 'prog-mode-hook 'turn-on-eldoc-mode)
-(add-hook 'python-mode-hook 'turn-on-eldoc-mode)
-(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
-
+(dolist (mode '(prog-mode-hook python-mode-hook ielm-mode-hook))
+  (add-hook mode
+			'(lambda ()
+			(turn-on-eldoc-mode))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -650,7 +650,7 @@ Repeated invocations toggle between the two most recently open buffers."
 (defcustom search-all-buffers-ignored-files (list (rx-to-string '(and bos (or ".bash_history" "TAGS") eos)))
   "Files to ignore when searching buffers via \\[search-all-buffers]."
   :type 'editable-list)
-(require 'grep)
+;;(require 'grep)
 (defun search-all-buffers (regexp prefix)
   "Searches file-visiting buffers for occurence of REGEXP.	With
 prefix > 1 (i.e., if you type C-u \\[search-all-buffers]),
@@ -975,7 +975,6 @@ FORCE-OTHER-WINDOW is ignored."
 (when (executable-find "hunspell")
   (setq-default ispell-program-name "hunspell")
   (setq ispell-really-hunspell t))
-(add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; if you don't know how to spell the rest of a word
 (global-set-key (kbd "C-?") 'ispell-complete-word)
@@ -1097,10 +1096,9 @@ FORCE-OTHER-WINDOW is ignored."
   (local-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
   ;; (local-set-key (kbd "`") 'skeleton-pair-insert-maybe)
   )
-(add-hook 'prog-mode-hook 'my-mode-auto-pair)
-(add-hook 'python-mode-hook 'my-mode-auto-pair)
-(add-hook 'ielm-mode-hook 'my-mode-auto-pair)
-(add-hook 'org-mode-hook 'my-mode-auto-pair)
+(dolist (hook '(prog-mode-hook python-mode-hook ielm-mode-hook org-mode-hook))
+  (add-hook hook 'my-mode-auto-pair))
+
 ;;
 ;; automatically insert new line with } and indent when typing {
 (define-minor-mode c-helpers-minor-mode
@@ -1115,9 +1113,11 @@ FORCE-OTHER-WINDOW is ignored."
   (indent-for-tab-command)
   (call-interactively 'previous-line)
   (indent-for-tab-command))
-(add-hook 'c-mode-common-hook 'c-helpers-minor-mode)
-(add-hook 'java-mode-hook 'c-helpers-minor-mode)
-(add-hook 'cperl-mode-hook 'c-helpers-minor-mode)
+(dolist (mode '(c-mode-common-hook jave-mode-hook cperl-mode-hook))
+  (add-hook mode
+			'(lambda ()
+			(c-helpers-minor-mode))))
+
 ;;
 ;; automatically insert } after typing {, not indent
 ;; When you need this, type C-{, in some modes
@@ -1129,9 +1129,19 @@ FORCE-OTHER-WINDOW is ignored."
 (define-key c-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
 (define-key c++-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
 (define-key java-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
-;; Emacs will know cperl-mode-map only if the cperl-mode will be loaded
-(require 'cperl-mode)
-(define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
+;; use cperl-mode as default mode for Perl code instead of perl-mode
+;; cperl-mode offers much more features than perl-mode.
+;; http://ergoemacs.org/emacs/emacs_perl_vs_cperl_mode.html
+(setq auto-mode-alist (rassq-delete-all 'perl-mode auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.\\(p\\([lm]\\)\\)\\'" . cperl-mode))
+(setq interpreter-mode-alist (rassq-delete-all 'perl-mode interpreter-mode-alist))
+(add-to-list 'interpreter-mode-alist '("perl" . cperl-mode))
+(add-to-list 'interpreter-mode-alist '("perl5" . cperl-mode))
+(add-to-list 'interpreter-mode-alist '("miniperl" . cperl-mode))
+(eval-after-load "cperl-mode"
+  '(progn
+	 (define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
+	 ))
 
 ;; gdb, Debugging with GDB Many Windows layout
 ;; https://tuhdo.github.io/c-ide.html
@@ -1283,14 +1293,14 @@ FORCE-OTHER-WINDOW is ignored."
 ;; If you want to load the ECB first after starting it by ecb-activate
 ;; (Advantage: Fast loading. Disadvantage: ECB- and semantic-options first
 ;; available after starting ECB):
-(require 'ecb-autoloads)
+(autoload 'ecb-autoloads "ecb-autoloads" t)
 (defalias 'emm 'ecb-minor-mode)
 ;; If you want to load the complete ECB at (X)Emacs-loadtime
 ;; (Advantage: All ECB-options available after loading ECB. Disadvantage: Increasing loadtime):
 ;; (require 'ecb)
 
 ;; hippie-expand-etx
-(require 'hippie-exp-ext)
+(autoload 'hippie-exp-ext "hippie-exp-ext" t)
 (global-set-key (kbd "C-@") 'hippie-expand-dabbrev-limited-chars)
 ;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
 (global-set-key (kbd "M-/") 'hippie-expand)
@@ -1313,6 +1323,9 @@ FORCE-OTHER-WINDOW is ignored."
 		try-complete-lisp-symbol))
 
 ;; multiple-cursors
+;; How to add string at the beginning of multiple lines
+;; 1. mark M-x replace-regexp ^ RET string RET
+;; 2. mark C-x r t string
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
 (autoload 'multiple-cursors "multiple-cursors" t)
 ;; When you have an active region that spans multiple lines, the following will
@@ -1359,7 +1372,7 @@ FORCE-OTHER-WINDOW is ignored."
 (autoload 'sml-mode "sml-mode" t)
 ;;
 ;; expand-region
-(require 'expand-region)
+(autoload 'expand-region "expand-region" t)
 (global-set-key (kbd "C-=") 'er/expand-region)
 ;; mark word->sentence->paragraph->buffer
 (defun er/add-text-mode-expansions ()
@@ -1370,8 +1383,8 @@ FORCE-OTHER-WINDOW is ignored."
 							  er/mark-sentence
 							  mark-paragraph
 							  mark-page))))
-(add-hook 'org-mode-hook 'er/add-text-mode-expansions)
-(add-hook 'markdown-mode-hook 'er/add-text-mode-expansions)
+(dolist (hook '(org-mode-hook markdown-mode-hook))
+  (add-hook hook 'er/add-text-mode-expansions))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	 company-mode
@@ -1512,9 +1525,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; but keep point
 ;; RET 'ascope-select-entry-other-window-delete-window, but jump into result
 ;; C-c s u 'cscope-pop-mark to go back
-(require 'ascope)
 (add-hook 'c-mode-common-hook
-		  (lambda()
+		  (lambda ()
 			;; defined in xcscope
 			(cscope-minor-mode)
 			))
@@ -1628,11 +1640,14 @@ FORCE-OTHER-WINDOW is ignored."
 (setq org-src-fontify-natively t)
 ;; TAB to indent the _whole_(not lines) code snippet block comparing with "#+BEGIN_SRC" part
 (setq org-src-tab-acts-natively t)
-;; in code snippet block, `C-c '` and then TAB to format code snippet lines
-;; display one lone line in one window, get rid of straight right arrow
-(add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
-;; DO NOT end a org file with a newline, default is t(with newline)
-(add-hook 'org-mode-hook (lambda () (setq require-final-newline nil)))
+(add-hook 'org-mode-hook
+		  (lambda ()
+			;; in code snippet block, `C-c '` and then TAB to format code snippet lines
+			;; display one lone line in one window, get rid of straight right arrow
+			(setq truncate-lines nil)
+			;; DO NOT end a org file with a newline, default is t(with newline)
+			(setq require-final-newline nil)
+			))
 ;; disable '_' to subscript or '^' to superscript export
 (setq org-export-with-sub-superscripts nil)
 ;;;;;;;;;;;;;;;
@@ -1792,9 +1807,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;; git-commit-mode required by magit
 ;; git-rebase-mode required by magit
 ;; (eval-after-load 'info
-;;	 '(progn (info-initialize)
-;;			  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
-;; (require 'magit)
+;;   '(progn (info-initialize)
+;;            (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
 (autoload 'magit "magit: git for Emacs" t)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
@@ -1823,7 +1837,6 @@ FORCE-OTHER-WINDOW is ignored."
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
-(add-hook 'python-mode-hook 'highlight-blocks-mode)
 
 ;; ;; evil, use C-z to switch between vim/Emacs
 ;; (setq evil-search-module 'evil-search
@@ -1845,10 +1858,11 @@ FORCE-OTHER-WINDOW is ignored."
 (setq mouse-wheel-progressive-speed nil)
 
 ;; emmet for web development
-(require 'emmet-mode)
-(add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
-(add-hook 'html-mode-hook 'emmet-mode)
-(add-hook 'css-mode-hook  'emmet-mode)
+(autoload 'emmet-mode "emmet for web development" t)
+(dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
+  (add-hook mode
+			'(lambda ()
+			   (emmet-mode))))
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
@@ -1857,23 +1871,24 @@ FORCE-OTHER-WINDOW is ignored."
 (setq lua-indent-level 4)
 
 ;; hide-comments
-(require 'hide-comnt)
+(autoload 'hide-comnt "hide comments" t)
 (defalias 'hc 'hide/show-comments-toggle)
 
 ;; yafolding
 ;; C-M-return 'yafolding-toggle-all
 ;; C-return 'yafolding-toggle-element
-(require 'yafolding)
+(autoload 'yafolding "yafolding" t)
 (add-hook 'python-mode-hook 'yafolding-mode)
 (add-hook 'prog-mode-hook 'yafolding-mode)
 
 ;; highlight-symbol
-(require 'highlight-symbol)
-(highlight-symbol-nav-mode)
-(add-hook 'prog-mode-hook 'highlight-symbol-mode)
-(add-hook 'python-mode-hook 'highlight-symbol-mode)
-(add-hook 'org-mode-hook 'highlight-symbol-mode)
-(add-hook 'ielm-mode-hook 'highlight-symbol-mode)
+(autoload 'highlight-symbol "highlight-symbol" t)
+(eval-after-load "highlight-symbol"
+  '(progn
+	 (highlight-symbol-nav-mode)
+  ))
+(dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
+  (add-hook hook 'highlight-symbol-mode))
 ;; enable highlighting symbol at point automatically
 (setq highlight-symbol-on-navigation-p t)
 (global-set-key [(control shift mouse-1)]
@@ -1911,6 +1926,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
 ;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
+(require 'init-gnus)
 
 ;; rebox2 to replace comment-box
 (require 'rebox2)
@@ -2002,7 +2018,6 @@ FORCE-OTHER-WINDOW is ignored."
 	(auto-complete-mode . "")
 	(company-mode . "")
 	(highlight-symbol-mode . "")
-	(emmet-mode . "")
 	(cwarn-mode . "")
 	(flyspell-mode . "")
 	(abbrev-mode . "")
