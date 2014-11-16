@@ -1490,7 +1490,9 @@ FORCE-OTHER-WINDOW is ignored."
 ;; replace the standard undo system
 (global-undo-tree-mode)
 (defadvice undo-tree-visualizer-mode(after undo-tree-face activate)
-  (buffer-face-mode))
+  (buffer-face-mode)
+  (setq undo-tree-visualizer-timestamps t)
+  (setq undo-tree-visualizer-diff t))
 
 ;; findr
 (autoload 'findr "findr" "Find file name." t)
