@@ -714,7 +714,44 @@ searches all buffers."
 (setq next-line-add-newlines nil)
 ;; using <enter> to the next line and indent it automatically
 (global-set-key (kbd "RET") 'newline-and-indent)
-(global-set-key (kbd "<f6>") 'copy-line)
+(defun copy-multiple-lines (&optional arg)
+  "replace default `copy-line` function to copy whole lines to the kill ring.
+With prefix argument ARG, copy that many lines including current one.
+Negative arguments copy lines backward including current one.
+If ARG is zero, copy current line but exclude the trailing newline."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
+      (signal 'end-of-buffer nil))
+  (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))
+      (signal 'beginning-of-buffer nil))
+  ;; (let ((original-point (point)))
+  (cond ((zerop arg)
+		 (save-excursion
+		   (copy-region-as-kill
+			(progn (beginning-of-line) (beginning-of-line) (point))
+			(progn (forward-visible-line 0) (point))))
+		 (copy-region-as-kill
+		  (progn (beginning-of-line) (beginning-of-line) (point))
+		  (progn (end-of-visible-line) (point))))
+		((< arg 0)
+		 (save-excursion
+		   (copy-region-as-kill (point) (progn (end-of-visible-line) (point))))
+		 (copy-region-as-kill
+		  (progn (end-of-line) (point))
+		  (progn (forward-visible-line (1+ arg))
+				 (unless (bobp) (backward-char))
+				 (point))))
+		(t
+		 (save-excursion
+		   (copy-region-as-kill
+			(progn (beginning-of-line) (beginning-of-line) (point))
+			(progn (forward-visible-line 0) (point))))
+		 (copy-region-as-kill
+		  (progn (beginning-of-line) (beginning-of-line) (point))
+		  (progn (forward-visible-line arg) (point))))))
+(global-set-key (kbd "<f6>") 'copy-multiple-lines)
+;; with M-number F5 to kill multiple lines(including current one)
 (global-set-key (kbd "<f5>") 'kill-whole-line) ;;'kill-line -> C-k
 ;;
 ;; open a new line under/above the current line and jump to it
