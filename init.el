@@ -216,7 +216,7 @@
 ;; /usr/share/emacs/site-lisp/default.el, or this setting won't work
 ;; and put time in frame-title to make the mode line clean
 (display-time-mode 1)
-(defvar display-time-24hr-format)
+(setq display-time-24hr-format t)
 (setq display-time-day-and-date t)
 (setq global-mode-string nil)
 ;; this will not always show the day of week, weird
@@ -552,11 +552,11 @@ If current line is a single space, remove that space.
 (global-set-key (kbd "C-c d")
 				'(lambda ()
 				   (interactive)
-				   (yafolding-show-all)
+				   (yafolding-show-all) ;; avoid data loss
 				   (delete-trailing-whitespace)))
 (add-hook 'before-save-hook
 		  '(lambda ()
-			 (yafolding-show-all)
+			 (yafolding-show-all) ;; avoid data loss
 			 (delete-trailing-whitespace)))
 
 ;; indent marked files in dirs
@@ -1386,10 +1386,21 @@ FORCE-OTHER-WINDOW is ignored."
 (dolist (hook '(org-mode-hook markdown-mode-hook))
   (add-hook hook 'er/add-text-mode-expansions))
 
+;; change-inner -- require expand-region
+;; `change-inner "` would kill the contents of the string
+;; `change-outer "` would kill the entire string(including ")
+;; `change-inner {` would kill the return-statement
+;; `change-outer {` would kill the entire block（including {）
+;; Giving these commands a prefix argument `C-u` means copy instead of kill.
+(autoload 'change-inner "change-inner" t)
+(global-set-key (kbd "M-i") 'change-inner)
+(global-set-key (kbd "M-o") 'change-outer)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	 company-mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'company)
+(autoload 'company "company" t)
+(add-hook 'after-init-hook 'global-company-mode)
 (setq company-global-modes t)
 (setq company-tooltip-limit 30)
 (setq company-minimum-prefix-length 3)
@@ -1397,10 +1408,9 @@ FORCE-OTHER-WINDOW is ignored."
 (setq company-dabbrev-other-buffers t)
 (setq company-transformers '(company-sort-by-occurrence))
 (setq company-auto-complete t)
-(add-hook 'after-init-hook 'global-company-mode)
 ;; use F1 or C-h in the drop list to show the doc, Use C-s/C-M-s to search the candidates,
 ;; M-NUM to select specific one, C-w to view its source file
-(global-set-key (kbd "C-c <tab>") 'company-complete)
+(global-set-key (kbd "C-c <tab>") 'company-files)
 ;; this will show a lot of garbage, use it only necessary
 ;; (add-to-list 'company-backends 'company-ispell)
 (defalias 'ci 'company-ispell)
@@ -1976,10 +1986,10 @@ FORCE-OTHER-WINDOW is ignored."
 ;; helm-projectile
 ;; http://tuhdo.github.io/helm-projectile.html
 ;; all projectile & helm-projectile commands has prefix C-c p
-(require 'helm-projectile)
-(projectile-global-mode)
+(autoload 'helm-projectile "helm-projectile" t)
+(add-hook 'after-init-hook 'projectile-global-mode)
 (setq projectile-completion-system 'helm)
-(helm-projectile-on)
+;;(helm-projectile-on)
 ;; for large projects
 (setq helm-projectile-sources-list
 	  '(helm-source-projectile-projects
