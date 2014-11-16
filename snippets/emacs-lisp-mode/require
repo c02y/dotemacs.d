@@ -1,5 +1,6 @@
-#contributor: Xah Lee (XahLee.org)
-#name: require
-#key: r
+# -*- mode: snippet -*-
+# contributor: Xah Lee (XahLee.org)
+# name: require
+# key: r
 # --
 (require '$0)

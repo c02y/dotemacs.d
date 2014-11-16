@@ -1,6 +1,6 @@
-#contributor: Xah Lee (XahLee.org)
-#name: search-backward
-#key: search-backward
-#key: sb
+# -*- mode: snippet -*-
+# contributor: Xah Lee (XahLee.org)
+# name: search-backward
+# key: sb
 # --
 (search-backward "$0" &optional BOUND NOERROR COUNT)
