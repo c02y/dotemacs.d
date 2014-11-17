@@ -1014,7 +1014,8 @@ FORCE-OTHER-WINDOW is ignored."
 ;;;;;;;;;;; Tab & indent
 ;;;;;;;;;;; '(global-)whitespace-mode to show tab/space
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defalias 'ws 'whitespace-mode)
+(global-set-key (kbd "C-c w") 'whitespace-mode)
+
 ;; nil-->use spaces instead of tabs, t -- don't replace
 (require 'cc-vars)
 (setq-default indent-tabs-mode t)
@@ -1773,7 +1774,9 @@ FORCE-OTHER-WINDOW is ignored."
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
 (defalias 'hg 'helm-do-grep)
-
+;;
+;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
+(add-hook 'after-init-hook 'helm-descbinds-mode)
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
@@ -2017,6 +2020,18 @@ FORCE-OTHER-WINDOW is ignored."
 
 ;; whole-line-or-region
 (add-hook 'after-init-hook 'whole-line-or-region-mode)
+
+;; popwin is required by guide-key
+
+;; guide-key
+(require 'guide-key)
+(setq guide-key/guide-key-sequence '("C-x" "C-c" "C-h" "<f1>" "C-s"))
+(setq guide-key/recursive-key-sequence-flag t)
+(setq guide-key/highlight-command-regexp
+	  "rectangle\\|register\\|helm\\|projectile\\|cscope\\|ggtags")
+;; font size of guide buffer
+(setq guide-key/text-scale-amount -0.5)
+(guide-key-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
