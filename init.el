@@ -77,8 +77,6 @@
 ;; C-S-m for 'menu-bar-mode
 ;; Enter or C-j to 'newline-and-indent
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
-;; F5 or C-S-Backsapce to 'kill-whole-line
-;; F6 to 'copy-line
 ;; F7 to 'switch-to-minibuffer-window
 ;; F8 to make the frame transparent
 ;; F9 to 'search-all-buffers
@@ -714,46 +712,7 @@ searches all buffers."
 (setq next-line-add-newlines nil)
 ;; using <enter> to the next line and indent it automatically
 (global-set-key (kbd "RET") 'newline-and-indent)
-(defun copy-multiple-lines (&optional arg)
-  "replace default `copy-line` function to copy whole lines to the kill ring.
-With prefix argument ARG, copy that many lines including current one.
-Negative arguments copy lines backward including current one.
-If ARG is zero, copy current line but exclude the trailing newline."
-  (interactive "p")
-  (or arg (setq arg 1))
-  (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
-      (signal 'end-of-buffer nil))
-  (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))
-      (signal 'beginning-of-buffer nil))
-  ;; (let ((original-point (point)))
-  (cond ((zerop arg)
-		 (save-excursion
-		   (copy-region-as-kill
-			(progn (beginning-of-line) (beginning-of-line) (point))
-			(progn (forward-visible-line 0) (point))))
-		 (copy-region-as-kill
-		  (progn (beginning-of-line) (beginning-of-line) (point))
-		  (progn (end-of-visible-line) (point))))
-		((< arg 0)
-		 (save-excursion
-		   (copy-region-as-kill (point) (progn (end-of-visible-line) (point))))
-		 (copy-region-as-kill
-		  (progn (end-of-line) (point))
-		  (progn (forward-visible-line (1+ arg))
-				 (unless (bobp) (backward-char))
-				 (point))))
-		(t
-		 (save-excursion
-		   (copy-region-as-kill
-			(progn (beginning-of-line) (beginning-of-line) (point))
-			(progn (forward-visible-line 0) (point))))
-		 (copy-region-as-kill
-		  (progn (beginning-of-line) (beginning-of-line) (point))
-		  (progn (forward-visible-line arg) (point))))))
-(global-set-key (kbd "<f6>") 'copy-multiple-lines)
-;; with M-number F5 to kill multiple lines(including current one)
-(global-set-key (kbd "<f5>") 'kill-whole-line) ;;'kill-line -> C-k
-;;
+
 ;; open a new line under/above the current line and jump to it
 ;; jump-new-not_indent using S-return
 (global-set-key (kbd "<S-return>") "\C-e\C-o\C-n")
@@ -1882,7 +1841,10 @@ FORCE-OTHER-WINDOW is ignored."
 (add-hook 'magit-status-mode-hook
 		  (lambda ()
 			(setq truncate-lines nil)))
-(add-hook 'git-commit-mode-hook 'turn-off-auto-fill)
+(add-hook 'git-commit-mode-hook
+		  (lambda ()
+			(turn-off-auto-fill)
+			(flyspell-mode)))
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
@@ -2010,6 +1972,7 @@ FORCE-OTHER-WINDOW is ignored."
 			))
 (define-key rebox-mode-map [(control y)] nil)
 (define-key rebox-mode-map [(shift return )] nil)
+(define-key rebox-mode-map (kbd "M-w") nil)
 
 ;; comment-dwim-2 to replace default comment-dwim
 ;; comment-dwim can also be repeated several times to switch between the
@@ -2051,6 +2014,9 @@ FORCE-OTHER-WINDOW is ignored."
 (autoload 'smart-tabs-advice "smart-tabs-mode")
 (autoload 'smart-tabs-insinuate "smart-tabs-mode")
 (smart-tabs-insinuate 'c 'c++ 'python)
+
+;; whole-line-or-region
+(add-hook 'after-init-hook 'whole-line-or-region-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
