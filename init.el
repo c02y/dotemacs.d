@@ -233,14 +233,11 @@
   "If a file is over a given size, turn off minor modes"
   (when (> (buffer-size) (* 1024 100))	;; 100 KB
 	(when (> (buffer-size) (* 1024 1024)) ;; 1 MB
-	  (fundamental-mode)
-	  (setq truncate-lines nil)	;; for long lines buffer
-	  (font-lock-mode -1)
-	  ;; (setq buffer-read-only t)
-	  (buffer-disable-undo)
+	  (require 'vlf)
+	  (vlf-mode)
 	  )
-	(linum-mode -1))
-  )
+	(linum-mode -1)
+	))
 (add-hook 'find-file-hook 'check-large-file-hook)
 
 ;; displays the argument list for current func, work for all languages
@@ -249,6 +246,7 @@
   (add-hook mode
 			'(lambda ()
 			(turn-on-eldoc-mode))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1832,8 +1830,10 @@ FORCE-OTHER-WINDOW is ignored."
 		   "~/.emacs.d"
 		   "~/.vim"
 		   )))
-;; open link file such as .emacs to open just the link not the original file
+;; open a link not prompt yes/no
 (setq vc-follow-symlinks 'nil)
+;; make vc* and magit work for link
+(setq find-file-visit-truename t)
 (set-default 'magit-stage-all-confirm nil)
 (set-default 'magit-unstage-all-confirm nil)
 ;; make git faster??
@@ -1848,6 +1848,9 @@ FORCE-OTHER-WINDOW is ignored."
 		  (lambda ()
 			(turn-off-auto-fill)
 			(flyspell-mode)))
+;; make the item in magit buffer easy to see after TAB
+(defadvice magit-toggle-section (after magit-section-hideen activate)
+  (recenter-top-bottom 0))
 
 ;; highlight-blocks
 (add-hook 'prog-mode-hook 'highlight-blocks-mode)
@@ -2008,6 +2011,9 @@ FORCE-OTHER-WINDOW is ignored."
 	  'helm-projectile-find-file)
 (setq projectile-switch-project-action
 	  'helm-projectile)
+;; modify the indicator in mode line
+(setq projectile-mode-line
+  '(:eval (format " Pt[%s]" (projectile-project-name))))
 
 ;; SmartTabs --  tabs for indentation, spaces for alignment
 ;; http://www.emacswiki.org/emacs/SmartTabs
@@ -2028,9 +2034,10 @@ FORCE-OTHER-WINDOW is ignored."
 (setq guide-key/guide-key-sequence '("C-x" "C-c" "C-h" "<f1>" "C-s"))
 (setq guide-key/recursive-key-sequence-flag t)
 (setq guide-key/highlight-command-regexp
-	  "rectangle\\|register\\|helm\\|projectile\\|cscope\\|ggtags")
+	  "rectangle\\|register\\|helm\\|projectile\\|cscope\\|ggtags\\|toggle")
 ;; font size of guide buffer
 (setq guide-key/text-scale-amount -0.5)
+(setq guide-key/popup-window-position 'bottom)
 (guide-key-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2056,6 +2063,8 @@ FORCE-OTHER-WINDOW is ignored."
 	(auto-fill-function . "") ;; not auto-fill-mode
 	(rebox-mode . "")
 	(indent-guide-mode . "")
+	(guide-key-mode . "")
+	(whole-line-or-region-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
