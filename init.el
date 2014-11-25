@@ -3,7 +3,7 @@
 ;; Copyright (c) 2012-2014 Cody Chan <cody.chan.cz@gmail.com>
 ;;
 ;; Author: Cody Chan <cody.chan.cz@gmail.com>
-;; URL: https://gihub.com/codychan/dotemacs.d
+;; URL: https://github.com/c0dy/dotemacs.d
 ;; Keywords: convenience
 ;;
 ;; This file is not part of GNU Emacs.
@@ -21,10 +21,11 @@
 ;; USA.
 
 ;; If you want to using package manager like Vundle, use
-;; 1. https://github.com/lunaryorn/.emacs.d/blob/master/init.el#L176 to do that
-;; 2. http://oli.me.uk/2014/10/20/making-package-el-behave-like-vundle/
-;;    https://github.com/Wolfy87/dotfiles/blob/d24591ebd7b3a36f629fb5a4ebd921c72f2b5b91/emacs/init.el#L61-L96
-;;    http://www.reddit.com/r/emacs/comments/2jtojf/packageel_didnt_prune_my_unused_packages_so_i/
+;; https://github.com/lunaryorn/.emacs.d/blob/master/init.el#L176
+;; http://oli.me.uk/2014/10/20/making-package-el-behave-like-vundle/
+;; https://github.com/Wolfy87/dotfiles/blob/d24591ebd7b3a36f629fb5a4ebd921c72f2b5b91/emacs/init.el#L61-L96
+;; http://www.reddit.com/r/emacs/comments/2jtojf/packageel_didnt_prune_my_unused_packages_so_i/
+;; http://www.lonecpluspluscoder.com/2014/11/set-emacs-use-melpa-melpa-stable
 
 ;; byte compile emacs lisp files of current dir
 ;; emacs -batch -f batch-byte-compile *.el
@@ -117,8 +118,8 @@
 ;;add timestamps in *Messages*
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
-      (now-ms (nth 2 nowtime)))
- (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
+		 (now-ms (nth 2 nowtime)))
+	(concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
 (defadvice message (before test-symbol activate)
   (if (not (string-equal (ad-get-arg 0) "%s%s"))
 	  (let ((deactivate-mark nil)
@@ -245,7 +246,7 @@
 (dolist (mode '(prog-mode-hook python-mode-hook ielm-mode-hook))
   (add-hook mode
 			'(lambda ()
-			(turn-on-eldoc-mode))))
+			   (turn-on-eldoc-mode))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
@@ -325,7 +326,7 @@
   ;;	((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
   ;;	))
   ;; (set-face-background 'highlight "gray30")
-)
+  )
 ;;
 (set-frame-size-according-to-resolution)
 
@@ -381,6 +382,19 @@
 (defun flush-blank-lines (start end)
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
+
+;; make `C-a/e` keep going to beginning/end of next line(previous with C-u)
+;; These will as normal in comment block because of goddamn of rebox2
+(defun keep-beginning-of-line (arg)
+  (interactive "P")
+  (when (bolp) (forward-line (if arg -1 1)))
+  (move-beginning-of-line nil))
+(defun keep-end-of-line (arg)
+  (interactive "P")
+  (when (eolp) (forward-line (if arg -1 1)))
+  (move-end-of-line nil))
+(global-set-key [remap move-beginning-of-line] #'keep-beginning-of-line)
+(global-set-key [remap move-end-of-line] #'keep-end-of-line)
 
 ;; make the default sentence ending with two spaces concept nil
 ;; Now it work for expand-region to expand sentence
@@ -778,6 +792,7 @@ searches all buffers."
 (define-key emacs-lisp-mode-map (kbd "C-x c") 'emacs-lisp-byte-compile-and-load)
 (define-key emacs-lisp-mode-map (kbd "C-c c") 'eval-buffer)
 (define-key lisp-mode-map (kbd "C-c c") 'eval-buffer)
+
 (defalias 'bd 'byte-recompile-directory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1036,7 +1051,7 @@ FORCE-OTHER-WINDOW is ignored."
 		  (lambda ()
 			(c-set-style "linux")
 			(setq tab-width 8)
-			(setq indent-tabs-mode t)  ;;default in linux kernel
+			(setq indent-tabs-mode t) ;;default in linux kernel
 			(setq c-basic-offset 8)))
 
 ;; ;;;;;;;Documentation/CodingStyle
@@ -1111,7 +1126,7 @@ FORCE-OTHER-WINDOW is ignored."
 (dolist (mode '(c-mode-common-hook jave-mode-hook cperl-mode-hook))
   (add-hook mode
 			'(lambda ()
-			(c-helpers-minor-mode))))
+			   (c-helpers-minor-mode))))
 
 ;;
 ;; automatically insert } after typing {, not indent
@@ -1159,8 +1174,8 @@ FORCE-OTHER-WINDOW is ignored."
   (interactive)
   (if compilation-minor-mode
 	  (setq compilation-minor-mode nil)
-	  (compilation-minor-mode)
-	  ))
+	(compilation-minor-mode)
+	))
 (global-set-key (kbd "C-c v") 'va)
 
 ;; cedet -- built-in
@@ -1752,11 +1767,7 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "C-/") 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
 (setq
- helm-quick-update t  ; do not display invisible candidates
- ;; fix the typing too fast and emacs won't be ready problem
- helm-exit-idle-delay 0
- helm-idle-delay 0.01	  ; be idle for this many seconds, before updating in delayed sources.
- helm-input-idle-delay 0.01 ; be idle for this many seconds, before updating candidate buffer
+ ;; helm-quick-update t  ; do not display invisible candidates
  helm-split-window-default-side 'other ; open helm buffer in another window
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
  helm-buffers-favorite-modes
@@ -1903,7 +1914,7 @@ FORCE-OTHER-WINDOW is ignored."
 (eval-after-load "highlight-symbol"
   '(progn
 	 (highlight-symbol-nav-mode)
-  ))
+	 ))
 (dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
   (add-hook hook 'highlight-symbol-mode))
 ;; enable highlighting symbol at point automatically
@@ -1994,14 +2005,26 @@ FORCE-OTHER-WINDOW is ignored."
 ;; helm-projectile
 ;; http://tuhdo.github.io/helm-projectile.html
 ;; all projectile & helm-projectile commands has prefix C-c p
-(autoload 'helm-projectile "helm-projectile" t)
-(add-hook 'after-init-hook 'projectile-global-mode)
-(setq projectile-completion-system 'helm)
+(require 'helm-projectile)
+(projectile-global-mode)
 ;;(helm-projectile-on)
+;; (eval-after-load "projectile"
+;;   '(progn
+;; 	 (setq magit-repo-dirs
+;; 		   (mapcar
+;; 			(lambda (dir)
+;; 			  (substring dir 0 -1))
+;; 			(remove-if-not
+;; 			 (lambda (project)
+;; 			   (file-directory-p (concat project "/.git/")))
+;; 			 (projectile-relevant-known-projects))))
+;; 	 ))
+(setq projectile-completion-system 'helm)
+(helm-projectile-on)
 ;; for large projects
-(setq helm-projectile-sources-list
-	  '(helm-source-projectile-projects
-		helm-source-projectile-files-list))
+;;(setq helm-projectile-sources-list
+;;    '(helm-source-projectile-projects
+;;      helm-source-projectile-files-list))
 ;; cache make it quick for large project, but cache will make the `C-c c p` only
 ;; work for cached files, use `C-c p i` or prefix `C-u` to make the cache invalidated
 (setq projectile-enable-caching t)
@@ -2009,20 +2032,11 @@ FORCE-OTHER-WINDOW is ignored."
 ;; projectile can create a file or dir if not found, but helm-projectile cannot
 (setq projectile-switch-project-action
 	  'helm-projectile-find-file)
-(setq projectile-switch-project-action
-	  'helm-projectile)
+;;(setq projectile-switch-project-action
+;;    'helm-projectile)
 ;; modify the indicator in mode line
 (setq projectile-mode-line
-  '(:eval (format " Pt[%s]" (projectile-project-name))))
-
-;; SmartTabs --  tabs for indentation, spaces for alignment
-;; http://www.emacswiki.org/emacs/SmartTabs
-(autoload 'smart-tabs-mode "smart-tabs-mode"
-  "Intelligently indent with tabs, align with spaces!")
-(autoload 'smart-tabs-mode-enable "smart-tabs-mode")
-(autoload 'smart-tabs-advice "smart-tabs-mode")
-(autoload 'smart-tabs-insinuate "smart-tabs-mode")
-(smart-tabs-insinuate 'c 'c++ 'python)
+	  '(:eval (format " Pt[%s]" (projectile-project-name))))
 
 ;; whole-line-or-region
 (add-hook 'after-init-hook 'whole-line-or-region-mode)
@@ -2039,6 +2053,10 @@ FORCE-OTHER-WINDOW is ignored."
 (setq guide-key/text-scale-amount -0.5)
 (setq guide-key/popup-window-position 'bottom)
 (guide-key-mode 1)
+
+;; modeline-posn
+(require 'modeline-posn)
+(size-indication-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
@@ -2091,14 +2109,14 @@ want to use in the modeline *in lieu of* the original.")
 ;;; `flymake-report-status'
 (defalias 'flymake-report-status 'flymake-report-status-slim)
 ;; (defun flymake-report-status-slim (e-w &optional status)
-  ;; "Show \"slim\" flymake status in mode line."
-  ;; (when e-w
-	;; (setq flymake-mode-line-e-w e-w))
-  ;; (when status
-	;; (setq flymake-mode-line-status status))
-  ;; (let* ((mode-line " Φ"))
-	;; (when (> (length flymake-mode-line-e-w) 0)
-	  ;; (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
-	;; (setq mode-line (concat mode-line flymake-mode-line-status))
-	;; (setq flymake-mode-line mode-line)
-	;; (force-mode-line-update)))
+;; "Show \"slim\" flymake status in mode line."
+;; (when e-w
+;; (setq flymake-mode-line-e-w e-w))
+;; (when status
+;; (setq flymake-mode-line-status status))
+;; (let* ((mode-line " Φ"))
+;; (when (> (length flymake-mode-line-e-w) 0)
+;; (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
+;; (setq mode-line (concat mode-line flymake-mode-line-status))
+;; (setq flymake-mode-line mode-line)
+;; (force-mode-line-update)))
