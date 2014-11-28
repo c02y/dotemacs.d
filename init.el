@@ -251,7 +251,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; M-:(print (font-family-list)) to list all available fonts
 ;;
 ;; theme
 ;;
@@ -1902,6 +1902,10 @@ FORCE-OTHER-WINDOW is ignored."
 (autoload 'hide-comnt "hide comments" t)
 (defalias 'hc 'hide/show-comments-toggle)
 
+;; discover -- required by yafolding
+(require 'discover)
+(global-discover-mode 1)
+
 ;; yafolding
 ;; C-M-return 'yafolding-toggle-all
 ;; C-return 'yafolding-toggle-element
@@ -1928,7 +1932,7 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "M-p") 'highlight-symbol-prev)
 (global-set-key (kbd "M-'") 'highlight-symbol-query-replace)
 
-;; makey required by discover-my-major
+;; makey required by discover-my-major and discover
 
 ;; discover-my-major
 ;; Discover key bindings and meaning for the current Emacs major mode
@@ -2055,8 +2059,19 @@ FORCE-OTHER-WINDOW is ignored."
 (guide-key-mode 1)
 
 ;; modeline-posn
-(require 'modeline-posn)
 (size-indication-mode 1)
+
+;; rainbow-delimiters
+;; Highlight nested parens, brackets, braces a different color at each depth
+(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+;; make the outermost delimiters not red but white, not bold but normal
+(custom-set-faces
+  '(rainbow-delimiters-depth-1-face
+	((t (:foreground "#ffffff" :weight normal)))))
+
+;; rainbow-identifiers
+;; Highlight identifiers according to their names
+(add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
