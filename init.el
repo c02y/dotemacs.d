@@ -723,15 +723,15 @@ searches all buffers."
 ;; nil means ringing the bell
 (setq next-line-add-newlines nil)
 
-;; jump-new-indent using M-return
-(global-set-key (kbd "<M-return>") "\C-e\C-m")
 (defun advanced-return (&optional arg)
   "Customized return, more powerful.
 
-Default(without prefix), equals to `newline-and-indent`
+Default(without prefix), create a line, jump into it and indent(like C-e C-m)
 With prefix argument(C-u), it will create a new line, jump into it but no indent(like C-e C-o C-n).
 With negative prefix argument(C--), it will create a new line above the current
-line and jump into it(like C-a C-o)"
+line and jump into it(like C-a C-o)
+
+NOTE: Use C/M-j instead to split the line and indent/no-indent."
   (interactive "P")
   (if (equal arg '-)
 	  (progn
@@ -742,7 +742,10 @@ line and jump into it(like C-a C-o)"
 		  (end-of-line)
 		  (open-line 1)
 		  (next-line))
-	  (newline-and-indent))))
+	  (progn
+		(end-of-line)
+		(newline-and-indent)
+	  ))))
 (global-set-key (kbd "RET") 'advanced-return)
 
 ;; M-k kills to the left, C-k kill to the right the default M-k is
@@ -2084,8 +2087,12 @@ FORCE-OTHER-WINDOW is ignored."
 
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
 ;; http://abo-abo.github.io/lispy/
-;;(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+(eval-after-load "lispy"
+  '(progn
+	 (define-key lispy-mode-map (kbd "RET") nil)
 
+	 ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
