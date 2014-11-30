@@ -1511,7 +1511,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; I only use M-_, comment out the two lines of file undo-tree.el
 ;; (define-key map (kbd "C-/") 'undo-tree-undo)
 ;; (define-key map (kbd "C-?") 'undo-tree-redo)
-(require 'undo-tree)
+;;(require 'undo-tree)
 ;; replace the standard undo system
 (global-undo-tree-mode)
 (defadvice undo-tree-visualizer-mode(after undo-tree-face activate)
@@ -1709,20 +1709,20 @@ FORCE-OTHER-WINDOW is ignored."
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
 ;; Find Files or url: ~/
-;;	That show all ~/ directory.
+;;  That show all ~/ directory.
 ;; Find Files or url: ~/des
-;;	will show all what begin with "des"
+;;  will show all what begin with "des"
 ;; Find Files or url: ~/ esk
-;;	(Notice the space after ~/) will show all what contain esk.
+;;  (Notice the space after ~/) will show all what contain esk.
 ;; Find Files or url: ~/ el$
-;;	Will show all what finish with el
+;;  Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
 ;; M-<prior>/<next> 'helm-scroll-other-window/-down
 ;; 'helm-info-gnu/emacs/...
 ;; in Helm session,
 ;; use 'C-c ?' to get help(C-c to go back)
 ;; M-n to yank the symbol at point into the minibuffer
-(require 'helm-config)
+;;(require 'helm-config)
 (require 'helm-files)
 ;; make TAB to complete the existence
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
@@ -2058,16 +2058,25 @@ FORCE-OTHER-WINDOW is ignored."
 ;; popwin is required by guide-key
 
 ;; guide-key
-(require 'guide-key)
+;;(require 'guide-key)
 (setq guide-key/guide-key-sequence '("C-x" "C-c" "C-h" "<f1>" "C-s"))
 (setq guide-key/recursive-key-sequence-flag t)
+;; highlights and color of highlights
 (setq guide-key/highlight-command-regexp
-	  "rectangle\\|register\\|helm\\|projectile\\|cscope\\|ggtags\\|toggle")
+      '(("^helm-" . warning)
+        ("^projectile-" . error)
+		("^cscope-" . success)
+		("^ggtags-" . success)
+		("emacs" . highlight)
+		("help" . highlight)
+		("toggle" . link)
+		("rectangle" . link)
+		("register" . link)
+		))
 ;; font size of guide buffer
 (setq guide-key/text-scale-amount -0.5)
 (setq guide-key/popup-window-position 'bottom)
 (guide-key-mode 1)
-
 ;; modeline-posn
 (size-indication-mode 1)
 
@@ -2091,8 +2100,13 @@ FORCE-OTHER-WINDOW is ignored."
 (eval-after-load "lispy"
   '(progn
 	 (define-key lispy-mode-map (kbd "RET") nil)
-
+	 (define-key lispy-mode-map (kbd "C-e") nil)
 	 ))
+
+
+;; esup -- analyze the startup time of ~/.emacs
+;; M-x esup
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
