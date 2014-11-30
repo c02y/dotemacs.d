@@ -722,15 +722,29 @@ searches all buffers."
 ;; t means inserting a new line(t is the default option)
 ;; nil means ringing the bell
 (setq next-line-add-newlines nil)
-;; using <enter> to the next line and indent it automatically
-(global-set-key (kbd "RET") 'newline-and-indent)
 
-;; open a new line under/above the current line and jump to it
-;; jump-new-not_indent using S-return
-(global-set-key (kbd "<S-return>") "\C-e\C-o\C-n")
 ;; jump-new-indent using M-return
 (global-set-key (kbd "<M-return>") "\C-e\C-m")
-(global-set-key (kbd "<M-S-return>") "\C-a\C-o")
+(defun advanced-return (&optional arg)
+  "Customized return, more powerful.
+
+Default(without prefix), equals to `newline-and-indent`
+With prefix argument(C-u), it will create a new line, jump into it but no indent(like C-e C-o C-n).
+With negative prefix argument(C--), it will create a new line above the current
+line and jump into it(like C-a C-o)"
+  (interactive "P")
+  (if (equal arg '-)
+	  (progn
+		(beginning-of-line)
+		(open-line 1))
+	(if (equal arg '(4))
+		(progn
+		  (end-of-line)
+		  (open-line 1)
+		  (next-line))
+	  (newline-and-indent))))
+(global-set-key (kbd "RET") 'advanced-return)
+
 ;; M-k kills to the left, C-k kill to the right the default M-k is
 ;; 'kill-sentence delete to the end of the sentence C-x Backspace delete to the
 ;; beginning of the sentence
@@ -998,10 +1012,9 @@ FORCE-OTHER-WINDOW is ignored."
 			   (flyspell-prog-mode))))
 ;; click the left button to show the correct words list
 (eval-after-load "flyspell"
-  '(progn
-	 (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
+  '(define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
 	 ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
-	 ))
+  )
 ;; or use the M-f8 to check from the beginning and correct
 (defun flyspell-check-next-highlighted-word ()
   "Custom function to spell check next highlighted word"
@@ -1149,9 +1162,8 @@ FORCE-OTHER-WINDOW is ignored."
 (add-to-list 'interpreter-mode-alist '("perl5" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("miniperl" . cperl-mode))
 (eval-after-load "cperl-mode"
-  '(progn
-	 (define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
-	 ))
+  '(define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
+	 )
 
 ;; gdb, Debugging with GDB Many Windows layout
 ;; https://tuhdo.github.io/c-ide.html
@@ -1252,6 +1264,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
+(package-initialize)
 (setq package-archives
 	  '(
 		("gnu" . "http://elpa.gnu.org/packages/")
@@ -1359,8 +1372,7 @@ FORCE-OTHER-WINDOW is ignored."
   'ace-jump-mode-pop-mark
   "ace-jump-mode"
   "Ace jump back:-)" t)
-(eval-after-load "ace-jump-mode"
-  '(ace-jump-mode-enable-mark-sync))
+(eval-after-load "ace-jump-mode" '(ace-jump-mode-enable-mark-sync))
 ;; Use C-x SPC or C-u C-SPC to jump back
 (define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
 (define-key global-map (kbd "C-c j") 'ace-jump-mode)
@@ -1607,7 +1619,7 @@ FORCE-OTHER-WINDOW is ignored."
 ;; since these will also cause org.el to be loaded.
 ;; To be safe, load org files after you have set your variables.
 (require 'org-install)
-(require 'org-habit)
+;;(require 'org-habit)
 (require 'ob-tangle)
 (setq org-completion-use-ido t)
 (define-key org-mode-map (kbd "C-c a") 'org-agenda)
@@ -1848,9 +1860,7 @@ FORCE-OTHER-WINDOW is ignored."
 (set-default 'magit-stage-all-confirm nil)
 (set-default 'magit-unstage-all-confirm nil)
 ;; make git faster??
-(eval-after-load "magit"
-  '(progn
-	 (setq magit-git-executable "/usr/bin/git")))
+(eval-after-load "magit" '(setq magit-git-executable "/usr/bin/git"))
 ;; make `truncate-lines` nil in magit and `auto-fill-mode` off in commit buffers
 (add-hook 'magit-status-mode-hook
 		  (lambda ()
@@ -1915,10 +1925,7 @@ FORCE-OTHER-WINDOW is ignored."
 
 ;; highlight-symbol
 (autoload 'highlight-symbol "highlight-symbol" t)
-(eval-after-load "highlight-symbol"
-  '(progn
-	 (highlight-symbol-nav-mode)
-	 ))
+(eval-after-load "highlight-symbol" '(highlight-symbol-nav-mode))
 (dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
   (add-hook hook 'highlight-symbol-mode))
 ;; enable highlighting symbol at point automatically
@@ -2066,12 +2073,18 @@ FORCE-OTHER-WINDOW is ignored."
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
 ;; make the outermost delimiters not red but white, not bold but normal
 (custom-set-faces
-  '(rainbow-delimiters-depth-1-face
-	((t (:foreground "#ffffff" :weight normal)))))
+ '(rainbow-delimiters-depth-1-face
+   ((t (:foreground "#ffffff" :weight normal)))))
 
 ;; rainbow-identifiers
 ;; Highlight identifiers according to their names
 (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+
+;; noflet, iedit required by lispy
+
+;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
+;; http://abo-abo.github.io/lispy/
+;;(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
