@@ -580,8 +580,6 @@ This command does not push erased text to kill-ring."
 (global-set-key (kbd "<M-backspace>") 'my-backward-delete-word)
 (global-set-key (kbd "C-k") 'my-delete-line)
 (global-set-key (kbd "C-S-k") 'my-delete-line-backward)
-;; C-k kill the whole single line including \n
-(setq-default kill-whole-line t)
 
 ;;
 ;; clean buffer/format using C-c n
@@ -618,7 +616,7 @@ This command does not push erased text to kill-ring."
 	(save-buffer)
 	(kill-buffer nil)))
 ;; C-x k to kill a buffer specified
-(global-set-key (kbd "C-S-k") 'kill-this-buffer)
+(global-set-key (kbd "C-S-d") 'kill-this-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; minibuffer & buffers & dired
@@ -1612,6 +1610,8 @@ FORCE-OTHER-WINDOW is ignored."
 		  (lambda ()
 			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
 			  (ggtags-mode 1))))
+;; hide project(containing GTAGS.. files) name
+(setq ggtags-mode-line-project-name nil)
 
 ;; show which function in mode-line
 (which-function-mode 1)
