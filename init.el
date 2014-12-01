@@ -545,6 +545,44 @@ If current line is a single space, remove that space.
 				(insert " "))))
 	  (progn (delete-blank-lines)))))
 (global-set-key (kbd "C-<backspace>") 'shrink-whitespaces)
+;;;
+;; delete not kill it into kill-ring
+;; http://ergoemacs.org/emacs/emacs_kill-ring.html
+(defun my-delete-word (arg)
+  "Delete characters forward until encountering the end of a word.
+With argument, do this that many times.
+This command does not push erased text to kill-ring."
+  (interactive "p")
+  (delete-region (point) (progn (forward-word arg) (point))))
+(defun my-backward-delete-word (arg)
+  "Delete characters backward until encountering the beginning of a word.
+With argument, do this that many times.
+This command does not push erased text to kill-ring."
+  (interactive "p")
+  (my-delete-word (- arg)))
+(defun my-delete-line ()
+  "Delete text from current position to end of line char."
+  (interactive)
+  (delete-region
+   (point)
+   (save-excursion (move-end-of-line 1) (point)))
+  (delete-char 1)
+  )
+(defun my-delete-line-backward ()
+  "Delete text between the beginning of the line to the cursor position."
+  (interactive)
+  (let (x1 x2)
+    (setq x1 (point))
+    (move-beginning-of-line 1)
+    (setq x2 (point))
+    (delete-region x1 x2)))
+(global-set-key (kbd "M-d") 'my-delete-word)
+(global-set-key (kbd "<M-backspace>") 'my-backward-delete-word)
+(global-set-key (kbd "C-k") 'my-delete-line)
+(global-set-key (kbd "C-S-k") 'my-delete-line-backward)
+;; C-k kill the whole single line including \n
+(setq-default kill-whole-line t)
+
 ;;
 ;; clean buffer/format using C-c n
 ;; (defun buffer-cleanup ()
@@ -747,13 +785,6 @@ NOTE: Use C/M-j instead to split the line and indent/no-indent."
 		(newline-and-indent)
 	  ))))
 (global-set-key (kbd "RET") 'advanced-return)
-
-;; M-k kills to the left, C-k kill to the right the default M-k is
-;; 'kill-sentence delete to the end of the sentence C-x Backspace delete to the
-;; beginning of the sentence
-(global-set-key (kbd "M-k") '(lambda () (interactive) (kill-line 0)))
-;; C-k kill the whole single line including \n
-(setq-default kill-whole-line t)
 
 (setq byte-compile-warnings nil)
 ;; comment in C code,`M-;` means /* */, use // in C++ code
@@ -1381,9 +1412,7 @@ FORCE-OTHER-WINDOW is ignored."
 (define-key global-map (kbd "C-c j") 'ace-jump-mode)
 (define-key global-map (kbd "C-c J") 'ace-jump-char-mode)
 (define-key global-map (kbd "C-c l") 'ace-jump-line-mode)
-;; use numbers to jump
-(setq ace-jump-mode-move-keys
-      (loop for i from ?0 to ?9 collect i))
+
 ;;
 ;; dash required by ace-jump-buffer
 (autoload 'dash "dash" t)
