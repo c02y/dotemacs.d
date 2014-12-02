@@ -614,38 +614,50 @@ If current line is a single space, remove that space.
 ;;;
 ;; delete not kill it into kill-ring
 ;; http://ergoemacs.org/emacs/emacs_kill-ring.html
-(defun my-delete-word (arg)
+(defun delete-word (arg)
   "Delete characters forward until encountering the end of a word.
-With argument, do this that many times.
+With argument, do this many times.
 This command does not push erased text to kill-ring."
   (interactive "p")
   (delete-region (point) (progn (forward-word arg) (point))))
-(defun my-backward-delete-word (arg)
+(defun backward-delete-word (arg)
   "Delete characters backward until encountering the beginning of a word.
 With argument, do this that many times.
 This command does not push erased text to kill-ring."
   (interactive "p")
-  (my-delete-word (- arg)))
-(defun my-delete-line ()
-  "Delete text from current position to end of line char."
-  (interactive)
-  (delete-region
-   (point)
-   (save-excursion (move-end-of-line 1) (point)))
-  (delete-char 1)
+  (delete-word (- arg)))
+(defun delete-line (arg)
+  "Delete text from current position to end of line char.
+With argument, forward ARG lines."
+  (interactive "p")
+  (let (x1 x2)
+	(setq x1 (point))
+	(forward-line (- arg 1))
+	(move-end-of-line 1)
+	(setq x2 (point))
+	(delete-region x1 x2))
+  ;; (delete-region
+  ;; (point)
+  ;;  (save-excursion
+  ;;     ;; (forward-line arg)
+  ;;     (forward-line (if arg -1 1))
+  ;;     (move-end-of-line 1)
+  ;;     (point)))
   )
-(defun my-delete-line-backward ()
-  "Delete text between the beginning of the line to the cursor position."
-  (interactive)
+(defun delete-line-backward (arg)
+  "Delete text between the beginning of the line to the cursor position.
+With argument, backward ARG lines."
+  (interactive "p")
   (let (x1 x2)
     (setq x1 (point))
+	(previous-line (- arg 1))
     (move-beginning-of-line 1)
     (setq x2 (point))
     (delete-region x1 x2)))
-(global-set-key (kbd "M-d") 'my-delete-word)
-(global-set-key (kbd "<M-backspace>") 'my-backward-delete-word)
-(global-set-key (kbd "C-k") 'my-delete-line)
-(global-set-key (kbd "C-S-k") 'my-delete-line-backward)
+(global-set-key (kbd "M-d") 'delete-word)
+(global-set-key (kbd "<M-backspace>") 'backward-delete-word)
+(global-set-key (kbd "C-k") 'delete-line)
+(global-set-key (kbd "C-S-k") 'delete-line-backward)
 
 ;;
 ;; clean buffer/format using C-c n
@@ -1966,7 +1978,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 			(turn-off-auto-fill)
 			(flyspell-mode)))
 ;; make the item in magit buffer easy to see after TAB
-(defadvice magit-toggle-section (after magit-section-hideen activate)
+(defadvice magit-toggle-section (after magit-toggle-top activate)
+  "TAB a item to scroll the of the repeat."
   (recenter-top-bottom 0))
 
 ;; ;; evil, use C-z to switch between vim/Emacs
@@ -2043,7 +2056,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; make the outermost delimiters not red but white, not bold but normal
 (custom-set-faces
  '(rainbow-delimiters-depth-1-face
-   ((t (:foreground "#ffffff" :weight normal)))))
+   ((t (:foreground "white" :weight normal)))))
 ;;
 ;; rainbow-identifiers
 ;; rainbow identifiers according to their names
@@ -2189,13 +2202,17 @@ Has no effect if the character before point is not of the syntax class ')'."
 
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
 ;; http://abo-abo.github.io/lispy/
-(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+(add-hook 'prog-mode-hook (lambda () (lispy-mode 1)))
 (eval-after-load "lispy"
   '(progn
 	 (define-key lispy-mode-map (kbd "RET") nil)
 	 (define-key lispy-mode-map (kbd "C-e") nil)
 	 ))
-
+(defadvice lispy-kill (around lispy-kill-advice activate)
+  "Disable lispy C-k in comments"
+  (if (lispy--in-comment-p)
+      (delete-line (prefix-numeric-value current-prefix-arg))
+    ad-do-it))
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
