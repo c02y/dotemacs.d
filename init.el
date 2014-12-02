@@ -173,7 +173,7 @@
 (global-set-key (kbd "C-c C-r")
 				'(lambda ()
 				   (interactive)
-				   (load-file "~/.emacs")
+				   (load-file "~/.emacs.d/init.elc")
 				   ))
 ;; ;; combining the above two version:: WRONG
 ;; (defun byte-compile-and-reload-elisp ()
@@ -278,14 +278,6 @@
 ;; disable default mode-line buffer-id highlight
 (setq moe-theme-highlight-buffer-id nil)
 (moe-dark)
-;; mode-line color
-(custom-set-faces
- ;; no special for which-func
- '(which-func ((t (:background nil :foreground nil))))
- '(mode-line ((t (:background "dim gray" :foreground "white"))))
- '(mode-line-inactive ((t (:background nil))))
- '(mode-line-buffer-id ((t (:foreground nil :background nil))))
- )
 ;;
 ;; font and size of startup
 ;;
@@ -329,6 +321,82 @@
   )
 ;;
 (set-frame-size-according-to-resolution)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;        all about mode line
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; delete the usually "U" symbol at the beginning of the mode line
+(setq-default mode-line-mule-info '(""))
+;; show which function in mode-line
+(which-function-mode 1)
+;; replace ??? to n/a
+(setq which-func-unknown "n/a")
+;; repalce the 8 with other number to change the position
+(let ((which-func '(which-func-mode ("" which-func-format " "))))
+  (setq-default mode-line-format
+				(remove which-func mode-line-format))
+  (setq-default mode-line-misc-info
+				(remove which-func mode-line-misc-info))
+  (setq cell (last mode-line-format 8)) ;; just next to buffer name
+  (setcdr cell (cons which-func (cdr cell))))
+
+;; do no just use ("%2b"), or stick-buffer function won't work
+(setq-default
+ mode-line-buffer-identification
+ '(#("%2b" 0 3
+  (local-map
+   (keymap
+    (header-line keymap
+                 (mouse-3 . mode-line-next-buffer)
+                 (down-mouse-3 . ignore)
+                 (mouse-1 . mode-line-previous-buffer)
+                 (down-mouse-1 . ignore))
+    (mode-line keymap
+               (mouse-3 . mode-line-next-buffer)
+               (mouse-1 . mode-line-previous-buffer)))
+   mouse-face mode-line-highlight help-echo
+   "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer"
+   face mode-line-buffer-id))))
+;; line/column/percent/size, just "(%l,%c)[%p/%I]" if not highlight
+(setq-default mode-line-position
+			  '(("(%l,"
+				 (:eval (propertize "%c" 'face
+									(if (>= (current-column) 80)
+										'mode-line-80col-face
+									  'mode-line-position-face)))
+				 "_%p-%I) ")))
+;; highlight when point is over 80th column
+(make-face 'mode-line-80col-face)
+(set-face-attribute
+ 'mode-line-80col-face nil :background "red1")
+;; mode-line color
+(custom-set-faces
+ ;; no special for which-func
+ '(which-func ((t (:background nil :foreground nil))))
+ '(mode-line ((t (:background "dim gray" :foreground "white"))))
+ '(mode-line-inactive ((t (:background nil))))
+ '(mode-line-buffer-id ((t (:foreground nil :background nil))))
+ )
+;; whole structure of mode line
+(setq-default mode-line-format
+			  '(
+				"%e"
+				mode-line-front-space
+				mode-line-mule-info
+				mode-line-client
+				mode-line-modified
+				mode-line-remote
+				mode-line-frame-identification
+				mode-line-buffer-identification
+				(which-func-mode
+				 ("" which-func-format " "))
+				" " mode-line-position
+				(vc-mode vc-mode)
+				" " mode-line-modes
+				mode-line-misc-info
+				"%-"))
+
 
 ;; make someWord two words for M-f/b, some-word, some_word are two words already
 (subword-mode)
@@ -384,7 +452,7 @@
   (flush-lines "^\\s-*$" start end nil))
 
 ;; make `C-a/e` keep going to beginning/end of next line(previous with C-u)
-;; These will as normal in comment block because of goddamn of rebox2
+;; These will as normal in comment block because of goddamn rebox2
 (defun keep-beginning-of-line (arg)
   (interactive "P")
   (when (bolp) (forward-line (if arg -1 1)))
@@ -1613,19 +1681,6 @@ FORCE-OTHER-WINDOW is ignored."
 ;; hide project(containing GTAGS.. files) name
 (setq ggtags-mode-line-project-name nil)
 
-;; show which function in mode-line
-(which-function-mode 1)
-;; replace ??? to n/a
-(setq which-func-unknown "n/a")
-;; repalce the 8 with other number to change the position
-(let ((which-func '(which-func-mode ("" which-func-format " "))))
-  (setq-default mode-line-format (remove which-func mode-line-format))
-  (setq-default mode-line-misc-info (remove which-func mode-line-misc-info))
-  (setq cell (last mode-line-format 8))
-  (setcdr cell
-		  (cons which-func
-				(cdr cell))))
-
 ;; org-mode
 (autoload 'package "package" t)
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
@@ -2106,8 +2161,6 @@ FORCE-OTHER-WINDOW is ignored."
 (setq guide-key/text-scale-amount -0.5)
 (setq guide-key/popup-window-position 'bottom)
 (guide-key-mode 1)
-;; modeline-posn
-(size-indication-mode 1)
 
 ;; rainbow-delimiters
 ;; Highlight nested parens, brackets, braces a different color at each depth
