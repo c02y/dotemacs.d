@@ -1,4 +1,4 @@
-(define-package "lispy" "20141201.544" "vi-like Paredit"
+(define-package "lispy" "20141202.900" "vi-like Paredit"
   '((helm "1.5.3")
     (ace-jump-mode "2.0")
     (s "1.4.0")

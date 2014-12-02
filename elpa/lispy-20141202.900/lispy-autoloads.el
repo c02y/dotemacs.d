@@ -3,8 +3,8 @@
 ;;; Code:
 
 
-;;;### (autoloads (lispy-mode) "lispy" "lispy.el" (21628 58126 640873
-;;;;;;  221000))
+;;;### (autoloads (lispy-mode) "lispy" "lispy.el" (21630 10397 432064
+;;;;;;  964000))
 ;;; Generated autoloads from lispy.el
 
 (autoload 'lispy-mode "lispy" "\
@@ -34,7 +34,7 @@ backward through lists, which is useful to move into special.
 ;;;***
 
 ;;;### (autoloads nil nil ("le-clojure.el" "le-lisp.el" "le-scheme.el"
-;;;;;;  "lispy-inline.el" "lispy-pkg.el") (21628 58126 708210 130000))
+;;;;;;  "lispy-inline.el" "lispy-pkg.el") (21630 10397 512778 3000))
 
 ;;;***
 
