@@ -193,7 +193,6 @@
 ;; Make Text mode the default mode for new buffers.
 ;;(setq-default major-mode 'org-mode)
 ;;(add-hook 'text-mode-hook 'auto-fill-mode)
-(global-linum-mode 1)
 (setq column-number-mode t)
 ;; Set the max columns one line, wrap a line
 (setq-default fill-column 80)
@@ -326,21 +325,6 @@
 ;;;;;;        all about mode line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; delete the usually "U" symbol at the beginning of the mode line
-(setq-default mode-line-mule-info '(""))
-;; show which function in mode-line
-(which-function-mode 1)
-;; replace ??? to n/a
-(setq which-func-unknown "n/a")
-;; repalce the 8 with other number to change the position
-(let ((which-func '(which-func-mode ("" which-func-format " "))))
-  (setq-default mode-line-format
-				(remove which-func mode-line-format))
-  (setq-default mode-line-misc-info
-				(remove which-func mode-line-misc-info))
-  (setq cell (last mode-line-format 8)) ;; just next to buffer name
-  (setcdr cell (cons which-func (cdr cell))))
-
 ;; do no just use ("%2b"), or stick-buffer function won't work
 (setq-default
  mode-line-buffer-identification
@@ -358,6 +342,19 @@
    mouse-face mode-line-highlight help-echo
    "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer"
    face mode-line-buffer-id))))
+;; show which function in mode-line
+(which-function-mode 1)
+;; replace ??? to n/a
+(setq which-func-unknown "n/a")
+;; repalce the 8 with other number to change the position
+(let ((which-func '(which-func-mode ("" which-func-format " "))))
+  (setq-default mode-line-format
+				(remove which-func mode-line-format))
+  (setq-default mode-line-misc-info
+				(remove which-func mode-line-misc-info))
+  (setq cell (last mode-line-format 8)) ;; just next to buffer name
+  (setcdr cell (cons which-func (cdr cell))))
+;;
 ;; line/column/percent/size, just "(%l,%c)[%p/%I]" if not highlight
 (setq-default mode-line-position
 			  '(("(%l,"
@@ -368,8 +365,9 @@
 				 "_%p-%I) ")))
 ;; highlight when point is over 80th column
 (make-face 'mode-line-80col-face)
-(set-face-attribute
- 'mode-line-80col-face nil :background "red1")
+(make-face 'mode-line-position-face)
+(set-face-attribute 'mode-line-80col-face nil :background "red1")
+(set-face-attribute 'mode-line-position-face nil)
 ;; mode-line color
 (custom-set-faces
  ;; no special for which-func
@@ -1199,6 +1197,17 @@ FORCE-OTHER-WINDOW is ignored."
 ;; show the double parenthesis/expression
 (show-paren-mode t)
 (setq show-paren-style 'expression)
+(defadvice show-paren-function
+  (after show-matching-paren-offscreen activate)
+  "If the matching paren is offscreen, show the matching line in the echo area.
+Has no effect if the character before point is not of the syntax class ')'."
+  (interactive)
+  (let* ((cb (char-before (point)))
+		 (matching-text (and cb
+							 (char-equal (char-syntax cb) ?\) )
+							 (blink-matching-open))))
+	(when matching-text (message matching-text))))
+
 ;; show the open parentheses when typing the closing one
 (setq blink-matching-paren t)
 ;;
@@ -1960,9 +1969,6 @@ FORCE-OTHER-WINDOW is ignored."
 (defadvice magit-toggle-section (after magit-section-hideen activate)
   (recenter-top-bottom 0))
 
-;; highlight-blocks
-(add-hook 'prog-mode-hook 'highlight-blocks-mode)
-
 ;; ;; evil, use C-z to switch between vim/Emacs
 ;; (setq evil-search-module 'evil-search
 ;;		 evil-want-C-u-scroll t
@@ -2025,6 +2031,23 @@ FORCE-OTHER-WINDOW is ignored."
 (global-set-key (kbd "M-n") 'highlight-symbol-next)
 (global-set-key (kbd "M-p") 'highlight-symbol-prev)
 (global-set-key (kbd "M-'") 'highlight-symbol-query-replace)
+;;
+;; highlight-parentheses-mode, highlight nested parens, brackets, braces at each
+;; depth, use hl-sexp-mode to replace if you like
+(add-hook 'prog-mode-hook 'highlight-parentheses-mode)
+;;
+;; rainbow-delimiters
+;; rainbow nested parens, brackets, braces a different color at each depth
+;;  like highlight-parentheses-mode but static
+(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+;; make the outermost delimiters not red but white, not bold but normal
+(custom-set-faces
+ '(rainbow-delimiters-depth-1-face
+   ((t (:foreground "#ffffff" :weight normal)))))
+;;
+;; rainbow-identifiers
+;; rainbow identifiers according to their names
+(add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
 
 ;; makey required by discover-my-major and discover
 
@@ -2161,18 +2184,6 @@ FORCE-OTHER-WINDOW is ignored."
 (setq guide-key/text-scale-amount -0.5)
 (setq guide-key/popup-window-position 'bottom)
 (guide-key-mode 1)
-
-;; rainbow-delimiters
-;; Highlight nested parens, brackets, braces a different color at each depth
-(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
-;; make the outermost delimiters not red but white, not bold but normal
-(custom-set-faces
- '(rainbow-delimiters-depth-1-face
-   ((t (:foreground "#ffffff" :weight normal)))))
-
-;; rainbow-identifiers
-;; Highlight identifiers according to their names
-(add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
 
 ;; noflet, iedit required by lispy
 
