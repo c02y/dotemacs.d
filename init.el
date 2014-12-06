@@ -148,6 +148,12 @@
 ;; uncomment for CJK utf-8 support for non-Asian users
 ;; (require 'un-define)
 
+;; http://www.toryanderson.com/tech/upgrading-emacs-built-org-mode-4-easy-steps
+;; Add this before setting any Org option(loading org-mode)
+;; and M-x package-install under `emacs -q`(prevents it from loading my .emacs file, which includes many references to org-mode stuff.)
+;; to prevent two versions of org-mode messed-up
+(package-initialize)
+
 ;; add-subdirs-to-load-path, don't need to change add-to-list after
 ;; every update in elpa, theme is needed the path
 (defun add-subdirs-to-load-path (dir)
@@ -229,14 +235,21 @@
 ;; font-lock and linum-mode will slow Emacs
 ;; To improve performance when editing large size of file
 ;; If not enough, using vlf(https://github.com/m00natic/vlfi)
-(defun check-large-file-hook ()
-  "If a file is over a given size, turn off minor modes"
-  (when (> (buffer-size) (* 1024 100))	;; 100 KB
-	(when (> (buffer-size) (* 1024 1024)) ;; 1 MB
-	  (require 'vlf)
-	  (vlf-mode)
-	  )
-	(linum-mode -1)
+(defun check-file-hook ()
+  "If a file is over a given size, turn off minor modes.
+If a file need root priority, open it as root."
+  (progn
+	;; file size check
+	(when (> (buffer-size) (* 1024 100))	;; 100 KB
+	  (when (> (buffer-size) (* 1024 1024))	;; 1 MB
+		(require 'vlf)
+		(vlf-mode)
+		)
+	  (linum-mode -1))
+	;; sudo to edit, kill *tramp* buffer to exit the root mode
+	(unless (and buffer-file-name
+				 (file-writable-p buffer-file-name))
+	  (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name)))
 	))
 (add-hook 'find-file-hook 'check-large-file-hook)
 
@@ -430,14 +443,6 @@
 	(beginning-of-buffer)
 	(call-interactively 'query-replace)))
 (global-set-key (kbd "M-%") 'query-replace-from-top)
-
-;; sudo to edit
-;; kill *tramp* buffer to exit the root mode
-(defun sudo (file)
-  "Opens FILE with root privileges."
-  (interactive "F")
-  (set-buffer (find-file (concat "/sudo::" file))))
-(global-set-key (kbd "C-c C-f") 'sudo)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	defun
@@ -1385,7 +1390,6 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (autoload 'package "package" t)
 ;; Package repositories
-(package-initialize)
 (setq package-archives
 	  '(
 		("gnu" . "http://elpa.gnu.org/packages/")
@@ -1630,7 +1634,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;;(require 'undo-tree)
 ;; replace the standard undo system
 (global-undo-tree-mode)
-(defadvice undo-tree-visualizer-mode(after undo-tree-face activate)
+(defadvice undo-tree-visualizer-mode (after undo-tree-face activate)
   (buffer-face-mode)
   (setq undo-tree-visualizer-timestamps t)
   (setq undo-tree-visualizer-diff t))
@@ -2232,6 +2236,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 	(auto-complete-mode . "")
 	(company-mode . "")
 	(highlight-symbol-mode . "")
+	(highlight-parentheses-mode . "")
 	(cwarn-mode . "")
 	(flyspell-mode . "")
 	(abbrev-mode . "")
