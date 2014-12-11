@@ -114,23 +114,6 @@
 ;; proxy goagent
 ;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
 
-
-;;add timestamps in *Messages*
-(defun current-time-microseconds ()
-  (let* ((nowtime (current-time))
-		 (now-ms (nth 2 nowtime)))
-	(concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
-(defadvice message (before test-symbol activate)
-  (if (not (string-equal (ad-get-arg 0) "%s%s"))
-	  (let ((deactivate-mark nil)
-			(inhibit-read-only t))
-		(save-excursion
-		  (set-buffer "*Messages*")
-		  (goto-char (point-max))
-		  (if (not (bolp))
-			  (newline))
-		  (insert (current-time-microseconds))))))
-
 ;; Makes *scratch* empty.
 ;;(setq initial-scratch-message "")
 
@@ -154,15 +137,7 @@
 ;; to prevent two versions of org-mode messed-up
 (package-initialize)
 
-;; add-subdirs-to-load-path, don't need to change add-to-list after
-;; every update in elpa, theme is needed the path
-(defun add-subdirs-to-load-path (dir)
-  "Recursive add directories to `load-path'."
-  (let ((default-directory (file-name-as-directory dir)))
-	(add-to-list 'load-path dir)
-	(normal-top-level-add-subdirs-to-load-path)))
-(add-subdirs-to-load-path "/usr/share/emacs/")
-(add-subdirs-to-load-path "~/.emacs.d/")
+(add-to-list 'load-path "~/.emacs.d/lisp")
 
 ;; re/compile every elisp file when saving it
 (add-hook 'emacs-lisp-mode-hook
@@ -175,35 +150,25 @@
 	  (delete-file (concat user-init-file ".elc")))
 	(emacs-lisp-byte-compile-and-load)))
 (add-hook 'after-save-hook 'byte-compile-init-file)
-;; reload .emacs in new session == open a new session
+(global-set-key (kbd "C-c C-e")
+				'(lambda ()
+				   (interactive)
+				   (find-file "~/.emacs")
+				   ))
 (global-set-key (kbd "C-c C-r")
 				'(lambda ()
 				   (interactive)
 				   (load-file "~/.emacs.d/init.elc")
 				   ))
-;; ;; combining the above two version:: WRONG
-;; (defun byte-compile-and-reload-elisp ()
-;;	 (interactive)
-;;	 (when (and (eq major-mode 'emacs-lisp-mode)
-;;				(when (file-exists-p (byte-compile-dest-file buffer-file-name))
-;;				  (delete-file (concat buffer-file-name ".elc")))
-;;				(emacs-lisp-byte-compile-and-load))))
-;; (add-hook 'after-save-hook 'byte-compile-and-reload-elisp)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (setq bookmark-save-flag t)
-;; Make Text mode the default mode for new buffers.
-;;(setq-default major-mode 'org-mode)
-;;(add-hook 'text-mode-hook 'auto-fill-mode)
 (setq column-number-mode t)
-;; Set the max columns one line, wrap a line
 (setq-default fill-column 80)
 ;; C-x </> 'scroll-left/right if line is too long
-;; fill-column is not working for magit buffer long commit messages
 (put 'scroll-left 'disabled nil)
 (setq comment-style 'extra-line)
 ;; file size in mode line
@@ -212,6 +177,19 @@
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
 (global-set-key (kbd "C-S-m") 'menu-bar-mode)
+(global-set-key (kbd "C-S-l") 'linum-mode)
+;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
+;; Do not use when using tramp, it will stuck tramp a little bit
+(global-set-key (kbd "C-S-p")
+				'(lambda ()
+				   (interactive)
+				   (if (bound-and-true-p which-function-mode)
+					   (which-function-mode -1)
+					 (which-function-mode 1))
+				   (if (bound-and-true-p projectile-global-mode)
+					   (projectile-global-mode -1)
+					 (projectile-global-mode 1))))
+
 ;; line space between lines, default to 0
 ;; (setq line-spacing 2)
 ;;
@@ -232,26 +210,27 @@
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
 ;;
-;; font-lock and linum-mode will slow Emacs
-;; To improve performance when editing large size of file
-;; If not enough, using vlf(https://github.com/m00natic/vlfi)
+;; Improve performance when editing large size of file and root file
+(add-hook 'find-file-hook 'check-file-hook)
 (defun check-file-hook ()
-  "If a file is over a given size, turn off minor modes.
-If a file need root priority, open it as root."
+  "If a file is over a given size, turn off minor modes."
   (progn
-	;; file size check
-	(when (> (buffer-size) (* 1024 100))	;; 100 KB
-	  (when (> (buffer-size) (* 1024 1024))	;; 1 MB
+	(when (> (buffer-size) (* 1024 100))		 ;; 100 KB
+	  (when (> (buffer-size) (* 1024 1024))		 ;; 1 MB
 		(require 'vlf)
 		(vlf-mode)
 		)
 	  (linum-mode -1))
-	;; sudo to edit, kill *tramp* buffer to exit the root mode
 	(unless (and buffer-file-name
 				 (file-writable-p buffer-file-name))
-	  (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name)))
-	))
-(add-hook 'find-file-hook 'check-large-file-hook)
+	  (progn
+		;; which-function-mode and projectile-global-mode will get along with
+		;; tramp, its not perfect
+		;; use C-S-p to re-enable them after finishing using tramp
+		(which-function-mode -1)
+		(projectile-global-mode -1)
+		(find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name)))))
+  )
 
 ;; displays the argument list for current func, work for all languages
 (turn-on-eldoc-mode)
@@ -293,13 +272,6 @@ If a file need root priority, open it as root."
 ;;
 ;; font and size of startup
 ;;
-;; (setq default-frame-alist '((font . "Menlo-12")))
-;; set italic font for italic face, since Emacs does not set italic face automatically
-;; (set-face-attribute 'italic nil
-;;					  :family "Menlo-Italic")
-;;
-;; set the default window size at startup according to the resolutions
-;; (setq default-frame-alist '((height . 37) (width . 80)))
 (defun set-frame-size-according-to-resolution ()
   (interactive)
   (if window-system
@@ -344,14 +316,14 @@ If a file need root priority, open it as root."
  '(#("%2b" 0 3
   (local-map
    (keymap
-    (header-line keymap
-                 (mouse-3 . mode-line-next-buffer)
-                 (down-mouse-3 . ignore)
-                 (mouse-1 . mode-line-previous-buffer)
-                 (down-mouse-1 . ignore))
-    (mode-line keymap
-               (mouse-3 . mode-line-next-buffer)
-               (mouse-1 . mode-line-previous-buffer)))
+	(header-line keymap
+				 (mouse-3 . mode-line-next-buffer)
+				 (down-mouse-3 . ignore)
+				 (mouse-1 . mode-line-previous-buffer)
+				 (down-mouse-1 . ignore))
+	(mode-line keymap
+			   (mouse-3 . mode-line-next-buffer)
+			   (mouse-1 . mode-line-previous-buffer)))
    mouse-face mode-line-highlight help-echo
    "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer"
    face mode-line-buffer-id))))
@@ -370,12 +342,12 @@ If a file need root priority, open it as root."
 ;;
 ;; line/column/percent/size, just "(%l,%c)[%p/%I]" if not highlight
 (setq-default mode-line-position
-			  '(("(%l,"
+			  '(("(%l_"
 				 (:eval (propertize "%c" 'face
 									(if (>= (current-column) 80)
 										'mode-line-80col-face
 									  'mode-line-position-face)))
-				 "_%p-%I) ")))
+				 "|%p_%I) ")))
 ;; highlight when point is over 80th column
 (make-face 'mode-line-80col-face)
 (make-face 'mode-line-position-face)
@@ -411,7 +383,6 @@ If a file need root priority, open it as root."
 
 ;; make someWord two words for M-f/b, some-word, some_word are two words already
 (subword-mode)
-;; make the point easy to see
 (global-hl-line-mode 1)
 (set-default 'cursor-type 'bar)
 
@@ -454,13 +425,20 @@ If a file need root priority, open it as root."
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
 
-;; make `C-a/e` keep going to beginning/end of next line(previous with C-u)
-;; These will as normal in comment block because of goddamn rebox2
+;;
 (defun keep-beginning-of-line (arg)
+  "Make `C-a` keep going to first non-whitespace character _and_then_ beginning of
+  next line(previous with C-u).
+It will not work as expected in comment block because of goddamn rebox2"
   (interactive "P")
   (when (bolp) (forward-line (if arg -1 1)))
-  (move-beginning-of-line nil))
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
 (defun keep-end-of-line (arg)
+  "Make `C-e` keep going to end of next line(previous with C-u).
+It will become normal in comment block because of goddamn rebox2"
   (interactive "P")
   (when (eolp) (forward-line (if arg -1 1)))
   (move-end-of-line nil))
@@ -641,14 +619,7 @@ With argument, forward ARG lines."
 	(move-end-of-line 1)
 	(setq x2 (point))
 	(delete-region x1 x2))
-  ;; (delete-region
-  ;; (point)
-  ;;  (save-excursion
-  ;;     ;; (forward-line arg)
-  ;;     (forward-line (if arg -1 1))
-  ;;     (move-end-of-line 1)
-  ;;     (point)))
-  )
+)
 (defun delete-line-backward (arg)
   "Delete text between the beginning of the line to the cursor position.
 With argument, backward ARG lines."
@@ -664,19 +635,6 @@ With argument, backward ARG lines."
 (global-set-key (kbd "C-k") 'delete-line)
 (global-set-key (kbd "C-S-k") 'delete-line-backward)
 
-;;
-;; clean buffer/format using C-c n
-;; (defun buffer-cleanup ()
-;;	 "Clean up the buffer"
-;;	 (interactive)
-;;	 ;; the useless blanks lines at the end of the file
-;;	 (delete-blank-lines)
-;;	 (delete-trailing-whitespace)
-;;	 (untabify (point-min) (point-max))
-;;	 ;; will cause format problem
-;;	 (indent-region (point-min) (point-max)))
-;;(global-set-key (kbd "C-c n") 'buffer-cleanup)
-;; do not use buffer-cleanup, it is too much
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (global-set-key (kbd "C-c d")
 				'(lambda ()
@@ -966,18 +924,21 @@ NOTE: Use C/M-j instead to split the line and indent/no-indent."
 (global-set-key (kbd "C-x C-z") 'toggle-maximize-other-buffer)
 
 ;; Try C-x 4 C-h for C-x 4 info
-;; change the default action of C-x 2/3
-;; switch to the new window immediately after creating
-(defun my-split-window-below ()
+(defun vsplit-last-buffer ()
+  "Split the window vertically and display the previous buffer."
   (interactive)
-  (let ((win (split-window-below)))
-	(set-frame-selected-window (selected-frame) win)))
-(defun my-split-window-right ()
+  (split-window-vertically)
+  (other-window 1 nil)
+  (switch-to-next-buffer))
+(defun hsplit-last-buffer ()
+  "Split the window horizontally and display the previous buffer."
   (interactive)
-  (let ((win (split-window-right)))
-	(set-frame-selected-window (selected-frame) win)))
-(global-set-key (kbd "C-x 2") 'my-split-window-below)
-(global-set-key (kbd "C-x 3") 'my-split-window-right)
+  (split-window-horizontally)
+  (other-window 1 nil)
+  (switch-to-next-buffer))
+(global-set-key (kbd "C-x 2") 'vsplit-last-buffer)
+(global-set-key (kbd "C-x 3") 'hsplit-last-buffer)
+;;
 ;; new window to vertically by default
 ;; (setq split-height-threshold nil)
 ;; (setq split-width-threshold 0)
@@ -1073,14 +1034,19 @@ FORCE-OTHER-WINDOW is ignored."
   (when buffer-file-name
     (push buffer-file-name killed-buffers-list)))
 (add-hook 'kill-buffer-hook #'add-file-to-killed-buffers-list)
-(defun reopen-killed-buffer ()
-  "Reopen the most recently killed file, if one exists."
+(defun reopen-killed-buffer-fancy ()
+  "Pick a file to revisit from a list of files killed during this
+Emacs session."
   (interactive)
-  (when killed-buffers-list
-    (find-file (pop killed-buffers-list))))
-(global-set-key (kbd "C-S-t") 'reopen-killed-buffer)
+  (if killed-buffers-list
+      (let ((file (completing-read "Reopen killed file: " killed-buffers-list
+                                   nil nil nil nil (car killed-buffers-list))))
+        (when file
+          (setq killed-buffers-list (cl-delete file killed-buffers-list :test #'equal))
+          (find-file file)))
+    (error "No recently-killed files to reopen")))
+(global-set-key (kbd "C-S-t") 'reopen-killed-buffer-fancy)
 
-;;
 ;; set M-x align-regexp to C-c a
 (global-set-key (kbd "C-c a") 'align-regexp)
 
@@ -1388,7 +1354,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packages from  elpa, marmelade and melpa.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(autoload 'package "package" t)
+(require 'package)
 ;; Package repositories
 (setq package-archives
 	  '(
@@ -1399,21 +1365,11 @@ Has no effect if the character before point is not of the syntax class ')'."
 		("melpa-stable1" . "http://stable.melpa.org/packages/")
 		("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
 		))
-;;
-(defun eval-url (url)
-  (let ((buffer (url-retrieve-synchronously url)))
-	(save-excursion
-	  (set-buffer buffer)
-	  (goto-char (point-min))
-	  (re-search-forward "^$" nil 'move)
-	  (eval-region (point) (point-max))
-	  (kill-buffer (current-buffer)))))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
 (defalias 'plp 'package-list-packages)
 ;; Update the packages automatically
 ;;(when (not package-archive-contents) (package-refresh-contents))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; plugin installed by M-x package-install
@@ -1499,7 +1455,7 @@ Has no effect if the character before point is not of the syntax class ')'."
   "Ace jump back:-)" t)
 (eval-after-load "ace-jump-mode" '(ace-jump-mode-enable-mark-sync))
 ;; Use C-x SPC or C-u C-SPC to jump back
-(define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
+(define-key global-map (kbd "C-c SPC") 'ace-jump-mode-pop-mark)
 (define-key global-map (kbd "C-c j") 'ace-jump-mode)
 (define-key global-map (kbd "C-c J") 'ace-jump-char-mode)
 (define-key global-map (kbd "C-c l") 'ace-jump-line-mode)
@@ -1638,6 +1594,13 @@ Has no effect if the character before point is not of the syntax class ')'."
   (buffer-face-mode)
   (setq undo-tree-visualizer-timestamps t)
   (setq undo-tree-visualizer-diff t))
+(define-key undo-tree-map (kbd "C-_") nil)
+(global-unset-key (kbd "C-_"))
+(define-key undo-tree-map (kbd "M-_") nil)
+(define-key undo-tree-map (kbd "C-?") nil)
+(define-key undo-tree-map (kbd "C-/") nil)
+(define-key global-map (kbd "C-z") 'undo-tree-undo)
+(define-key global-map (kbd "C-S-z") 'undo-tree-redo)
 
 ;; findr
 (autoload 'findr "findr" "Find file name." t)
@@ -1733,6 +1696,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 (require 'org-install)
 ;;(require 'org-habit)
 (require 'ob-tangle)
+(require 'org)
 (setq org-completion-use-ido t)
 (define-key org-mode-map (kbd "C-c a") 'org-agenda)
 (define-key org-mode-map (kbd "C-c c") 'org-capture)
@@ -2089,6 +2053,11 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-hook 'org-mode-hook
 		  (lambda() (set
 					 (make-local-variable 'drag-stuff-mode) nil)))
+(define-key global-map (kbd "M-t") nil)
+(global-set-key (kbd "M-t w") 'transpose-words)
+(global-set-key (kbd "M-t l") 'transpose-lines)
+(global-set-key (kbd "M-t s") 'transpose-sexps)
+
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
 ;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
@@ -2135,6 +2104,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; repeating comment-dwim-2 will by default reindent the comment instead of
 ;; killing it, and that calling with a prefix argument will kill the comment
 ;; instead of reindenting it.
+(require 'comment-dwim-2)
 (global-set-key (kbd "M-;") 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
