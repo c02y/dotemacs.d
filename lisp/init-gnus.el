@@ -64,7 +64,7 @@
 (setq message-directory "~/Gnus/Mail/")
 (setq message-auto-save-directory "~/Gnus/Mail/drafts")
 (setq mail-source-directory "~/Gnus/Mail/incoming")
-(setq mml-default-directory "~/Gnus/attachment/") 
+(setq mml-default-directory "~/Gnus/attachment/")
 (setq nnml-newsgroups-file "~/Gnus/Mail/newsgroup")
 (setq nntp-marks-directory "~/Gnus/News/marks")
 (setq nnmail-message-id-cache-file "~/Gnus/.nnmail-cache")
@@ -178,7 +178,7 @@
         ((gnus-seconds-year) . "%d %b")			 ;durant l'année = mai 28
         (t . "%d %b '%y"))						 ;le reste = mai 28 '05
       gnus-inhibit-startup-message t ; hide the startup image
-      
+
       ;; http://www.emacswiki.org/emacs/GnusSpeed
       gnus-use-correct-string-widths nil
       gc-cons-threshold 3500000         ; fasten gnus
@@ -186,7 +186,7 @@
       gnus-use-cross-reference t
       message-confirm-send t
       mm-inline-large-images t
-      
+
       gnus-show-threads t
       gnus-thread-indent-level 2        ;threads indentation
 
@@ -238,12 +238,25 @@
 
 ;; check for new messages, notification for new
 ;; Auto refresh 10 mins
-(gnus-demon-add-handler 'gnus-demon-scan-news 10 nil)
+(gnus-demon-add-handler 'gnus-demon-scan-mail 5 1)
 (add-hook 'gnus-after-getting-new-news-hook 'gnus-notifications)
+;; mode line email icon
+(defface display-time-mail-face
+  '((t (:background "red")))
+  "If display-time-use-mail-icon is non-nil, its background colour is that of
+  this face. Should be distinct from mode-line. Note that this deos not seem
+  to affect display-time-mail-string as claimed"
+  )
+(require 'time)
+(setq
+ display-time-mail-file "/var/mail/chz"
+ display-time-use-mail-icon t
+ display-time-mail-face 'display-time-mail-face)
+(setq display-time-mail-icon
+    '(image :type png :file "~/.emacs.d/email.png" :ascent center))
 
 ;; kill the buffer after successful sending instead of keeping it alive as "Sent mail to..."
 (setq message-kill-buffer-on-exit t)
-
 
 ;; follow up
 (add-hook 'message-sent-hook 'gnus-score-followup-article)
@@ -263,5 +276,11 @@
 ;; look at 'In-Reply-To:' and 'References:' headers.
 (setq gnus-thread-hide-subtree t)
 (setq gnus-thread-ignore-subject t)
+
+;; ;; notify
+;; (require 'gnus-notify+)
+;; (add-hook 'gnus-summary-exit-hook 'gnus-notify+)
+;; (add-hook 'gnus-group-catchup-group-hook 'gnus-notify+)
+;; (add-hook 'mail-notify-pre-hook 'gnus-notify+)
 
 (provide 'init-gnus)
