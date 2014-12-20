@@ -211,12 +211,11 @@
 (setq font-lock-maximum-decoration t)
 ;;
 ;; Improve performance when editing large size of file and root file
-(add-hook 'find-file-hook 'check-file-hook)
-(defun check-file-hook ()
-  "If a file is over a given size, turn off minor modes."
+(defadvice helm-find-files (after helm-find-files activate)
+  ;; "If a file is over a given size, turn off minor modes."
   (progn
-	(when (> (buffer-size) (* 1024 100))		 ;; 100 KB
-	  (when (> (buffer-size) (* 1024 1024))		 ;; 1 MB
+	(when (> (buffer-size) (* 1024 100))	;; 100 KB
+	  (when (> (buffer-size) (* 1024 1024))	;; 1 MB
 		(require 'vlf)
 		(vlf-mode)
 		)
@@ -353,6 +352,10 @@
 (make-face 'mode-line-position-face)
 (set-face-attribute 'mode-line-80col-face nil :background "red1")
 (set-face-attribute 'mode-line-position-face nil)
+;; highlight when over 80 column
+(setq whitespace-line-column 80) ;; limit line length
+(setq whitespace-style '(face lines-tail))
+(add-hook 'prog-mode-hook 'whitespace-mode)
 ;; mode-line color
 (custom-set-faces
  ;; no special for which-func
@@ -799,6 +802,8 @@ searches all buffers."
 ;; t means inserting a new line(t is the default option)
 ;; nil means ringing the bell
 (setq next-line-add-newlines nil)
+;; Always end a file with a newline
+(setq require-final-newline nil)
 
 (defun advanced-return (&optional arg)
   "Customized return, more powerful.
@@ -1524,11 +1529,9 @@ Has no effect if the character before point is not of the syntax class ')'."
 					company-dabbrev-code
 					company-ispell
 					company-files
-					company-yasnippet
-					))
-				 )))
+					company-yasnippet)))))
 (add-hook 'c-mode-common-hook
-		  (lambda()
+		  (lambda ()
 			(company-mode)
 			(set (make-local-variable 'company-backends)
 				 '((
@@ -1539,11 +1542,9 @@ Has no effect if the character before point is not of the syntax class ')'."
 					company-gtags
 					company-semantic
 					company-yasnippet
-					company-keywords
-					))
-				 )))
+					company-keywords)))))
 (add-hook 'emacs-lisp-mode-hook
-		  (lambda()
+		  (lambda ()
 			(company-mode)
 			(set (make-local-variable 'company-backends)
 				 '((
@@ -1551,9 +1552,16 @@ Has no effect if the character before point is not of the syntax class ')'."
 					company-dabbrev
 					company-dabbrev-code
 					company-semantic
-					company-yasnippet
-					))
-				 )))
+					company-yasnippet)))))
+(add-hook 'python-mode-hook
+		  (lambda ()
+			(set (make-local-variable 'company-backends)
+				 '((
+					company-ropemacs
+					company-dabbrev
+					company-dabbrev-code
+					company-semantic
+					company-yasnippet)))))
 ;; grouped back-ends
 ;; (add-to-list 'company-backends
 ;;				'(
@@ -1580,14 +1588,9 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;;				  company-files))
 
 
-;; undo-tree, C-_-> undo, M-+ -> redo, C-x u -> undo-tree-visualize
+;; undo-tree
+;; C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
-;; C-S-/(C-?) is used in undo-tree plugin by default
-;; But the author set two different keys for 'undo-tree-redo/undo
-;; I only use M-_, comment out the two lines of file undo-tree.el
-;; (define-key map (kbd "C-/") 'undo-tree-undo)
-;; (define-key map (kbd "C-?") 'undo-tree-redo)
-;;(require 'undo-tree)
 ;; replace the standard undo system
 (global-undo-tree-mode)
 (defadvice undo-tree-visualizer-mode (after undo-tree-face activate)
@@ -1986,10 +1989,6 @@ Has no effect if the character before point is not of the syntax class ')'."
 (autoload 'hide-comnt "hide comments" t)
 (defalias 'hc 'hide/show-comments-toggle)
 
-;; discover -- required by yafolding
-(require 'discover)
-(global-discover-mode 1)
-
 ;; yafolding
 ;; C-M-return 'yafolding-toggle-all
 ;; C-return 'yafolding-toggle-element
@@ -2053,10 +2052,14 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-hook 'org-mode-hook
 		  (lambda() (set
 					 (make-local-variable 'drag-stuff-mode) nil)))
+
+;; transpose
 (define-key global-map (kbd "M-t") nil)
 (global-set-key (kbd "M-t w") 'transpose-words)
 (global-set-key (kbd "M-t l") 'transpose-lines)
 (global-set-key (kbd "M-t s") 'transpose-sexps)
+(global-set-key (kbd "M-t t") 'anchored-transpose)
+(autoload 'anchored-transpose "anchored-transpose" nil t)
 
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
@@ -2104,7 +2107,6 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; repeating comment-dwim-2 will by default reindent the comment instead of
 ;; killing it, and that calling with a prefix argument will kill the comment
 ;; instead of reindenting it.
-(require 'comment-dwim-2)
 (global-set-key (kbd "M-;") 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
@@ -2161,11 +2163,12 @@ Has no effect if the character before point is not of the syntax class ')'."
         ("^projectile-" . error)
 		("^cscope-" . success)
 		("^ggtags-" . success)
-		("emacs" . highlight)
-		("help" . highlight)
+		("register" . success)
+		("bookmark" . highlight)
 		("toggle" . link)
 		("rectangle" . link)
-		("register" . link)
+		("help" . highlight)
+		("emacs" . highlight)
 		))
 ;; font size of guide buffer
 (setq guide-key/text-scale-amount -0.5)
@@ -2176,7 +2179,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
 ;; http://abo-abo.github.io/lispy/
-(add-hook 'prog-mode-hook (lambda () (lispy-mode 1)))
+(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (eval-after-load "lispy"
   '(progn
 	 (define-key lispy-mode-map (kbd "RET") nil)
@@ -2217,6 +2220,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 	(indent-guide-mode . "")
 	(guide-key-mode . "")
 	(whole-line-or-region-mode . "")
+	(whitespace-mode . "")
+	(subword-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
