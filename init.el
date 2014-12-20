@@ -1943,7 +1943,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; make `truncate-lines` nil in magit and `auto-fill-mode` off in commit buffers
 (add-hook 'magit-status-mode-hook
 		  (lambda ()
-			(setq truncate-lines nil)))
+			(setq truncate-lines nil)
+			(magit-filenotify-mode)))
 (add-hook 'git-commit-mode-hook
 		  (lambda ()
 			(turn-off-auto-fill)
