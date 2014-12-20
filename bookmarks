@@ -2,11 +2,11 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-(("e"
- (filename . "~/.emacs")
- (front-context-string . "\n;;;;;;;;;;;;;;;")
- (rear-context-string . "e to clear the\n\n")
- (position . 68586))
+(("org"
+ (filename . "~/.emacs.d/init.el")
+ (front-context-string . "org-mode\n(autolo")
+ (rear-context-string . "t-name nil)\n\n;; ")
+ (position . 60627))
 ("company"
  (filename . "~/.emacs")
  (front-context-string . "ny-mode\n;;;;;;;;")
@@ -27,11 +27,6 @@
  (front-context-string . "elpa, marmelade ")
  (rear-context-string . " packages from  ")
  (position . 27650))
-("theme"
- (filename . "~/.emacs")
- (front-context-string . "\n;;\n;; ;; Solari")
- (rear-context-string . "e\n )\n;;\n;; theme")
- (position . 6571))
 ("org-html"
  (filename . "~/Org/org-html.org")
  (front-context-string . "# This is the sh")
@@ -58,40 +53,20 @@
  (rear-context-string . "; built-in cedet")
  (position . 29851))
 ("theme & font"
- (filename . "~/.emacs")
- (front-context-string . "\n;;;;;;;;;;;;;;;")
- (rear-context-string . ";   theme & font")
- (position . 5237))
+ (filename . "~/.emacs.d/init.el")
+ (front-context-string . "theme & font\n;;;")
+ (rear-context-string . ";;;;\n;;;;;;;;   ")
+ (position . 8680))
 ("shortkeys-comment"
  (filename . "~/.emacs")
  (front-context-string . "\n\n\n;; Windows st")
  (rear-context-string . "hesis structure\n")
  (position . 2119))
-("org-mode"
- (filename . "~/.emacs")
- (front-context-string . "\n;; M-x list-pac")
- (rear-context-string . "g-mode from elpa")
- (position . 50808))
-("built-in"
- (filename . "~/.emacs")
- (front-context-string . "\n;;;;;;;;;;;;;;;")
- (rear-context-string . "built-in project")
- (position . 29304))
-("defun"
- (filename . "~/.emacs")
- (front-context-string . "\n;;;;;;;;;;;;;;;")
- (rear-context-string . ";;;;;;;;;  defun")
- (position . 7541))
 ("minibuffer-buffers-dire"
- (filename . "~/.emacs")
- (front-context-string . "e\n;;;;;;;;;;;;;;")
- (rear-context-string . " & buffers & dir")
- (position . 8834))
-("plugin"
- (filename . "~/.emacs")
- (front-context-string . "\n;;;;;;;;;;;;;;;")
- (rear-context-string . "*Completions\")\n\n")
- (position . 32488))
+ (filename . "~/.emacs.d/init.el")
+ (front-context-string . "minibuffer & buf")
+ (rear-context-string . ";;;;;;\n;;;;;;;; ")
+ (position . 23000))
 ("paren"
  (filename . "~/.emacs")
  (front-context-string . "Parentheses\n;;;;")
