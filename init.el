@@ -177,7 +177,7 @@
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
 (global-set-key (kbd "C-S-m") 'menu-bar-mode)
-(global-set-key (kbd "C-S-l") 'linum-mode)
+(global-set-key (kbd "C-S-l") 'global-linum-mode)
 ;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
 ;; Do not use when using tramp, it will stuck tramp a little bit
 (global-set-key (kbd "C-S-p")
@@ -271,6 +271,14 @@
 ;;
 ;; font and size of startup
 ;;
+;; List all fonts available to emacs
+;; (print (font-family-list))
+;;
+;; Test font in current session;
+;; Set font for all windows, keep window size fixed
+;; (set-frame-font "PragmataPro-10" t t)
+;; set font for all windows, don't keep window size fixed
+;; (set-frame-font "PragmataPro-10" nil t)
 (defun set-frame-size-according-to-resolution ()
   (interactive)
   (if window-system
@@ -284,13 +292,13 @@
 			(setq default-frame-alist
 				  '((top . 0)(left . 0)
 					(width . 85)(height . 48)
-					(font . "PragmataPro-13")
-					;; (:family "Menlo-Italic");; Monaco, Consolas
+					;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
+					(font . "PragmataPro-13:bold")
 					))
 		  (setq default-frame-alist
 				'((top . 0)(left . 0)
 				  (width . 85)(height . 35)
-				  (font . "PragmataPro-13")
+				  (font . "Input Mono Compressed-14")
 				  ;; (:family "Menlo-Italic")
 				  )))
 		))
@@ -418,17 +426,11 @@
 	(call-interactively 'query-replace)))
 (global-set-key (kbd "M-%") 'query-replace-from-top)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;	defun
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
 ;; flush blank lines
-;;
 (defun flush-blank-lines (start end)
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
 
-;;
 (defun keep-beginning-of-line (arg)
   "Make `C-a` keep going to first non-whitespace character _and_then_ beginning of
   next line(previous with C-u).
@@ -447,6 +449,37 @@ It will become normal in comment block because of goddamn rebox2"
   (move-end-of-line nil))
 (global-set-key [remap move-beginning-of-line] #'keep-beginning-of-line)
 (global-set-key [remap move-end-of-line] #'keep-end-of-line)
+
+(defun increment-region (&optional beg end arg)
+  "Increment all decimal numbers in region between `beg' and `end' by `arg'.
+If no prefix arg is given, increment by 1.
+If the mark is not active, try to build a region using `symbol-at-point'."
+  (interactive "r\np")
+  (or arg (setq arg 1))
+  (unless (and mark-active transient-mark-mode)
+	(let ((bounds (bounds-of-thing-at-point 'symbol)))
+	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
+  (if (< end beg)
+	  (let ((tmp end))
+		(setq beg end end tmp)))
+  (save-excursion
+	(goto-char beg)
+	(while (re-search-forward "-?[0-9]+" end t)
+	  (replace-match (number-to-string (+ arg (string-to-number (match-string 0)))))))
+  (setq deactivate-mark nil))
+;;
+(defun decrement-region (&optional beg end arg)
+  "Decrement all decimal numbers in region between `beg' and `end' by `arg'.
+ If no prefix arg is given, increment by 1.
+ If the mark is not active, try to build a region using `symbol-at-point'."
+  (interactive "r\np")
+  (or arg (setq arg 1))
+  (unless (and mark-active transient-mark-mode)
+	(let ((bounds (bounds-of-thing-at-point 'symbol)))
+	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
+  (increment-region beg end (- arg)))
+(global-set-key (kbd "S-M-<up>") 'increment-region)
+(global-set-key (kbd "S-M-<down>") 'decrement-region)
 
 ;; make the default sentence ending with two spaces concept nil
 ;; Now it work for expand-region to expand sentence
@@ -2051,8 +2084,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; disable drag-stuff-mode in org-mode because of the M-... in it
 ;; don't use remove-hook, it doesn't work here
 (add-hook 'org-mode-hook
-		  (lambda() (set
-					 (make-local-variable 'drag-stuff-mode) nil)))
+		  (lambda() (set (make-local-variable 'drag-stuff-mode) nil)))
 
 ;; transpose
 (define-key global-map (kbd "M-t") nil)
@@ -2141,8 +2173,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 (setq projectile-enable-caching t)
 ;; change projectile to helm-projectile
 ;; projectile can create a file or dir if not found, but helm-projectile cannot
-(setq projectile-switch-project-action
-	  'helm-projectile-find-file)
+(setq projectile-switch-project-action 'helm-projectile-find-file)
 ;;(setq projectile-switch-project-action
 ;;    'helm-projectile)
 ;; modify the indicator in mode line
@@ -2155,8 +2186,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; popwin is required by guide-key
 
 ;; guide-key
-;;(require 'guide-key)
-(setq guide-key/guide-key-sequence '("C-x" "C-c" "C-h" "<f1>" "C-s"))
+(setq guide-key/guide-key-sequence t)
 (setq guide-key/recursive-key-sequence-flag t)
 ;; highlights and color of highlights
 (setq guide-key/highlight-command-regexp
