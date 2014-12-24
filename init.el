@@ -168,6 +168,10 @@
 (setq bookmark-save-flag t)
 (setq column-number-mode t)
 (setq-default fill-column 80)
+(add-hook 'prog-mode-hook 'highlight-beyond-fill-column)
+(custom-set-faces '(highlight-beyond-fill-column-face
+					((t (:foreground "red" )))))
+
 ;; C-x </> 'scroll-left/right if line is too long
 (put 'scroll-left 'disabled nil)
 (setq comment-style 'extra-line)
@@ -360,10 +364,7 @@
 (make-face 'mode-line-position-face)
 (set-face-attribute 'mode-line-80col-face nil :background "red1")
 (set-face-attribute 'mode-line-position-face nil)
-;; highlight when over 80 column
-(setq whitespace-line-column 80) ;; limit line length
-(setq whitespace-style '(face lines-tail))
-(add-hook 'prog-mode-hook 'whitespace-mode)
+
 ;; mode-line color
 (custom-set-faces
  ;; no special for which-func
@@ -438,9 +439,9 @@ It will not work as expected in comment block because of goddamn rebox2"
   (interactive "P")
   (when (bolp) (forward-line (if arg -1 1)))
   (let ((orig-point (point)))
-    (back-to-indentation)
-    (when (= orig-point (point))
-      (move-beginning-of-line 1))))
+	(back-to-indentation)
+	(when (= orig-point (point))
+	  (move-beginning-of-line 1))))
 (defun keep-end-of-line (arg)
   "Make `C-e` keep going to end of next line(previous with C-u).
 It will become normal in comment block because of goddamn rebox2"
@@ -490,12 +491,12 @@ If the mark is not active, try to build a region using `symbol-at-point'."
   "Look for regexp RG around point, and replace with RP.
 Only applies to text-mode."
   (let ((f "\\(%s\\)\\(%s\\)")
-        (space "?:[[:blank:]\n\r]*"))
-    ;; We obviously don't want to do this in prog-mode.
-    (if (and (derived-mode-p 'text-mode)
-             (or (looking-at (format f space rg))
-                 (looking-back (format f rg space))))
-        (replace-match rp nil nil nil 1))))
+		(space "?:[[:blank:]\n\r]*"))
+	;; We obviously don't want to do this in prog-mode.
+	(if (and (derived-mode-p 'text-mode)
+			 (or (looking-at (format f space rg))
+				 (looking-back (format f rg space))))
+		(replace-match rp nil nil nil 1))))
 (defun endless/capitalize ()
   "Capitalize region or word.
 Also converts commas to full stops, and kills
@@ -503,26 +504,26 @@ extraneous space at beginning of line."
   (interactive)
   (endless/convert-punctuation "," ".")
   (if (use-region-p)
-      (call-interactively 'capitalize-region)
-    ;; A single space at the start of a line:
-    (when (looking-at "^\\s-\\b")
-      ;; get rid of it!
-      (delete-char 1))
-    (call-interactively 'subword-capitalize)))
+	  (call-interactively 'capitalize-region)
+	;; A single space at the start of a line:
+	(when (looking-at "^\\s-\\b")
+	  ;; get rid of it!
+	  (delete-char 1))
+	(call-interactively 'subword-capitalize)))
 (defun endless/downcase ()
   "Downcase region or word.
 Also converts full stops to commas."
   (interactive)
   (endless/convert-punctuation "\\." ",")
   (if (use-region-p)
-      (call-interactively 'downcase-region)
-    (call-interactively 'subword-downcase)))
+	  (call-interactively 'downcase-region)
+	(call-interactively 'subword-downcase)))
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
   (if (use-region-p)
-      (call-interactively 'upcase-region)
-    (call-interactively 'subword-upcase)))
+	  (call-interactively 'upcase-region)
+	(call-interactively 'subword-upcase)))
 (global-set-key "\M-c" 'endless/capitalize)
 (global-set-key "\M-l" 'endless/downcase)
 (global-set-key "\M-u" 'endless/upcase)
@@ -661,11 +662,11 @@ With argument, forward ARG lines."
 With argument, backward ARG lines."
   (interactive "p")
   (let (x1 x2)
-    (setq x1 (point))
+	(setq x1 (point))
 	(previous-line (- arg 1))
-    (move-beginning-of-line 1)
-    (setq x2 (point))
-    (delete-region x1 x2)))
+	(move-beginning-of-line 1)
+	(setq x2 (point))
+	(delete-region x1 x2)))
 (global-set-key (kbd "M-d") 'delete-word)
 (global-set-key (kbd "<M-backspace>") 'backward-delete-word)
 (global-set-key (kbd "C-k") 'delete-line)
@@ -726,6 +727,12 @@ With argument, backward ARG lines."
 (add-hook 'dired-after-readin-hook 'dired-sort-dirs-first)
 ;; change the format of the files(dirs)
 (setq dired-listing-switches "-Al --time-style long-iso")
+;; in dired, hide hidden files by default, toggle them using `C-x M-o`
+(require 'dired-x)
+(setq dired-omit-files "^\\...+$")
+;; map H from dired-do-hardlink to dired-omit-mode since it will not be used
+(define-key dired-mode-map (kbd "H") 'dired-omit-mode)
+(add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
 ;; sort in dired, `C-u s` then -S(sort by size), -u(sort by access time),
 ;; -c(sort by last modification time), -X(sort by file extension),
 ;; another, in dired `s`
@@ -770,7 +777,8 @@ Repeated invocations toggle between the two most recently open buffers."
 (global-set-key (kbd "C-x x") 'last-visited-buffer)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
-(defcustom search-all-buffers-ignored-files (list (rx-to-string '(and bos (or ".bash_history" "TAGS") eos)))
+(defcustom search-all-buffers-ignored-files
+  (list (rx-to-string '(and bos (or ".bash_history" "TAGS") eos)))
   "Files to ignore when searching buffers via \\[search-all-buffers]."
   :type 'editable-list)
 ;;(require 'grep)
@@ -1070,19 +1078,19 @@ FORCE-OTHER-WINDOW is ignored."
   "If buffer is associated with a file name, add that file to the
 `killed-buffers-list' when killing the buffer."
   (when buffer-file-name
-    (push buffer-file-name killed-buffers-list)))
+	(push buffer-file-name killed-buffers-list)))
 (add-hook 'kill-buffer-hook #'add-file-to-killed-buffers-list)
 (defun reopen-killed-buffer-fancy ()
   "Pick a file to revisit from a list of files killed during this
 Emacs session."
   (interactive)
   (if killed-buffers-list
-      (let ((file (completing-read "Reopen killed file: " killed-buffers-list
-                                   nil nil nil nil (car killed-buffers-list))))
-        (when file
-          (setq killed-buffers-list (cl-delete file killed-buffers-list :test #'equal))
-          (find-file file)))
-    (error "No recently-killed files to reopen")))
+	  (let ((file (completing-read "Reopen killed file: " killed-buffers-list
+								   nil nil nil nil (car killed-buffers-list))))
+		(when file
+		  (setq killed-buffers-list (cl-delete file killed-buffers-list :test #'equal))
+		  (find-file file)))
+	(error "No recently-killed files to reopen")))
 (global-set-key (kbd "C-S-t") 'reopen-killed-buffer-fancy)
 
 ;; set M-x align-regexp to C-c a
@@ -2150,7 +2158,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; all projectile & helm-projectile commands has prefix C-c p
 (require 'helm-projectile)
 (projectile-global-mode)
-;;(helm-projectile-on)
+;; (helm-projectile-on)
 ;; (eval-after-load "projectile"
 ;;   '(progn
 ;; 	 (setq magit-repo-dirs
@@ -2190,8 +2198,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 (setq guide-key/recursive-key-sequence-flag t)
 ;; highlights and color of highlights
 (setq guide-key/highlight-command-regexp
-      '(("^helm-" . warning)
-        ("^projectile-" . error)
+	  '(("^helm-" . warning)
+		("^projectile-" . error)
 		("^cscope-" . success)
 		("^ggtags-" . success)
 		("register" . success)
@@ -2219,8 +2227,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "Disable lispy C-k in comments"
   (if (lispy--in-comment-p)
-      (delete-line (prefix-numeric-value current-prefix-arg))
-    ad-do-it))
+	  (delete-line (prefix-numeric-value current-prefix-arg))
+	ad-do-it))
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
