@@ -1985,7 +1985,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-hook 'magit-status-mode-hook
 		  (lambda ()
 			(setq truncate-lines nil)
-			(magit-filenotify-mode)))
+			;; (magit-filenotify-mode)
+			))
 (add-hook 'git-commit-mode-hook
 		  (lambda ()
 			(turn-off-auto-fill)
