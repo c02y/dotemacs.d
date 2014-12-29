@@ -182,6 +182,11 @@
 (menu-bar-mode 0)
 (global-set-key (kbd "C-S-m") 'menu-bar-mode)
 (global-set-key (kbd "C-S-l") 'global-linum-mode)
+;; use C-M-Backspace to delete whole TAB not the default backward-delete-char-untabify
+;; in lisp mode
+(global-set-key (kbd "C-M-<backspace>") 'backward-delete-char)
+;; in c-mode
+(setq c-backspace-function 'backward-delete-char)
 ;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
 ;; Do not use when using tramp, it will stuck tramp a little bit
 (global-set-key (kbd "C-S-p")
@@ -301,8 +306,8 @@
 					))
 		  (setq default-frame-alist
 				'((top . 0)(left . 0)
-				  (width . 85)(height . 35)
-				  (font . "Input Mono Compressed-14")
+				  (width . 85)(height . 38)
+				  (font . "Input Mono Compressed-13.5")
 				  ;; (:family "Menlo-Italic")
 				  )))
 		))
@@ -1520,7 +1525,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;;
 ;; expand-region
 (autoload 'expand-region "expand-region" t)
-(global-set-key (kbd "C-=") 'er/expand-region)
+(global-set-key (kbd "S-SPC") 'er/expand-region)
 ;; mark word->sentence->paragraph->buffer
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
@@ -1744,6 +1749,9 @@ Has no effect if the character before point is not of the syntax class ')'."
 (setq org-completion-use-ido t)
 (define-key org-mode-map (kbd "C-c a") 'org-agenda)
 (define-key org-mode-map (kbd "C-c c") 'org-capture)
+;; use global defined C-a/e not `org-end/beginning-of-line`
+(define-key org-mode-map (kbd "C-e") nil)
+(define-key org-mode-map (kbd "C-a") nil)
 ;; show/unshow the descriptive and literal links
 (define-key org-mode-map (kbd "C-c C-x l") 'org-toggle-link-display)
 ;; If you would like to embed a TODO within text without treating it as
@@ -1804,6 +1812,20 @@ Has no effect if the character before point is not of the syntax class ')'."
 			))
 ;; disable '_' to subscript or '^' to superscript export
 (setq org-export-with-sub-superscripts nil)
+;; *bold* is bold without *
+;; (setq org-hide-emphasis-markers t)
+(defun org-src-format ()
+  "Replace
+1. `C-c '` to call `org-edit-special`
+2. `C-x h` to mark all the source code
+3. `TAB` to format it
+into one step."
+  (interactive)
+  (when (org-in-src-block-p)
+	(org-edit-special)
+    (indent-region (point-min) (point-max))
+    (org-edit-src-exit)))
+(define-key org-mode-map (kbd "C-c <C-tab>") 'org-src-format)
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
 
@@ -1974,7 +1996,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 		   "~/.vim"
 		   )))
 ;; open a link not prompt yes/no
-(setq vc-follow-symlinks 'nil)
+(setq vc-follow-symlinks nil)
 ;; make vc* and magit work for link
 (setq find-file-visit-truename t)
 (set-default 'magit-stage-all-confirm nil)
@@ -2015,12 +2037,12 @@ Has no effect if the character before point is not of the syntax class ')'."
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
 (setq mouse-wheel-progressive-speed nil)
 
-;; emmet for web development
-(autoload 'emmet-mode "emmet for web development" t)
-(dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
-  (add-hook mode
-			'(lambda ()
-			   (emmet-mode))))
+;; ;; emmet for web development
+;; (autoload 'emmet-mode "emmet for web development" t)
+;; (dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
+;;   (add-hook mode
+;; 			'(lambda ()
+;; 			   (emmet-mode))))
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
