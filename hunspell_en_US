@@ -237,3 +237,5 @@ BSS
 deallocate
 backend
 screenshot
+NFS
+inodes
