@@ -216,6 +216,12 @@
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
+;; highlight TODO:/FIXME:/BUG: keywords
+(add-hook 'prog-mode-hook
+               (lambda ()
+                (font-lock-add-keywords nil
+                 '(("\\<\\(TODO:\\|FIXME:\\|BUG:\\)" 1
+                    font-lock-warning-face t)))))
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
 ;;
@@ -1525,7 +1531,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;;
 ;; expand-region
 (autoload 'expand-region "expand-region" t)
-(global-set-key (kbd "S-SPC") 'er/expand-region)
+(global-set-key (kbd "C-S-SPC") 'er/expand-region)
 ;; mark word->sentence->paragraph->buffer
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
@@ -1823,9 +1829,15 @@ into one step."
   (interactive)
   (when (org-in-src-block-p)
 	(org-edit-special)
-    (indent-region (point-min) (point-max))
-    (org-edit-src-exit)))
+	(indent-region (point-min) (point-max))
+	(org-edit-src-exit)))
 (define-key org-mode-map (kbd "C-c <C-tab>") 'org-src-format)
+(add-to-list 'org-emphasis-alist '("*" (:foreground "cyan")))
+(add-to-list 'org-emphasis-alist '("/" (:foreground "cyan")))
+(add-to-list 'org-emphasis-alist '("_" (:foreground "cyan")))
+;; (setq org-emphasis-alist
+	  ;; (append org-emphasis-alist '((" ` " bold "<b>" "</b>"))))
+;; (add-to-list 'org-emphasis-alist '("`" (:foreground "cyan")))
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
 
@@ -2168,9 +2180,7 @@ into one step."
 ;; comment-dwim-2 to replace default comment-dwim
 ;; comment-dwim can also be repeated several times to switch between the
 ;; different behaviors.
-;; repeating comment-dwim-2 will by default reindent the comment instead of
-;; killing it, and that calling with a prefix argument will kill the comment
-;; instead of reindenting it.
+;; Called it with a prefix argument to reindent the comment
 (global-set-key (kbd "M-;") 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
