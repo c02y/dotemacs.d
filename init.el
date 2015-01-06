@@ -153,13 +153,11 @@
 (global-set-key (kbd "C-c C-e")
 				'(lambda ()
 				   (interactive)
-				   (find-file "~/.emacs")
-				   ))
+				   (find-file "~/.emacs")))
 (global-set-key (kbd "C-c C-r")
 				'(lambda ()
 				   (interactive)
-				   (load-file "~/.emacs.d/init.elc")
-				   ))
+				   (load-file "~/.emacs.d/init.elc")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -218,10 +216,11 @@
 (global-font-lock-mode t)
 ;; highlight TODO:/FIXME:/BUG: keywords
 (add-hook 'prog-mode-hook
-               (lambda ()
-                (font-lock-add-keywords nil
-                 '(("\\<\\(TODO:\\|FIXME:\\|BUG:\\)" 1
-                    font-lock-warning-face t)))))
+		  (lambda ()
+			(font-lock-add-keywords nil
+									;; '(("\\<\\(TODO\\|FIXME\\|BUG\\):" 1
+									'(("\\<\\(TODO:\\|FIXME:\\|BUG:\\)" 1
+									   font-lock-warning-face t)))))
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
 ;;
@@ -229,11 +228,10 @@
 (defadvice helm-find-files (after helm-find-files activate)
   ;; "If a file is over a given size, turn off minor modes."
   (progn
-	(when (> (buffer-size) (* 1024 100))	;; 100 KB
-	  (when (> (buffer-size) (* 1024 1024))	;; 1 MB
+	(when (> (buffer-size) (* 1024 100)) ;; 100 KB
+	  (when (> (buffer-size) (* 1024 1024)) ;; 1 MB
 		(require 'vlf)
-		(vlf-mode)
-		)
+		(vlf-mode))
 	  (linum-mode -1))
 	(unless (and buffer-file-name
 				 (file-writable-p buffer-file-name))
@@ -243,8 +241,7 @@
 		;; use C-S-p to re-enable them after finishing using tramp
 		(which-function-mode -1)
 		(projectile-global-mode -1)
-		(find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name)))))
-  )
+		(find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))))
 
 ;; displays the argument list for current func, work for all languages
 (turn-on-eldoc-mode)
@@ -305,18 +302,16 @@
 			;; (add-to-list 'default-frame-alist (cons 'width 85))
 			;; (add-to-list 'default-frame-alist (cons 'width 85)))
 			(setq default-frame-alist
-				  '((top . 0)(left . 0)
-					(width . 85)(height . 48)
+				  '((top . 0) (left . 0)
+					(width . 85) (height . 48)
 					;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
-					(font . "PragmataPro-13:bold")
-					))
+					(font . "PragmataPro-13:bold")))
 		  (setq default-frame-alist
-				'((top . 0)(left . 0)
-				  (width . 85)(height . 38)
+				'((top . 0) (left . 0)
+				  (width . 85) (height . 38)
 				  (font . "Input Mono Compressed-13.5")
 				  ;; (:family "Menlo-Italic")
-				  )))
-		))
+				  )))))
   ;; the following two settings are specifically for afternoon-theme
   ;; the combination colors of highlighted line and comments
   ;; (custom-set-faces
@@ -425,10 +420,8 @@
 	   (set-frame-parameter (selected-frame) 'alpha (list a ab))
 	   (add-to-list 'default-frame-alist
 					(cons 'alpha (list a ab))))
-	 (car h)(car (cdr h)))
-	(setq alpha-list (cdr (append alpha-list (list h))))
-	)
-  )
+	 (car h) (car (cdr h)))
+	(setq alpha-list (cdr (append alpha-list (list h))))))
 
 ;; set the query-replace from top
 (defun query-replace-from-top ()
@@ -1063,8 +1056,7 @@ FORCE-OTHER-WINDOW is ignored."
 	 (setq ediff-window-setup-function
 		   'ediff-setup-windows-plain)
 	 ;; delete these buffers (if they are not modified) after q
-	 (setq ediff-keep-variants nil)
-	 ))
+	 (setq ediff-keep-variants nil)))
 
 ;; You can use C-x o 'other-window, but the following is better
 ;; move your point to another window in the specific direction
@@ -1139,15 +1131,10 @@ Emacs session."
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; if you don't know how to spell the rest of a word
 (global-set-key (kbd "C-?") 'ispell-complete-word)
-;; flyspell-prog-mode is to spell check in the comments and string constants
-(dolist (mode '(prog-mode-hook
-				;; emacs-lisp-mode-hook
-				;; python-mode-hook
-				;; ielm-mode-hook
-				))
-  (add-hook mode
-			'(lambda ()
-			   (flyspell-prog-mode))))
+;; check comments and string constants already in the file
+(global-set-key (kbd "<f5>") 'ispell-comments-and-strings)
+;; check in the comments and string constants as you type
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
 ;; click the left button to show the correct words list
 (eval-after-load "flyspell"
   '(define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
@@ -1195,8 +1182,7 @@ Emacs session."
 (add-hook 'python-mode-hook
 		  (lambda ()
 			(setq indent-tabs-mode nil)
-			(setq tab-width 4)
-			))
+			(setq tab-width 4)))
 ;;
 (add-hook 'c-mode-common-hook
 		  (lambda ()
@@ -1204,6 +1190,9 @@ Emacs session."
 			(setq tab-width 8)
 			(setq indent-tabs-mode t) ;;default in linux kernel
 			(setq c-basic-offset 8)))
+(add-hook 'makefile-mode-hook
+		  (lambda ()
+			(setq tab-width 8)))
 
 ;; ;;;;;;;Documentation/CodingStyle
 ;; ;;Using spaces for alignment, but tabs for indentation
@@ -1311,8 +1300,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-to-list 'interpreter-mode-alist '("perl5" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("miniperl" . cperl-mode))
 (eval-after-load "cperl-mode"
-  '(define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
-	 )
+  '(define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent))
 
 ;; gdb, Debugging with GDB Many Windows layout
 ;; https://tuhdo.github.io/c-ide.html
@@ -1335,8 +1323,7 @@ Has no effect if the character before point is not of the syntax class ')'."
   (interactive)
   (if compilation-minor-mode
 	  (setq compilation-minor-mode nil)
-	(compilation-minor-mode)
-	))
+	(compilation-minor-mode)))
 (global-set-key (kbd "C-c v") 'va)
 
 ;; cedet -- built-in
@@ -1420,11 +1407,12 @@ Has no effect if the character before point is not of the syntax class ')'."
 		("melpa" . "http://melpa.org/packages/")
 		("marmalade" . "http://marmalade-repo.org/packages/")
 		("melpa-stable1" . "http://stable.melpa.org/packages/")
-		("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")
-		))
+		("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
-(defalias 'plp 'package-list-packages)
+;; (defalias 'plp 'package-list-packages)
+(defalias 'plp 'paradox-list-packages)
+(setq paradox-github-token t)
 ;; Update the packages automatically
 ;;(when (not package-archive-contents) (package-refresh-contents))
 
@@ -1703,8 +1691,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-hook 'c-mode-common-hook
 		  (lambda ()
 			;; defined in xcscope
-			(cscope-minor-mode)
-			))
+			(cscope-minor-mode)))
 
 ;; ggtags
 ;; ggtags supports jump/navigation
@@ -1814,8 +1801,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 			;; display one lone line in one window, get rid of straight right arrow
 			(setq truncate-lines nil)
 			;; DO NOT end a org file with a newline, default is t(with newline)
-			(setq require-final-newline nil)
-			))
+			(setq require-final-newline nil)))
 ;; disable '_' to subscript or '^' to superscript export
 (setq org-export-with-sub-superscripts nil)
 ;; *bold* is bold without *
@@ -1901,7 +1887,7 @@ into one step."
 ;; @elpa filter only the buffers contain the string 'elpa', then C-s to go to the positions
 ;; in the buffer selected, maybe C-SPC to mark multi-files first, C-u C-s work on the current buffer
 ;; you can combine the above cases, such as: *lisp, *c/l ^helm @helm-find-files(more than one mode using , to seperate)
-(global-set-key (kbd "C-x b") 'helm-mini)
+(global-set-key (kbd "M-z") 'helm-mini)
 ;; (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
 ;; (recentf-mode t)
@@ -1934,18 +1920,17 @@ into one step."
 (global-set-key (kbd "C-c x") 'helm-resume)
 (setq
  ;; helm-quick-update t  ; do not display invisible candidates
- helm-split-window-default-side 'other ; open helm buffer in another window
+ helm-split-window-default-side 'other	; open helm buffer in another window
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
  helm-buffers-favorite-modes
  (append helm-buffers-favorite-modes
-		 '(picture-mode artist-mode)) ; do not show these files in helm buffer
+		 '(picture-mode artist-mode))	; do not show these files in helm buffer
  helm-boring-file-regexp-list
  '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$")
  ;; move to end or beginning of source when reaching top or bottom of source.
  ;; helm-move-to-line-cycle-in-source t
  ;; fuzzy matching buffer names when non--nil, useful in helm-mini that lists buffers
- helm-buffers-fuzzy-matching t
- )
+ helm-buffers-fuzzy-matching t)
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
 (defalias 'hg 'helm-do-grep)
@@ -2005,8 +1990,7 @@ into one step."
   '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
 		 '(
 		   "~/.emacs.d"
-		   "~/.vim"
-		   )))
+		   "~/.vim")))
 ;; open a link not prompt yes/no
 (setq vc-follow-symlinks nil)
 ;; make vc* and magit work for link
@@ -2101,6 +2085,7 @@ into one step."
 (custom-set-faces
  '(rainbow-delimiters-depth-1-face
    ((t (:foreground "white" :weight normal)))))
+
 ;;
 ;; rainbow-identifiers
 ;; rainbow identifiers according to their names
@@ -2156,18 +2141,15 @@ into one step."
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
 			(set (make-local-variable 'rebox-style-loop) '(21 25 111))
-			(rebox-mode 1)
-			))
+			(rebox-mode 1)))
 (add-hook 'c-mode-hook
 		  (lambda ()
 			(set (make-local-variable 'rebox-style-loop) '(243 241 111))
-			(rebox-mode 1)
-			))
+			(rebox-mode 1)))
 (add-hook 'c++-mode-hook
 		  (lambda ()
 			(set (make-local-variable 'rebox-style-loop) '(25 21 111))
-			(rebox-mode 1)
-			))
+			(rebox-mode 1)))
 (add-hook 'text-mode-hook
 		  (lambda ()
 			(set (make-local-variable 'rebox-style-loop) '(113 123 111))
@@ -2240,8 +2222,7 @@ into one step."
 		("toggle" . link)
 		("rectangle" . link)
 		("help" . highlight)
-		("emacs" . highlight)
-		))
+		("emacs" . highlight)))
 ;; font size of guide buffer
 (setq guide-key/text-scale-amount -0.5)
 (setq guide-key/popup-window-position 'bottom)
@@ -2255,8 +2236,7 @@ into one step."
 (eval-after-load "lispy"
   '(progn
 	 (define-key lispy-mode-map (kbd "RET") nil)
-	 (define-key lispy-mode-map (kbd "C-e") nil)
-	 ))
+	 (define-key lispy-mode-map (kbd "C-e") nil)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "Disable lispy C-k in comments"
   (if (lispy--in-comment-p)
