@@ -1,4 +1,4 @@
-;;; init.el --- Emacs configuration of Cody Chan
+;; init.el --- Emacs configuration of Cody Chan
 ;;
 ;; Copyright (c) 2012-2014 Cody Chan <cody.chan.cz@gmail.com>
 ;;
@@ -19,7 +19,7 @@
 ;; GNU Emacs; see the file COPYING. If not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
 ;; USA.
-
+;;
 ;; If you want to using package manager like Vundle, use
 ;; https://github.com/lunaryorn/.emacs.d/blob/master/init.el#L176
 ;; http://oli.me.uk/2014/10/20/making-package-el-behave-like-vundle/
@@ -244,11 +244,11 @@
 		(find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))))
 
 ;; displays the argument list for current func, work for all languages
-(turn-on-eldoc-mode)
+(eldoc-mode)
 (dolist (mode '(prog-mode-hook python-mode-hook ielm-mode-hook))
   (add-hook mode
 			'(lambda ()
-			   (turn-on-eldoc-mode))))
+			   (eldoc-mode))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
@@ -444,7 +444,7 @@
 (defun query-replace-from-top ()
   (interactive)
   (save-excursion
-	(beginning-of-buffer)
+	(goto-char (point-min))
 	(call-interactively 'query-replace)))
 (global-set-key (kbd "M-%") 'query-replace-from-top)
 
@@ -684,7 +684,7 @@ With argument, backward ARG lines."
   (interactive "p")
   (let (x1 x2)
 	(setq x1 (point))
-	(previous-line (- arg 1))
+	(forward-line (- 1 arg))
 	(move-beginning-of-line 1)
 	(setq x2 (point))
 	(delete-region x1 x2)))
@@ -885,7 +885,7 @@ NOTE: Use C/M-j instead to split the line and indent/no-indent."
 		(progn
 		  (end-of-line)
 		  (open-line 1)
-		  (next-line))
+		  (forward-line))
 	  (progn
 		(end-of-line)
 		(newline-and-indent)
@@ -2148,14 +2148,10 @@ into one step."
 		  (lambda ()
 			(set (make-local-variable 'rebox-style-loop) '(25 21 111))
 			(rebox-mode 1)))
-(add-hook 'text-mode-hook
-		  (lambda ()
-			(set (make-local-variable 'rebox-style-loop) '(113 123 111))
-			;; (rebox-mode 1)
-			))
 (define-key rebox-mode-map [(control y)] nil)
 (define-key rebox-mode-map [(shift return )] nil)
 (define-key rebox-mode-map (kbd "M-w") nil)
+(define-key rebox-mode-map (kbd "C-k") nil)
 
 ;; comment-dwim-2 to replace default comment-dwim
 ;; comment-dwim can also be repeated several times to switch between the
@@ -2236,7 +2232,7 @@ into one step."
 	 (define-key lispy-mode-map (kbd "RET") nil)
 	 (define-key lispy-mode-map (kbd "C-e") nil)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
-  "Disable lispy C-k in comments"
+  "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
   (if (lispy--in-comment-p)
 	  (delete-line (prefix-numeric-value current-prefix-arg))
 	ad-do-it))
@@ -2272,6 +2268,7 @@ into one step."
 	(whole-line-or-region-mode . "")
 	(whitespace-mode . "")
 	(subword-mode . "")
+	(smooth-scroll-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
