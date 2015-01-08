@@ -423,6 +423,21 @@
 	 (car h) (car (cdr h)))
 	(setq alpha-list (cdr (append alpha-list (list h))))))
 
+;; smooth-scrolling
+(setq redisplay-dont-pause t
+  scroll-margin 1
+  scroll-step 1
+  scroll-conservatively 10000
+  auto-window-vscroll nil
+  scroll-preserve-screen-position 1)
+(setq-default
+ scroll-up-aggressively 0.01
+ scroll-down-aggressively 0.01)
+;; scroll smoothly using touchpad better along with sublimity-mode
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil))
+	  mouse-wheel-progressive-speed nil
+	  mouse-wheel-follow-mouse t)
+
 ;; set the query-replace from top
 (defun query-replace-from-top ()
   (interactive)
@@ -1553,7 +1568,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 (setq company-show-numbers t)
 (setq company-dabbrev-other-buffers t)
 (setq company-transformers '(company-sort-by-occurrence))
-(setq company-auto-complete t)
+;; turn on this, space will insert the candidate not space
+;; (setq company-auto-complete t)
 ;; use F1 or C-h in the drop list to show the doc, Use C-s/C-M-s to search the candidates,
 ;; M-NUM to select specific one, C-w to view its source file
 (global-set-key (kbd "C-c <tab>") 'company-files)
@@ -2014,25 +2030,6 @@ into one step."
   "TAB a item to scroll the of the repeat."
   (recenter-top-bottom 0))
 
-;; ;; evil, use C-z to switch between vim/Emacs
-;; (setq evil-search-module 'evil-search
-;;		 evil-want-C-u-scroll t
-;;		 evil-want-C-w-in-emacs-state t)
-;; (require 'evil)
-;; (evil-mode t)
-
-;; sublimity--smooth-scrolling, minimap and distraction-free mode
-;; the configuration for touchpad in this file is still in use
-(require 'sublimity)
-(require 'sublimity-scroll)
-;; the speed of smooth-scroll
-(setq sublimity-scroll-weight 5
-	  sublimity-scroll-drift-length 10)
-(sublimity-mode 1)
-;; scroll smoothly using touchpad better along with sublimity-mode
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
-(setq mouse-wheel-progressive-speed nil)
-
 ;; ;; emmet for web development
 ;; (autoload 'emmet-mode "emmet for web development" t)
 ;; (dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
@@ -2085,7 +2082,6 @@ into one step."
 (custom-set-faces
  '(rainbow-delimiters-depth-1-face
    ((t (:foreground "white" :weight normal)))))
-
 ;;
 ;; rainbow-identifiers
 ;; rainbow identifiers according to their names
