@@ -239,3 +239,7 @@ backend
 screenshot
 NFS
 inodes
+FIXME
+sed
+bootable
+bootloader
