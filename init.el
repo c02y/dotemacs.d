@@ -423,7 +423,7 @@
 	 (car h) (car (cdr h)))
 	(setq alpha-list (cdr (append alpha-list (list h))))))
 
-;; smooth-scrolling
+;; ;; smooth-scrolling, just deal with C-n/p and arrow
 (setq redisplay-dont-pause t
   scroll-margin 1
   scroll-step 1
@@ -433,10 +433,12 @@
 (setq-default
  scroll-up-aggressively 0.01
  scroll-down-aggressively 0.01)
-;; scroll smoothly using touchpad better along with sublimity-mode
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil))
-	  mouse-wheel-progressive-speed nil
-	  mouse-wheel-follow-mouse t)
+;; deal with C/M-v and mouse/touchpad
+;; in ~/.emacs.d/lisp/smooth-scroll.el
+(require 'smooth-scroll)
+(smooth-scroll-mode t)
+(setq mouse-wheel-scroll-amount '(0.10)
+   mouse-wheel-progressive-speed nil)
 
 ;; set the query-replace from top
 (defun query-replace-from-top ()
