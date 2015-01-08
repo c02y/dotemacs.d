@@ -590,12 +590,6 @@ BEG and END (region to sort)."
   (interactive)
   (set-buffer-file-coding-system 'unix 't))
 
-;; format whole buffer
-(defun fb ()
-  "format whole buffer using `indent-region`"
-  (interactive)
-  (indent-region (point-min) (point-max)))
-
 ;; Display trailing whitespace at end of lines
 (defun toggle-trailing-whitespace-display ()
   "Toggle the display of trailing whitespace, by changing the
@@ -693,6 +687,30 @@ With argument, backward ARG lines."
 (global-set-key (kbd "C-k") 'delete-line)
 (global-set-key (kbd "C-S-k") 'delete-line-backward)
 
+(defun toggle-fill-paragraph ()
+  ;; Based on http://xahlee.org/emacs/modernization_fill-paragraph.html
+  "Fill or unfill the current paragraph, depending upon the current line length.
+When there is a text selection, act on the region.
+See `fill-paragraph' and `fill-region'."
+  (interactive)
+  ;; We set a property 'currently-filled-p on this command's symbol
+  ;; (i.e. on 'toggle-fill-paragraph), thus avoiding the need to
+  ;; create a variable for remembering the current fill state.
+  (save-excursion
+    (let* ((deactivate-mark nil)
+           (line-length (- (line-end-position) (line-beginning-position)))
+           (currently-filled (if (eq last-command this-command)
+                                 (get this-command 'currently-filled-p)
+                               (< line-length fill-column)))
+           (fill-column (if currently-filled
+                            most-positive-fixnum
+                          fill-column)))
+      (if (region-active-p)
+          (fill-region (region-beginning) (region-end))
+        (fill-paragraph))
+      (put this-command 'currently-filled-p (not currently-filled)))))
+(global-set-key (kbd "M-q") 'toggle-fill-paragraph)
+
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (global-set-key (kbd "C-c d")
 				'(lambda ()
@@ -707,6 +725,7 @@ With argument, backward ARG lines."
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
 ;; --> M-x indent-marked-files
+;; C-M-\ 'indent-region(mark first)
 (defun indent-marked-files ()
   (interactive)
   (dolist (file (dired-get-marked-files))
@@ -848,13 +867,14 @@ searches all buffers."
 ;; you can also(before saving):
 ;; 1. M-x diff-buffer-with-file
 ;; 2. After C-x C-c, type d to differ
+;; If you are in vc dir, use C-x v = to diff the current version with the repo
 (global-set-key (kbd "C-h C-b") 'diff-buffer-with-file)
 (global-set-key (kbd "C-h C-v") 'highlight-changes-visible-mode)
 (global-highlight-changes-mode t)
 ;; initial invisible, use C-h C-v to toggle the highlight of changes
 (setq highlight-changes-visibility-initial-state nil)
-(global-set-key (kbd "C-c C-p") 'highlight-changes-previous-change)
-(global-set-key (kbd "C-c C-n") 'highlight-changes-next-change)
+(global-set-key (kbd "M-<f1>") 'highlight-changes-previous-change)
+(global-set-key (kbd "M-<f2>") 'highlight-changes-next-change)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; line issues
@@ -1819,7 +1839,10 @@ Has no effect if the character before point is not of the syntax class ')'."
 			;; display one lone line in one window, get rid of straight right arrow
 			(setq truncate-lines nil)
 			;; DO NOT end a org file with a newline, default is t(with newline)
-			(setq require-final-newline nil)))
+			(setq require-final-newline nil)
+			;; this will make existed content not align
+			;; (setq org-indent-mode t)
+			))
 ;; disable '_' to subscript or '^' to superscript export
 (setq org-export-with-sub-superscripts nil)
 ;; *bold* is bold without *
