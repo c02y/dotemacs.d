@@ -1089,7 +1089,9 @@ FORCE-OTHER-WINDOW is ignored."
 (eval-after-load "ediff"
   '(progn
 	 (setq ediff-split-window-function
-		   'split-window-horizontally)
+		   (if (> (frame-width) 100)
+			   'split-window-horizontally
+			 'split-window-vertically))
 	 (setq ediff-window-setup-function
 		   'ediff-setup-windows-plain)
 	 ;; delete these buffers (if they are not modified) after q
@@ -1125,10 +1127,12 @@ FORCE-OTHER-WINDOW is ignored."
 Emacs session."
   (interactive)
   (if killed-buffers-list
-	  (let ((file (completing-read "Reopen killed file: " killed-buffers-list
-								   nil nil nil nil (car killed-buffers-list))))
+	  (let ((file
+			 (completing-read "Reopen killed file: " killed-buffers-list
+							  nil nil nil nil (car killed-buffers-list))))
 		(when file
-		  (setq killed-buffers-list (cl-delete file killed-buffers-list :test #'equal))
+		  (setq killed-buffers-list
+				(cl-delete file killed-buffers-list :test #'equal))
 		  (find-file file)))
 	(error "No recently-killed files to reopen")))
 (global-set-key (kbd "C-S-t") 'reopen-killed-buffer-fancy)
@@ -1166,6 +1170,7 @@ Emacs session."
   (setq-default ispell-program-name "hunspell")
   (setq ispell-really-hunspell t))
 (add-hook 'org-mode-hook 'flyspell-mode)
+;; C-. or C-M-i 'flyspell-auto-correct-word
 ;; if you don't know how to spell the rest of a word
 (global-set-key (kbd "C-?") 'ispell-complete-word)
 ;; check comments and string constants already in the file
@@ -1840,9 +1845,12 @@ Has no effect if the character before point is not of the syntax class ')'."
 			(setq truncate-lines nil)
 			;; DO NOT end a org file with a newline, default is t(with newline)
 			(setq require-final-newline nil)
-			;; this will make existed content not align
-			;; (setq org-indent-mode t)
-			))
+			(setq org-hide-leading-stars nil)))
+;; don not put this into hook
+(setq org-startup-indented t)
+;; Prevents accidentally editing hidden text when the point is inside a folded region.
+;; use C-c C-r 'org-reveal to show where your point is
+(setq org-catch-invisible-edits 'error)
 ;; disable '_' to subscript or '^' to superscript export
 (setq org-export-with-sub-superscripts nil)
 ;; *bold* is bold without *
