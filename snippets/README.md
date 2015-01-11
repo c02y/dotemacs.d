@@ -1,6 +1,6 @@
-In this repository there is a colletion of my personal [[http://github.com/capitaomorte/yasnippet][yasnippet]]
+In this repository there is a colletion of my personal [yasnippet](http://github.com/capitaomorte/yasnippet)
 snippets for many different Emacs modes.
-
+`cd ~/ ; git clone gc https://github.com/AndreaCrotti/yasnippet-snippets.git` for merge
 
 # How to use
 
@@ -15,7 +15,7 @@ snippets for many different Emacs modes.
 This repository has now become the default snippets repository (as a submodule) in yasnippet.
 So if you have any useful snippets for any language or framework please feel free to contribute.
 
-To study the current the current snippets I suggest to use M-x yas/describe-tables
+To study the current snippets I suggest to use M-x yas/describe-tables
 which will gave a table representation of all the snippets available in the current mode.
 
 
