@@ -214,13 +214,15 @@
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
-;; highlight TODO:/FIXME:/BUG: keywords
-(add-hook 'prog-mode-hook
-		  (lambda ()
-			(font-lock-add-keywords nil
-									;; '(("\\<\\(TODO\\|FIXME\\|BUG\\):" 1
-									'(("\\<\\(TODO:\\|FIXME:\\|BUG:\\)" 1
-									   font-lock-warning-face t)))))
+;; highlight TODO:/NOTE:/FIXME:/BUG: keywords
+(dolist (hook '(prog-mode-hook org-mode-hook))
+  (add-hook hook
+			(lambda ()
+			  (font-lock-add-keywords nil
+									  ;; '(("\\<\\(TODO\\|FIXME\\|BUG\\):" 1
+									  '(("\\<\\(TODO:\\|NOTE:\\|FIXME:\\|BUG:\\)" 1
+										 font-lock-warning-face t))))))
+
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
 ;;
@@ -253,7 +255,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; M-:(print (font-family-list)) to list all available fonts
 ;;
 ;; theme
 ;;
@@ -437,7 +438,7 @@
 ;; in ~/.emacs.d/lisp/smooth-scroll.el
 (require 'smooth-scroll)
 (smooth-scroll-mode t)
-(setq mouse-wheel-scroll-amount '(0.10)
+(setq mouse-wheel-scroll-amount '(0.08)
    mouse-wheel-progressive-speed nil)
 
 ;; set the query-replace from top
@@ -650,15 +651,13 @@ If current line is a single space, remove that space.
 ;; delete not kill it into kill-ring
 ;; http://ergoemacs.org/emacs/emacs_kill-ring.html
 (defun delete-word (arg)
-  "Delete characters forward until encountering the end of a word.
-With argument, do this many times.
-This command does not push erased text to kill-ring."
+  "Delete(not kill) characters forward until encountering the end of a word.
+With argument, do this many times."
   (interactive "p")
   (delete-region (point) (progn (forward-word arg) (point))))
 (defun backward-delete-word (arg)
-  "Delete characters backward until encountering the beginning of a word.
-With argument, do this that many times.
-This command does not push erased text to kill-ring."
+  "Delete(not kill) characters backward until encountering the beginning of a word.
+With argument, do this that many times."
   (interactive "p")
   (delete-word (- arg)))
 (defun delete-line (arg)
@@ -667,18 +666,17 @@ With argument, forward ARG lines."
   (interactive "p")
   (let (x1 x2)
 	(setq x1 (point))
-	(forward-line (- arg 1))
+	(if (eolp) (forward-line arg) (forward-line (- arg 1)))
 	(move-end-of-line 1)
 	(setq x2 (point))
-	(delete-region x1 x2))
-)
+	(delete-region x1 x2)))
 (defun delete-line-backward (arg)
   "Delete text between the beginning of the line to the cursor position.
 With argument, backward ARG lines."
   (interactive "p")
   (let (x1 x2)
 	(setq x1 (point))
-	(forward-line (- 1 arg))
+	(if (bolp) (forward-line (- arg)) (forward-line (- 1 arg)))
 	(move-beginning-of-line 1)
 	(setq x2 (point))
 	(delete-region x1 x2)))
@@ -1838,6 +1836,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 (setq org-src-fontify-natively t)
 ;; TAB to indent the _whole_(not lines) code snippet block comparing with "#+BEGIN_SRC" part
 (setq org-src-tab-acts-natively t)
+;; space before src content and the header such as #+BEGIN_SRC
+(setq org-edit-src-content-indentation 4)
 (add-hook 'org-mode-hook
 		  (lambda ()
 			;; in code snippet block, `C-c '` and then TAB to format code snippet lines
