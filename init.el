@@ -435,7 +435,6 @@
  scroll-up-aggressively 0.01
  scroll-down-aggressively 0.01)
 ;; deal with C/M-v and mouse/touchpad
-;; in ~/.emacs.d/lisp/smooth-scroll.el
 (require 'smooth-scroll)
 (smooth-scroll-mode t)
 (setq mouse-wheel-scroll-amount '(0.08)
@@ -1588,7 +1587,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 (autoload 'company "company" t)
 (add-hook 'after-init-hook 'global-company-mode)
 (setq company-global-modes t)
-(setq company-tooltip-limit 30)
+(setq company-tooltip-limit 20)
 (setq company-minimum-prefix-length 3)
 (setq company-show-numbers t)
 (setq company-dabbrev-other-buffers t)
