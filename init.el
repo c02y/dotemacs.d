@@ -1757,12 +1757,14 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; both org and org-plus-contrib are needed for full org-mode
 ;; org, http://orgmode.org/worg/org-faq.html
 ;;
-;; ;; The following two set-key has the side affect that
-;; ;; you can not use the semantic-mode prefix
-;; ;; and ede-minor-mode prefix in C/C++ mode
-;; ;; or you can use C-c , to set the TODO priority
+;; C-c @ or M-h to mark, C-c @ is for elements, M-h is for paragraphs
+;;
+;; The following two set-key has the side affect that
+;; you can not use the semantic-mode prefix
+;; and ede-minor-mode prefix in C/C++ mode
+;; or you can use C-c , to set the TODO priority
 ;; (define-key semantic-mode-map "\C-c," 'org-priority)
-;; ;; or you have to M-x org-mode to use (C-u)C-c . org-time-stamp
+;; or you have to M-x org-mode to use (C-u)C-c . org-time-stamp
 (define-key ede-minor-mode-map "\C-c." 'org-time-stamp)
 ;;
 ;; the next line is needed before load org-mode
@@ -1869,6 +1871,10 @@ into one step."
 (add-to-list 'org-emphasis-alist '("*" (:foreground "cyan")))
 (add-to-list 'org-emphasis-alist '("/" (:foreground "cyan")))
 (add-to-list 'org-emphasis-alist '("_" (:foreground "cyan")))
+;; C-tab(original 'org-force-cycle-archived) to show the element
+;; in another window(simpler version of org-panes.el)
+;; then M-PageUp/Down to scroll another window
+(define-key org-mode-map (kbd "C-<tab>") 'org-tree-to-indirect-buffer)
 ;; (setq org-emphasis-alist
 	  ;; (append org-emphasis-alist '((" ` " bold "<b>" "</b>"))))
 ;; (add-to-list 'org-emphasis-alist '("`" (:foreground "cyan")))
