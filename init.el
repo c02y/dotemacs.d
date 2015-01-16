@@ -158,6 +158,11 @@
 				'(lambda ()
 				   (interactive)
 				   (load-file "~/.emacs.d/init.elc")))
+;; C-h e to switch to *Message* buffer, C-x M-z to *Scratch* buffer
+(global-set-key (kbd "C-x M-z")
+				'(lambda ()
+				   (interactive)
+				   (switch-to-buffer "*scratch*")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -523,6 +528,9 @@ Only applies to text-mode."
 Also converts commas to full stops, and kills
 extraneous space at beginning of line."
   (interactive)
+  ;; convert from head of the word
+  (unless (looking-back "\\b")
+    (backward-word))
   (endless/convert-punctuation "," ".")
   (if (use-region-p)
 	  (call-interactively 'capitalize-region)
@@ -535,6 +543,9 @@ extraneous space at beginning of line."
   "Downcase region or word.
 Also converts full stops to commas."
   (interactive)
+  ;; convert from head of the word
+  (unless (looking-back "\\b")
+	(backward-word))
   (endless/convert-punctuation "\\." ",")
   (if (use-region-p)
 	  (call-interactively 'downcase-region)
@@ -542,6 +553,9 @@ Also converts full stops to commas."
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
+  ;; convert from head of the word
+  (unless (looking-back "\\b")
+    (backward-word))
   (if (use-region-p)
 	  (call-interactively 'upcase-region)
 	(call-interactively 'subword-upcase)))
@@ -1967,6 +1981,15 @@ into one step."
 	(other-window 1)
 	(helm-occur)))
 (global-set-key (kbd "C-S-s") 'helm-other-occur)
+(defun helm-backspace ()
+  "Forward to `backward-delete-char'.
+On error (read-only), quit without selecting(showing 'Text is read only' in minibuffer)."
+  (interactive)
+  (condition-case nil
+      (backward-delete-char 1)
+    (error
+     (helm-keyboard-quit))))
+(define-key helm-map (kbd "DEL") 'helm-backspace)
 (global-set-key (kbd "M-x") 'helm-M-x)
 ;; M-y cycles the kill ring
 (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
@@ -2120,10 +2143,19 @@ into one step."
 (custom-set-faces
  '(rainbow-delimiters-depth-1-face
    ((t (:foreground "white" :weight normal)))))
+;; ;;
+;; ;; rainbow-identifiers
+;; ;; rainbow identifiers according to their names
+;; (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+;; ;; dark color
+;; (setq rainbow-identifiers-choose-face-function
+;;    'rainbow-identifiers-cie-l*a*b*-choose-face
+;;    rainbow-identifiers-cie-l*a*b*-lightness 70
+;;    rainbow-identifiers-cie-l*a*b*-saturation 50
+;;    rainbow-identifiers-cie-l*a*b*-color-count 65536)
 ;;
-;; rainbow-identifiers
-;; rainbow identifiers according to their names
-(add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+;; color-identifiers-mode -- better than rainbow-identifiers
+(add-hook 'prog-mode-hook 'color-identifiers-mode)
 
 ;; makey required by discover-my-major and discover
 
