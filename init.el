@@ -153,7 +153,7 @@
 (global-set-key (kbd "C-c C-e")
 				'(lambda ()
 				   (interactive)
-				   (find-file "~/.emacs")))
+				   (find-file "~/.emacs.d/init.el")))
 (global-set-key (kbd "C-c C-r")
 				'(lambda ()
 				   (interactive)
@@ -408,7 +408,7 @@
 ;; make someWord two words for M-f/b, some-word, some_word are two words already
 (subword-mode)
 (global-hl-line-mode 1)
-(set-default 'cursor-type 'bar)
+(set-default 'cursor-type '(bar . 3))
 
 ;; using a visible bell when error occurs
 (setq visible-bell t)
@@ -906,7 +906,7 @@ With prefix argument(C-u), it will create a new line, jump into it but no indent
 With negative prefix argument(C--), it will create a new line above the current
 line and jump into it(like C-a C-o)
 
-NOTE: Use C/M-j instead to split the line and indent/no-indent."
+In comments, RET will automatically use C-M-j instead."
   (interactive "P")
   (if (equal arg '-)
 	  (progn
@@ -917,10 +917,11 @@ NOTE: Use C/M-j instead to split the line and indent/no-indent."
 		  (end-of-line)
 		  (open-line 1)
 		  (forward-line))
-	  (progn
-		(end-of-line)
-		(newline-and-indent)
-	  ))))
+	  (if (lispy--in-comment-p)
+		  (call-interactively (key-binding (kbd "C-M-j")))
+		(progn
+		  (end-of-line)
+		  (newline-and-indent))))))
 (global-set-key (kbd "RET") 'advanced-return)
 
 (setq byte-compile-warnings nil)
@@ -2337,6 +2338,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(whitespace-mode . "")
 	(subword-mode . "")
 	(smooth-scroll-mode . "")
+	(org-indent-mode . "")
+	(color-identifiers-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
