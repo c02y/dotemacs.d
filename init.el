@@ -1117,9 +1117,7 @@ This function returns the window which holds BUFFER. FORCE-OTHER-WINDOW is ignor
 (eval-after-load "ediff"
   '(progn
 	 (setq ediff-split-window-function
-		   (if (> (frame-width) 100)
-			   'split-window-horizontally
-			 'split-window-vertically))
+		   'split-window-horizontally) 	;; use | to change the style
 	 (setq ediff-window-setup-function
 		   'ediff-setup-windows-plain)
 	 ;; delete these buffers (if they are not modified) after q
