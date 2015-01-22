@@ -784,6 +784,18 @@ See `fill-paragraph' and `fill-region'."
 ;; map H from dired-do-hardlink to dired-omit-mode since it will not be used
 (define-key dired-mode-map (kbd "H") 'dired-omit-mode)
 (add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
+(defun dired-get-size ()
+  "Get the size of a directory or a series of marked files and directories."
+  (interactive)
+  (let ((files (dired-get-marked-files)))
+    (with-temp-buffer
+      (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
+      (message
+       "Size of all marked files: %s"
+       (progn
+         (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
+         (match-string 1))))))
+(define-key dired-mode-map (kbd "z") 'dired-get-size)
 ;; sort in dired, `C-u s` then -S(sort by size), -u(sort by access time),
 ;; -c(sort by last modification time), -X(sort by file extension),
 ;; another, in dired `s`
@@ -906,7 +918,8 @@ With prefix argument(C-u), it will create a new line, jump into it but no indent
 With negative prefix argument(C--), it will create a new line above the current
 line and jump into it(like C-a C-o)
 
-In comments, RET will automatically use C-M-j instead."
+In comments, RET will automatically use C-M-j instead.
+In other non-comment situations, try C-M-j to split."
   (interactive "P")
   (if (equal arg '-)
 	  (progn
@@ -947,7 +960,7 @@ In comments, RET will automatically use C-M-j instead."
 (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
-;; there are shell and eshell
+;; http://ergoemacs.org/emacs/emacs_shell_vs_term_vs_ansi-term_vs_eshell.html
 (global-set-key (kbd "C-x s") 'shell)
 ;; shell will prompt if you try to kill the buffer, but eshell will not.  eshell
 ;; will not use the .bashrc/.fishrc, but shell will makes shell command always
@@ -958,8 +971,8 @@ In comments, RET will automatically use C-M-j instead."
 		 (generate-new-buffer-name "*shell*")))
 	ad-do-it))
 ;; make shell in emacs load .bashrc/.fishrc
-(setq shell-command-switch "-lc")
-(ad-activate 'shell)
+;; (setq shell-command-switch "-lc")
+;; (ad-activate 'shell)
 
 ;; copy/paste between system/Emacs
 ;; 1. after copy Ctrl+c in Linux X11, you can C-y in emacs
@@ -1041,17 +1054,20 @@ In comments, RET will automatically use C-M-j instead."
 ;; new window to vertically by default
 ;; (setq split-height-threshold nil)
 ;; (setq split-width-threshold 0)
-;; Automatically split window vertically if current window is wide enough
+;; Automatically split window horizontally(side-by-side) if current window is wide enough
 (defun display-new-buffer (buffer force-other-window)
   "If BUFFER is visible, select it.
-If it's not visible and there's only one window, split the
-current window and select BUFFER in the new window. If the
-current window (before the split) is more than 100 columns wide,
+
+If it's not visible and there's only one window, split the current window
+and select BUFFER in the new window.
+
+If the current window (before the split) is more than 100 columns wide,
 split horizontally(left/right), else split vertically(up/down).
-If the current buffer contains more than one window, select
-BUFFER in the least recently used window.
-This function returns the window which holds BUFFER.
-FORCE-OTHER-WINDOW is ignored."
+
+If the current buffer contains more than one window, select BUFFER in the
+least recently used window.
+
+This function returns the window which holds BUFFER. FORCE-OTHER-WINDOW is ignored."
   (or (get-buffer-window buffer)
 	  (if (one-window-p)
 		  (let ((new-win
@@ -1589,10 +1605,10 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; change-inner -- require expand-region
 ;; `change-inner "` would kill the contents of the string
 ;; `change-outer "` would kill the entire string(including ")
-;; `change-inner {` would kill the return-statement
+;; `change-inner {` would kill the content inside of {}
 ;; `change-outer {` would kill the entire block（including {）
 ;; Giving these commands a prefix argument `C-u` means copy instead of kill.
-(autoload 'change-inner "change-inner" t)
+(require 'change-inner)
 (global-set-key (kbd "M-i") 'change-inner)
 (global-set-key (kbd "M-o") 'change-outer)
 
@@ -2299,7 +2315,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (eval-after-load "lispy"
   '(progn
 	 (define-key lispy-mode-map (kbd "RET") nil)
-	 (define-key lispy-mode-map (kbd "C-e") nil)))
+	 (define-key lispy-mode-map (kbd "C-e") nil)
+	 (define-key lispy-mode-map (kbd "M-i") nil)
+	 (define-key lispy-mode-map (kbd "M-o") nil)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
   (if (lispy--in-comment-p)
