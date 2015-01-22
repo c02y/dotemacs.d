@@ -76,7 +76,7 @@
 ;; ask encryption password once
 (setq epa-file-cache-passphrase-for-symmetric-encryption t)
 
-;; DO NOT CHANGE
+;; http://www.cataclysmicmutation.com/2010/11/multiple-gmail-accounts-in-gnus/
 (setq user-mail-address "cody.chan.cz@gmail.com"
       user-full-name "Cody Chan")
 (setq gnus-select-method
@@ -87,14 +87,14 @@
                (nnimap-authinfo-file "~/.authinfo.gpg")
                (nnir-search-engine imap)
                ))
-(add-to-list 'gnus-secondary-select-methods
-             '(nnimap "ch"
-                      (nnimap-address "imap.gmail.com")
-                      (nnimap-server-port 993)
-                      (nnimap-stream ssl)
-                      (nnimap-authinfo-file "~/.authinfo.gpg")
-                      (nnir-search-engine imap)
-                      ))
+;; (add-to-list 'gnus-secondary-select-methods
+;;              '(nnimap "ch"
+;;                       (nnimap-address "imap.gmail.com")
+;;                       (nnimap-server-port 993)
+;;                       (nnimap-stream ssl)
+;;                       (nnimap-authinfo-file "~/.authinfo.gpg")
+;;                       (nnir-search-engine imap)
+;;                       ))
 
 ;; more user friendly layout for your email client
 ;; https://www.gnu.org/software/emacs/manual/html_node/gnus/Window-Layout.html
@@ -111,13 +111,24 @@
                (vertical 40 (group 1.0))
                (vertical 1.0 (summary 1.0 point)))))
 
+;; show all the mails even read ones
+(setq gnus-parameters '((".*" (display . all))))
 
 ;; make the newsgroup name look better
 (setq gnus-group-sort-function
-      (quote (
-              gnus-group-sort-by-level
-              gnus-group-sort-by-alphabet
-              )))
+	  ;; Use `G S ...` to change sort order
+      '(gnus-group-sort-by-alphabet gnus-group-sort-by-level))
+(defun group-sort ()
+  (interactive)
+  (gnus-group-sort-groups gnus-group-sort-function nil))
+(defun group-sort-one-key ()
+  ;; Sometimes it's not sorted right, and typing "G S s" is a pain.
+  (if (eq (key-binding "`") 'undefined)
+      (local-set-key "`" 'group-sort)
+    (message "Key ` has a binding, believe it or not.")))
+(add-hook 'gnus-group-mode-hook 'group-sort)
+(add-hook 'gnus-group-mode-hook 'group-sort-one-key)
+
 (setq gnus-group-line-format "%M%S%6y/%-6t: %uG %D\n")
 ;; 1.
 (defun gnus-user-format-function-G (arg)
