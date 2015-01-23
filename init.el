@@ -1867,7 +1867,9 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; TAB to indent the _whole_(not lines) code snippet block comparing with "#+BEGIN_SRC" part
 (setq org-src-tab-acts-natively t)
 ;; space before src content and the header such as #+BEGIN_SRC
-(setq org-edit-src-content-indentation 4)
+;; (setq org-edit-src-content-indentation 4)
+;; fix problems of more spaces before source code lines in the exported html file
+(setq org-src-preserve-indentation t)
 (add-hook 'org-mode-hook
 		  (lambda ()
 			;; in code snippet block, `C-c '` and then TAB to format code snippet lines
@@ -1909,6 +1911,22 @@ into one step."
 ;; (add-to-list 'org-emphasis-alist '("`" (:foreground "cyan")))
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
+;;
+;; org-export stylesheet
+(setq org-html-head-extra "<link rel=\"stylesheet\" href=\"/home/chz/.emacs.d/lisp/org.css\" type=\"text/css\" />")
+(defun my/org-inline-css-hook (exporter)
+  "Insert custom inline css to automatically set the
+background of code to whatever theme I'm using's background"
+  (when (eq exporter 'html)
+    (let* ((my-pre-bg (face-background 'default))
+           (my-pre-fg (face-foreground 'default)))
+      (setq
+       org-html-head-extra
+       (concat
+        org-html-head-extra
+        (format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
+                my-pre-bg my-pre-fg))))))
+(add-hook 'org-export-before-processing-hook 'my/org-inline-css-hook)
 
 ;; icicles
 ;; icicles & helm differences:
@@ -2106,12 +2124,17 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
   "TAB a item to scroll the of the repeat."
   (recenter-top-bottom 0))
 
-;; ;; emmet for web development
-;; (autoload 'emmet-mode "emmet for web development" t)
-;; (dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
-;;   (add-hook mode
-;; 			'(lambda ()
-;; 			   (emmet-mode))))
+;; emmet for web development
+;; http://docs.emmet.io/
+(dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
+  (add-hook mode
+         '(lambda ()
+            (emmet-mode))))
+;; web-mode
+;; http://web-mode.org/
+(dolist (hook '(css-mode-hook
+             html-mode-hook))
+  (add-hook hook (lambda () (web-mode))))
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
@@ -2154,10 +2177,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; rainbow nested parens, brackets, braces a different color at each depth
 ;;  like highlight-parentheses-mode but static
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
-;; make the outermost delimiters not red but white, not bold but normal
+;; make the outermost delimiters not red
 (custom-set-faces
  '(rainbow-delimiters-depth-1-face
-   ((t (:foreground "white" :weight normal)))))
+   ((t (:foreground "#00d7af")))))
 ;; ;;
 ;; ;; rainbow-identifiers
 ;; ;; rainbow identifiers according to their names
