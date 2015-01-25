@@ -133,12 +133,16 @@
 
 ;; http://www.toryanderson.com/tech/upgrading-emacs-built-org-mode-4-easy-steps
 ;; Add this before setting any Org option(loading org-mode)
-;; and M-x package-install under `emacs -q`(prevents it from loading my .emacs file, which includes many references to org-mode stuff.)
+;; and M-x package-install under `emacs -q`(prevents it from loading my .emacs file,
+;; which includes many references to org-mode stuff.)
 ;; to prevent two versions of org-mode messed-up
 (package-initialize)
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 
+(defalias 'man 'woman)
+(setq byte-compile-warnings nil)
+(defalias 'eit 'emacs-init-time)
 ;; re/compile every elisp file when saving it
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
@@ -150,6 +154,11 @@
 	  (delete-file (concat user-init-file ".elc")))
 	(emacs-lisp-byte-compile-and-load)))
 (add-hook 'after-save-hook 'byte-compile-init-file)
+(defalias 'bd 'byte-recompile-directory)
+;; byte-comple and load *.el using "C-x c"
+(define-key emacs-lisp-mode-map (kbd "C-x c") 'emacs-lisp-byte-compile-and-load)
+(define-key emacs-lisp-mode-map (kbd "C-c c") 'eval-buffer)
+(define-key lisp-mode-map (kbd "C-c c") 'eval-buffer)
 (global-set-key (kbd "C-c C-e")
 				'(lambda ()
 				   (interactive)
@@ -167,7 +176,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
 (setq bookmark-save-flag t)
 (setq column-number-mode t)
 (setq-default fill-column 80)
@@ -937,7 +945,6 @@ In other non-comment situations, try C-M-j to split."
 		  (newline-and-indent))))))
 (global-set-key (kbd "RET") 'advanced-return)
 
-(setq byte-compile-warnings nil)
 ;; comment in C code,`M-;` means /* */, use // in C++ code
 (add-hook 'c++-mode-hook
 		  (lambda ()
@@ -987,12 +994,6 @@ In other non-comment situations, try C-M-j to split."
 
 ;; when you edit a file, use C-x C-j to go to the dir which the current file lies
 (global-set-key (kbd "C-x C-j") 'dired-jump)
-;; byte-comple and load *.el using "C-x c"
-(define-key emacs-lisp-mode-map (kbd "C-x c") 'emacs-lisp-byte-compile-and-load)
-(define-key emacs-lisp-mode-map (kbd "C-c c") 'eval-buffer)
-(define-key lisp-mode-map (kbd "C-c c") 'eval-buffer)
-
-(defalias 'bd 'byte-recompile-directory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; Window
@@ -1005,12 +1006,11 @@ In other non-comment situations, try C-M-j to split."
 			(define-key org-mode-map [(control shift left)] nil)
 			(define-key org-mode-map [(control shift right)] nil)
 			(define-key org-mode-map [(control shift up)] nil)
-			(define-key org-mode-map [(control shift down)] nil)
-			))
-(global-set-key (kbd "S-C-<left>")	'shrink-window-horizontally)
+			(define-key org-mode-map [(control shift down)] nil)))
+(global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>")	'enlarge-window-horizontally)
-(global-set-key (kbd "S-C-<down>")	'shrink-window)
-(global-set-key (kbd "S-C-<up>")	'enlarge-window)
+(global-set-key (kbd "S-C-<down>") 'shrink-window)
+(global-set-key (kbd "S-C-<up>") 'enlarge-window)
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
 ;; you can C-x 1 to close other windows and C-c <left> to restore
@@ -1171,10 +1171,6 @@ Emacs session."
 (add-hook 'c-mode-common-hook
 		  (lambda()
 			(local-set-key	(kbd "C-c o") 'ff-find-other-file)))
-
-;; alias
-(defalias 'man 'woman)
-(defalias 'eit 'emacs-init-time)
 
 ;; Saveplace & desktop
 (setq-default save-place t)
@@ -2113,7 +2109,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'magit-status-mode-hook
 		  (lambda ()
 			(setq truncate-lines nil)
-			;; (magit-filenotify-mode)
+			(magit-filenotify-mode)
 			))
 (add-hook 'git-commit-mode-hook
 		  (lambda ()
