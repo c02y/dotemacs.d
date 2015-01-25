@@ -1,3 +1,9 @@
+/* more:
+   orgmode.org/worg/style/worg.css
+   orgmode.org/worg/style/worg-classic.css
+   orgmode.org/worg/style/worg-zenburn.css
+   ...and Google....
+ */
 body {
     margin: 1em;
     border-right: 5px solid #bbb;
@@ -8,8 +14,9 @@ body {
     margin: 0;
     padding: 2em;
     color: #000;
-    font-family: "Bitstream Vera Sans", Verdana, sans-serif;
-    font-size: 100%;
+    /*    font-family: "Bitstream Vera Sans", Verdana, sans-serif; */
+    font-family: "PT Sans", Verdana, sans-serif;
+    font-size: 110%;
 }
 
 /* color od verbatim and code (== and ~~) text */
@@ -31,12 +38,12 @@ a {text-decoration: none; font-weight: 400;}
     a:hover {text-decoration: underline;}
 
 #table-of-contents {
-	font-size: 10pt;
+	font-size: 11pt;
 	position: fixed;
 	right: 0em;
 	top: 0em;
 	background: white;
-	line-height: 12pt;
+	line-height: 14pt;
 	text-align: right;
 	box-shadow: 0 0 1em #777777;
 	-webkit-box-shadow: 0 0 1em #777777;
@@ -44,7 +51,7 @@ a {text-decoration: none; font-weight: 400;}
 	-webkit-border-bottom-left-radius: 5px;
 	-moz-border-radius-bottomleft: 5px;
 	/* ensure doesn't flow off the screen when expanded */
-	max-height: 80%;
+	max-height: 100%;
 	overflow: auto; }
 #table-of-contents h2 {
 	font-size: 13pt;
@@ -85,7 +92,8 @@ div.title {
     background: #369;
     color: #fff;
     padding: .75em 1em;
-    font-family: "BitStream Vera Sans", Verdana;
+/*    font-family: "BitStream Vera Sans", Verdana;*/
+    font-family: "PT Sans", Verdana;
     letter-spacing: .1em;
 }
 
