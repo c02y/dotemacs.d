@@ -172,6 +172,20 @@
 				'(lambda ()
 				   (interactive)
 				   (switch-to-buffer "*scratch*")))
+;;
+(setq compilation-last-buffer nil)
+(defun compile-again (arg)
+  "Run the same compile as the last time.
+
+If there was no last time, or there is a prefix argument, this acts like M-x compile. "
+(interactive "p")
+(if (and (eq arg 1)
+		 compilation-last-buffer)
+	(progn
+	  (set-buffer compilation-last-buffer)
+	  (revert-buffer t t))
+  (call-interactively 'compile)))
+(global-set-key (kbd "C-x C-m") 'compile-again)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -1812,6 +1826,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; use global defined C-a/e not `org-end/beginning-of-line`
 (define-key org-mode-map (kbd "C-e") nil)
 (define-key org-mode-map (kbd "C-a") nil)
+(define-key org-mode-map (kbd "RET") 'advanced-return)
 ;; show/unshow the descriptive and literal links
 (define-key org-mode-map (kbd "C-c C-x l") 'org-toggle-link-display)
 ;; If you would like to embed a TODO within text without treating it as
@@ -1895,9 +1910,9 @@ into one step."
 	(indent-region (point-min) (point-max))
 	(org-edit-src-exit)))
 (define-key org-mode-map (kbd "C-c <C-tab>") 'org-src-format)
-(add-to-list 'org-emphasis-alist '("*" (:foreground "cyan")))
-(add-to-list 'org-emphasis-alist '("/" (:foreground "cyan")))
-(add-to-list 'org-emphasis-alist '("_" (:foreground "cyan")))
+(add-to-list 'org-emphasis-alist '("*" (:foreground "cyan" :weight bold)))
+(add-to-list 'org-emphasis-alist '("/" (:foreground "cyan" :slant italic)))
+(add-to-list 'org-emphasis-alist '("_" (:foreground "cyan" :underline t)))
 ;; C-tab(original 'org-force-cycle-archived) to show the element
 ;; in another window(simpler version of org-panes.el)
 ;; then M-PageUp/Down to scroll another window
@@ -1909,7 +1924,8 @@ into one step."
 ;; org-plus-contrib
 ;;
 ;; org-export stylesheet
-(setq org-html-head-extra "<link rel=\"stylesheet\" href=\"/home/chz/.emacs.d/lisp/org.css\" type=\"text/css\" />")
+(setq org-html-head-extra
+	  "<link rel=\"stylesheet\" href=\"/home/chz/.emacs.d/lisp/org.css\" type=\"text/css\" />")
 (defun my/org-inline-css-hook (exporter)
   "Insert custom inline css to automatically set the
 background of code to whatever theme I'm using's background"
@@ -1923,6 +1939,21 @@ background of code to whatever theme I'm using's background"
         (format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
                 my-pre-bg my-pre-fg))))))
 (add-hook 'org-export-before-processing-hook 'my/org-inline-css-hook)
+;; If you never use "plain" footnotes like [1] or p[1], you can adjust two variables
+;; to avoid org-mode wrongly interpreting square brackets as footnote
+;; Use styles at http://orgmode.org/manual/Footnotes.html such as [fn:1]
+;; C-c C-c to jump to/back definition/reference
+(setq org-footnote-re
+	  (concat "\\[\\(?:"
+			  ;; Match inline footnotes.
+			  (org-re "fn:\\([-_[:word:]]+\\)?:\\|")
+			  ;; Match other footnotes. "\\(?:\\([0-9]+\\)\\]\\)\\|"
+			  (org-re "\\(fn:[-_[:word:]]+\\)")
+			  "\\)"))
+(setq org-footnote-definition-re
+      (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
+;; remove the end part of the exported file such as `author, date, emacs and org-mode version`
+(setq org-export-html-postamble nil)
 
 ;; icicles
 ;; icicles & helm differences:
@@ -2334,7 +2365,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	 (define-key lispy-mode-map (kbd "RET") nil)
 	 (define-key lispy-mode-map (kbd "C-e") nil)
 	 (define-key lispy-mode-map (kbd "M-i") nil)
-	 (define-key lispy-mode-map (kbd "M-o") nil)))
+	 (define-key lispy-mode-map (kbd "M-o") nil)
+	 (define-key lispy-mode-map (kbd "M-q") nil)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
   (if (lispy--in-comment-p)
