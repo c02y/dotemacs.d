@@ -1910,9 +1910,22 @@ into one step."
 	(indent-region (point-min) (point-max))
 	(org-edit-src-exit)))
 (define-key org-mode-map (kbd "C-c <C-tab>") 'org-src-format)
-(add-to-list 'org-emphasis-alist '("*" (:foreground "cyan" :weight bold)))
-(add-to-list 'org-emphasis-alist '("/" (:foreground "cyan" :slant italic)))
-(add-to-list 'org-emphasis-alist '("_" (:foreground "cyan" :underline t)))
+;; in org-mode file
+(setq org-emphasis-alist '(
+						   ("*" (:foreground "cyan" :weight bold))
+						   ("/" (:foreground "cyan" :slant italic))
+						   ("_" (:foreground "cyan" :underline t))
+						   ("=" (:box t))
+						   ("~" (:box (:line-width 3)))
+						   ("+" (:foreground "cyan" :strike-through t))))
+;; in html file
+(setq org-html-text-markup-alist
+  '((bold . "<b>%s</b>")
+    (code . "<kbd>%s</kbd>")
+    (italic . "<i>%s</i>")
+    (strike-through . "<del>%s</del>")
+    (underline . "<span class=\"underline\">%s</span>")
+    (verbatim . "<code>%s</code>")))
 ;; C-tab(original 'org-force-cycle-archived) to show the element
 ;; in another window(simpler version of org-panes.el)
 ;; then M-PageUp/Down to scroll another window
@@ -1944,16 +1957,16 @@ background of code to whatever theme I'm using's background"
 ;; Use styles at http://orgmode.org/manual/Footnotes.html such as [fn:1]
 ;; C-c C-c to jump to/back definition/reference
 (setq org-footnote-re
-	  (concat "\\[\\(?:"
-			  ;; Match inline footnotes.
-			  (org-re "fn:\\([-_[:word:]]+\\)?:\\|")
-			  ;; Match other footnotes. "\\(?:\\([0-9]+\\)\\]\\)\\|"
-			  (org-re "\\(fn:[-_[:word:]]+\\)")
-			  "\\)"))
+   (concat "\\[\\(?:"
+           ;; Match inline footnotes.
+           (org-re "fn:\\([-_[:word:]]+\\)?:\\|")
+           ;; Match other footnotes. "\\(?:\\([0-9]+\\)\\]\\)\\|"
+           (org-re "\\(fn:[-_[:word:]]+\\)")
+           "\\)"))
 (setq org-footnote-definition-re
       (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
 ;; remove the end part of the exported file such as `author, date, emacs and org-mode version`
-(setq org-export-html-postamble nil)
+(setq org-html-postamble nil)
 
 ;; icicles
 ;; icicles & helm differences:
