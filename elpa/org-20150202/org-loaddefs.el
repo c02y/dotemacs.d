@@ -292,7 +292,7 @@ used to limit the exported source code blocks by language.
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
 ;;;;;;  org-agenda org-toggle-sticky-agenda) "org-agenda" "org-agenda.el"
-;;;;;;  (21700 35045))
+;;;;;;  (21709 49990))
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -643,20 +643,9 @@ Extract anniversaries from BBDB for display in the agenda.
 
 ;;;***
 
-;;;### (autoloads (org-bullets-mode) "org-bullets" "org-bullets.el"
-;;;;;;  (21028 28790))
-;;; Generated autoloads from org-bullets.el
-
-(autoload 'org-bullets-mode "org-bullets" "\
-UTF-8 bullets for `org-mode'.
-
-\(fn &optional ARG)" t nil)
-
-;;;***
-
 ;;;### (autoloads (org-capture-import-remember-templates org-capture
-;;;;;;  org-capture-string) "org-capture" "org-capture.el" (21700
-;;;;;;  35045))
+;;;;;;  org-capture-string) "org-capture" "org-capture.el" (21709
+;;;;;;  49990))
 ;;; Generated autoloads from org-capture.el
 
 (autoload 'org-capture-string "org-capture" "\
@@ -829,37 +818,10 @@ Otherwise, return nil.
 
 ;;;***
 
-;;;### (autoloads (org-columns-number-to-string org-columns-compute
-;;;;;;  org-columns-get-format-and-top-level org-columns-remove-overlays)
-;;;;;;  "org-colview-xemacs" "org-colview-xemacs.el" (21700 35045))
-;;; Generated autoloads from org-colview-xemacs.el
-
-(autoload 'org-columns-remove-overlays "org-colview-xemacs" "\
-Remove all currently active column overlays.
-
-\(fn)" t nil)
-
-(autoload 'org-columns-get-format-and-top-level "org-colview-xemacs" "\
-Not documented
-
-\(fn)" nil nil)
-
-(autoload 'org-columns-compute "org-colview-xemacs" "\
-Sum the values of property PROPERTY hierarchically, for the entire buffer.
-
-\(fn PROPERTY)" t nil)
-
-(autoload 'org-columns-number-to-string "org-colview-xemacs" "\
-Convert a computed column number to a string value, according to FMT.
-
-\(fn N FMT &optional PRINTF)" nil nil)
-
-;;;***
-
 ;;;### (autoloads (org-agenda-columns org-insert-columns-dblock org-dblock-write:columnview
 ;;;;;;  org-columns-number-to-string org-columns-compute org-columns
 ;;;;;;  org-columns-get-format-and-top-level org-columns-remove-overlays)
-;;;;;;  "org-colview" "org-colview.el" (21700 35045))
+;;;;;;  "org-colview" "org-colview.el" (21709 49990))
 ;;; Generated autoloads from org-colview.el
 
 (autoload 'org-columns-remove-overlays "org-colview" "\
@@ -923,24 +885,13 @@ Turn on or update column view in the agenda.
 ;;;***
 
 ;;;### (autoloads (org-check-version) "org-compat" "org-compat.el"
-;;;;;;  (21700 35045))
+;;;;;;  (21709 49990))
 ;;; Generated autoloads from org-compat.el
 
 (autoload 'org-check-version "org-compat" "\
 Try very hard to provide sensible version strings.
 
 \(fn)" nil (quote macro))
-
-;;;***
-
-;;;### (autoloads (org-contacts) "org-contacts" "org-contacts.el"
-;;;;;;  (21700 35045))
-;;; Generated autoloads from org-contacts.el
-
-(autoload 'org-contacts "org-contacts" "\
-Create agenda view for contacts matching NAME.
-
-\(fn NAME)" t nil)
 
 ;;;***
 
@@ -1205,7 +1156,7 @@ Dispatch to the appropriate function to store a link to an IRC session.
 ;;;***
 
 ;;;### (autoloads (org-load-noerror-mustsuffix) "org-macs" "org-macs.el"
-;;;;;;  (21700 35045))
+;;;;;;  (21709 49990))
 ;;; Generated autoloads from org-macs.el
 
 (autoload 'org-load-noerror-mustsuffix "org-macs" "\
@@ -1244,90 +1195,6 @@ If not given options will be taken from the +PLOT
 line directly before or after the table.
 
 \(fn &optional PARAMS)" t nil)
-
-;;;***
-
-;;;### (autoloads (org-registry-update org-registry-insinuate org-registry-initialize
-;;;;;;  org-registry-visit org-registry-show) "org-registry" "org-registry.el"
-;;;;;;  (21196 60374))
-;;; Generated autoloads from org-registry.el
-
-(autoload 'org-registry-show "org-registry" "\
-Show Org files where there are links pointing to the current
-buffer.
-
-\(fn &optional VISIT)" t nil)
-
-(autoload 'org-registry-visit "org-registry" "\
-If an Org file contains a link to the current location, visit
-this file.
-
-\(fn)" t nil)
-
-(autoload 'org-registry-initialize "org-registry" "\
-Initialize `org-registry-alist'.
-If FROM-SCRATCH is non-nil or the registry does not exist yet,
-create a new registry from scratch and eval it. If the registry
-exists, eval `org-registry-file' and make it the new value for
-`org-registry-alist'.
-
-\(fn &optional FROM-SCRATCH)" t nil)
-
-(autoload 'org-registry-insinuate "org-registry" "\
-Call `org-registry-update' after saving in Org-mode.
-Use with caution.  This could slow down things a bit.
-
-\(fn)" t nil)
-
-(autoload 'org-registry-update "org-registry" "\
-Update the registry for the current Org file.
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (org-screenshot-show-unused org-screenshot-rotate-next
-;;;;;;  org-screenshot-rotate-prev org-screenshot-take) "org-screenshot"
-;;;;;;  "org-screenshot.el" (21196 60374))
-;;; Generated autoloads from org-screenshot.el
-
-(autoload 'org-screenshot-take "org-screenshot" "\
-Take a screenshot and insert link to it at point, if image
-display is already on (see \\[org-toggle-inline-images])
-screenshot will be displayed as an image
-
-Screen area for the screenshot is selected with the mouse, left
-click on a window screenshots that window, while left click and
-drag selects a region. Pressing any key cancels the screen shot
-
-With `C-u' universal argument waits one second after target is
-selected before taking the screenshot. With double `C-u' wait two
-seconds.
-
-With triple `C-u' wait 3 seconds, and also rings the bell when
-screenshot is done, any more `C-u' after that increases delay by
-2 seconds
-
-\(fn &optional DELAY)" t nil)
-
-(autoload 'org-screenshot-rotate-prev "org-screenshot" "\
-Rotate last screenshot with one of the previously taken
-screenshots from the same directory. If DIR is negative, rotate
-in the other direction
-
-\(fn DIR)" t nil)
-
-(autoload 'org-screenshot-rotate-next "org-screenshot" "\
-Rotate last screenshot with one of the previously taken
-screenshots from the same directory. If DIR is negative, rotate
-in the other direction
-
-\(fn DIR)" t nil)
-
-(autoload 'org-screenshot-show-unused "org-screenshot" "\
-Open A Dired buffer with unused screenshots marked
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -2023,40 +1890,8 @@ replace any running timer.
 
 ;;;***
 
-;;;### (autoloads (org-toc-show) "org-toc" "org-toc.el" (21196 60374))
-;;; Generated autoloads from org-toc.el
-
-(autoload 'org-toc-show "org-toc" "\
-Show the table of contents of the current Org-mode buffer.
-
-\(fn &optional DEPTH POSITION)" t nil)
-
-;;;***
-
-;;;### (autoloads (org-track-compile-org org-track-fetch-package)
-;;;;;;  "org-track" "org-track.el" (21196 60374))
-;;; Generated autoloads from org-track.el
-
-(autoload 'org-track-fetch-package "org-track" "\
-Fetch Org package depending on `org-track-fetch-package-extension'.
-If DIRECTORY is defined, unpack the package there, i.e. add the
-subdirectory org-mode/ to DIRECTORY.
-
-\(fn &optional DIRECTORY)" t nil)
-
-(autoload 'org-track-compile-org "org-track" "\
-Compile all *.el files that come with org-mode.
-Generate the autoloads file `org-loaddefs.el'.
-
-DIRECTORY is where the directory org-mode/ lives (i.e. the
-          parent directory of your local repo.
-
-\(fn &optional DIRECTORY)" t nil)
-
-;;;***
-
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (21701 55293))
+;;;;;;  (21711 4709))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2082,7 +1917,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (21700 35045))
+;;;;;;  "org" "org.el" (21709 49990))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2716,42 +2551,6 @@ Return output file name.
 
 ;;;***
 
-;;;### (autoloads (org-freemind-export-to-freemind) "ox-freemind"
-;;;;;;  "ox-freemind.el" (21196 60374))
-;;; Generated autoloads from ox-freemind.el
-
-(autoload 'org-freemind-export-to-freemind "ox-freemind" "\
-Export current buffer to a Freemind Mindmap file.
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting file should be accessible through
-the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-When optional argument BODY-ONLY is non-nil, only write code
-between \"<body>\" and \"</body>\" tags.
-
-EXT-PLIST, when provided, is a property list with external
-parameters overriding Org default settings, but still inferior to
-file-local settings.
-
-Return output file's name.
-
-\(fn &optional ASYNC SUBTREEP VISIBLE-ONLY BODY-ONLY EXT-PLIST)" t nil)
-
-;;;***
-
 ;;;### (autoloads (org-html-publish-to-html org-html-export-to-html
 ;;;;;;  org-html-convert-region-to-html org-html-export-as-html org-html-htmlize-generate-css)
 ;;;;;;  "ox-html" "ox-html.el" "65604b7a2a80c70979b37eb44119d6f9")
@@ -2909,108 +2708,6 @@ The file is stored under the name chosen in
 `org-icalendar-combined-agenda-file'.
 
 \(fn &optional ASYNC)" t nil)
-
-;;;***
-
-;;;### (autoloads (org-koma-letter-export-to-pdf org-koma-letter-export-to-latex
-;;;;;;  org-koma-letter-export-as-latex) "ox-koma-letter" "ox-koma-letter.el"
-;;;;;;  (21700 35045))
-;;; Generated autoloads from ox-koma-letter.el
-
-(autoload 'org-koma-letter-export-as-latex "ox-koma-letter" "\
-Export current buffer as a KOMA Scrlttr2 letter.
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting buffer should be accessible
-through the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-When optional argument BODY-ONLY is non-nil, only write code
-between \"\\begin{letter}\" and \"\\end{letter}\".
-
-EXT-PLIST, when provided, is a proeprty list with external
-parameters overriding Org default settings, but still inferior to
-file-local settings.
-
-Export is done in a buffer named \"*Org KOMA-LETTER Export*\".  It
-will be displayed if `org-export-show-temporary-export-buffer' is
-non-nil.
-
-\(fn &optional ASYNC SUBTREEP VISIBLE-ONLY BODY-ONLY EXT-PLIST)" t nil)
-
-(autoload 'org-koma-letter-export-to-latex "ox-koma-letter" "\
-Export current buffer as a KOMA Scrlttr2 letter (tex).
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting file should be accessible through
-the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-When optional argument BODY-ONLY is non-nil, only write code
-between \"\\begin{letter}\" and \"\\end{letter}\".
-
-EXT-PLIST, when provided, is a property list with external
-parameters overriding Org default settings, but still inferior to
-file-local settings.
-
-When optional argument PUB-DIR is set, use it as the publishing
-directory.
-
-Return output file's name.
-
-\(fn &optional ASYNC SUBTREEP VISIBLE-ONLY BODY-ONLY EXT-PLIST)" t nil)
-
-(autoload 'org-koma-letter-export-to-pdf "ox-koma-letter" "\
-Export current buffer as a KOMA Scrlttr2 letter (pdf).
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting file should be accessible through
-the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-When optional argument BODY-ONLY is non-nil, only write code
-between \"\\begin{letter}\" and \"\\end{letter}\".
-
-EXT-PLIST, when provided, is a property list with external
-parameters overriding Org default settings, but still inferior to
-file-local settings.
-
-Return PDF file's name.
-
-\(fn &optional ASYNC SUBTREEP VISIBLE-ONLY BODY-ONLY EXT-PLIST)" t nil)
 
 ;;;***
 
@@ -3381,159 +3078,6 @@ With a prefix argument, force publishing of all files in
 the project.
 
 \(fn &optional FORCE ASYNC)" t nil)
-
-;;;***
-
-;;;### (autoloads (org-rss-publish-to-rss org-rss-export-to-rss org-rss-export-as-rss)
-;;;;;;  "ox-rss" "ox-rss.el" (21700 35045))
-;;; Generated autoloads from ox-rss.el
-
-(autoload 'org-rss-export-as-rss "ox-rss" "\
-Export current buffer to a RSS buffer.
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting buffer should be accessible
-through the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-Export is done in a buffer named \"*Org RSS Export*\", which will
-be displayed when `org-export-show-temporary-export-buffer' is
-non-nil.
-
-\(fn &optional ASYNC SUBTREEP VISIBLE-ONLY)" t nil)
-
-(autoload 'org-rss-export-to-rss "ox-rss" "\
-Export current buffer to a RSS file.
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting file should be accessible through
-the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-Return output file's name.
-
-\(fn &optional ASYNC SUBTREEP VISIBLE-ONLY)" t nil)
-
-(autoload 'org-rss-publish-to-rss "ox-rss" "\
-Publish an org file to RSS.
-
-FILENAME is the filename of the Org file to be published.  PLIST
-is the property list for the given project.  PUB-DIR is the
-publishing directory.
-
-Return output file name.
-
-\(fn PLIST FILENAME PUB-DIR)" nil nil)
-
-;;;***
-
-;;;### (autoloads (org-taskjuggler-export-process-and-open org-taskjuggler-export-and-process
-;;;;;;  org-taskjuggler-export) "ox-taskjuggler" "ox-taskjuggler.el"
-;;;;;;  (21700 35045))
-;;; Generated autoloads from ox-taskjuggler.el
-
-(autoload 'org-taskjuggler-export "ox-taskjuggler" "\
-Export current buffer to a TaskJuggler file.
-
-The exporter looks for a tree with tag that matches
-`org-taskjuggler-project-tag' and takes this as the tasks for
-this project.  The first node of this tree defines the project
-properties such as project name and project period.
-
-If there is a tree with tag that matches
-`org-taskjuggler-resource-tag' this tree is taken as resources
-for the project.  If no resources are specified, a default
-resource is created and allocated to the project.
-
-Also the TaskJuggler project will be created with default reports
-as defined in `org-taskjuggler-default-reports'.
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting file should be accessible through
-the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-Return output file's name.
-
-\(fn &optional ASYNC SUBTREEP VISIBLE-ONLY)" t nil)
-
-(autoload 'org-taskjuggler-export-and-process "ox-taskjuggler" "\
-Export current buffer to a TaskJuggler file and process it.
-
-The exporter looks for a tree with tag that matches
-`org-taskjuggler-project-tag' and takes this as the tasks for
-this project.  The first node of this tree defines the project
-properties such as project name and project period.
-
-If there is a tree with tag that matches
-`org-taskjuggler-resource-tag' this tree is taken as resources
-for the project.  If no resources are specified, a default
-resource is created and allocated to the project.
-
-Also the TaskJuggler project will be created with default reports
-as defined in `org-taskjuggler-default-reports'.
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-Return a list of reports.
-
-\(fn &optional SUBTREEP VISIBLE-ONLY)" t nil)
-
-(autoload 'org-taskjuggler-export-process-and-open "ox-taskjuggler" "\
-Export current buffer to a TaskJuggler file, process and open it.
-
-Export and process the file using
-`org-taskjuggler-export-and-process' and open the generated
-reports with a browser.
-
-If you are targeting TaskJuggler 2.4 (see
-`org-taskjuggler-target-version') the processing and display of
-the reports is done using the TaskJuggler GUI.
-
-\(fn &optional SUBTREEP VISIBLE-ONLY)" t nil)
 
 ;;;***
 
