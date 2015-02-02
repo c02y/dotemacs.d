@@ -138,7 +138,7 @@
 ;; to prevent two versions of org-mode messed-up
 (package-initialize)
 
-(add-to-list 'load-path "~/.emacs.d/lisp")
+(add-to-list 'load-path "~/.emacs.d/lisp/")
 
 (defalias 'man 'woman)
 (setq byte-compile-warnings nil)
@@ -172,20 +172,31 @@
 				'(lambda ()
 				   (interactive)
 				   (switch-to-buffer "*scratch*")))
-;;
+
+;; compile
+;; use `C-c ! n/p` 'flycheck-next/previous-error to navigate errors
+(require 'compile)
 (setq compilation-last-buffer nil)
-(defun compile-again (arg)
+(defun compile-again (ARG)
   "Run the same compile as the last time.
 
-If there was no last time, or there is a prefix argument, this acts like M-x compile. "
-(interactive "p")
-(if (and (eq arg 1)
-		 compilation-last-buffer)
-	(progn
-	  (set-buffer compilation-last-buffer)
-	  (revert-buffer t t))
-  (call-interactively 'compile)))
+First split the current source code window in a given size if no existed window contains *compilation* buffer.
+
+With a prefix argument, this acts like M-x compile, you can reconfigure the compile args."
+  (interactive "p")
+  (if (not (get-buffer-window "*compilation*"))
+	  (split-window-vertically -10))
+  (if (eq ARG 1)
+	  (recompile)
+	(call-interactively 'compile)))
 (global-set-key (kbd "C-x C-m") 'compile-again)
+(defun compilation-exit-autoclose (STATUS code msg)
+  "Close the compilation window if there was no error at all."
+  (when (and (eq STATUS 'exit) (zerop code))
+	(bury-buffer)
+	(delete-window (get-buffer-window (get-buffer "*compilation*"))))
+  (cons msg code))
+(setq compilation-exit-message-function 'compilation-exit-autoclose)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -1911,13 +1922,14 @@ into one step."
 	(org-edit-src-exit)))
 (define-key org-mode-map (kbd "C-c <C-tab>") 'org-src-format)
 ;; in org-mode file
-(setq org-emphasis-alist '(
-						   ("*" (:foreground "cyan" :weight bold))
-						   ("/" (:foreground "cyan" :slant italic))
-						   ("_" (:foreground "cyan" :underline t))
-						   ("=" (:box t))
-						   ("~" (:box (:line-width 3)))
-						   ("+" (:foreground "cyan" :strike-through t))))
+(setq org-emphasis-alist
+	  '(
+		("*" (:foreground "cyan" :weight bold))
+		("/" (:foreground "cyan" :slant italic))
+		("_" (:foreground "cyan" :underline t))
+		("=" (:box t))
+		("~" (:box (:line-width 3)))
+		("+" (:foreground "cyan" :strike-through t))))
 ;; in html file
 (setq org-html-text-markup-alist
   '((bold . "<b>%s</b>")
@@ -2386,6 +2398,11 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	  (delete-line (prefix-numeric-value current-prefix-arg))
 	ad-do-it))
 
+;; browse-kill-ring required by bbyac
+;;
+;; bbyac
+(bbyac-global-mode 1)
+
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
 ;;
@@ -2401,7 +2418,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(eldoc-mode . "")
 	(undo-tree-mode . "")
 	(yas-minor-mode . "")
-	(auto-complete-mode . "")
 	(company-mode . "")
 	(highlight-symbol-mode . "")
 	(highlight-parentheses-mode . "")
@@ -2420,6 +2436,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(smooth-scroll-mode . "")
 	(org-indent-mode . "")
 	(color-identifiers-mode . "")
+	(bbyac-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
