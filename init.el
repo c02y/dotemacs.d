@@ -1494,9 +1494,9 @@ Has no effect if the character before point is not of the syntax class ')'."
 		("gnu" . "http://elpa.gnu.org/packages/")
 		("ELPA" . "http://tromey.com/elpa/")
 		("melpa" . "http://melpa.org/packages/")
+		("melpa-stable" . "http://stable.melpa.org/packages/")
 		("marmalade" . "http://marmalade-repo.org/packages/")
-		("melpa-stable1" . "http://stable.melpa.org/packages/")
-		("melpa-stable2" . "http://hiddencameras.milkbox.net/packages/")))
+		))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
 ;; (defalias 'plp 'package-list-packages)
@@ -1927,8 +1927,8 @@ into one step."
 		("*" (:foreground "cyan" :weight bold))
 		("/" (:foreground "cyan" :slant italic))
 		("_" (:foreground "cyan" :underline t))
-		("=" (:box t))
-		("~" (:box (:line-width 3)))
+		("=" (:background "#545454"))
+		("~" (:background "#545454" :box (:line-width 3 :color "#545454" :style released-button)))
 		("+" (:foreground "cyan" :strike-through t))))
 ;; in html file
 (setq org-html-text-markup-alist
@@ -2021,7 +2021,8 @@ background of code to whatever theme I'm using's background"
 ;; use C-h SPC to jump back to where you were, like the 'ggtags-view-tag-history
 (global-set-key (kbd "C-h C-SPC") 'helm-all-mark-rings)
 ;; helm-apropos describes commands, functions, variables and faces - all in one command!
-(global-set-key (kbd "C-h o") 'helm-apropos)
+(global-set-key (kbd "C-h C-o") 'helm-apropos)
+(global-set-key (kbd "C-h C-c") 'helm-colors)
 (global-set-key (kbd "<f1>-o") 'helm-apropos)
 ;; in dired(you have to go to the dir first), helm-find is like find in terminal,
 ;; helm-locate is like locate in terminal, to use local database with prefix argument C-u
@@ -2383,7 +2384,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; noflet, iedit required by lispy
 
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
-;; http://abo-abo.github.io/lispy/
+;; http://oremacs.com/lispy/
+;; http://www.lonecpluspluscoder.com/2014/11/using-elpa-pinned-packages-gnu-emacs-24-4/
+;; update lispy only from melpa-stable
+(when (boundp 'package-pinned-packages)
+  (setq-default package-pinned-packages
+				'((lispy . "melpa-stable"))))
 (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (eval-after-load "lispy"
   '(progn
