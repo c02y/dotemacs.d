@@ -22,7 +22,7 @@ body {
 /* color od verbatim and code (== and ~~) text */
 
 code {
-    border: 1px solid Silver;
+	/* border: 1px solid Silver; */
     background-color: #d6d8ec;
 }
 
