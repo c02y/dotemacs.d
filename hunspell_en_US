@@ -253,3 +253,4 @@ sys
 toolchain
 asynchronicity
 stylesheet
+ncurses
