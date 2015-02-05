@@ -1212,10 +1212,42 @@ Emacs session."
 ;; spell check
 (require 'ispell)
 (defalias 'ib 'ispell-buffer)
-;; spell check engine
-(when (executable-find "hunspell")
-  (setq-default ispell-program-name "hunspell")
-  (setq ispell-really-hunspell t))
+;; spell check engine, aspell better for programmers than hunspell
+(defun flyspell-detect-ispell-args (&optional RUN-TOGETHER)
+  "if RUN-TOGETHER is true, spell check the CamelCase words"
+  (let (args)
+	(cond
+	 ((string-match "aspell$" ispell-program-name)
+	  ;; force the English dictionary, support Camel Case spelling check (tested with aspell 0.6)
+	  (setq args (list "--sug-mode=ultra" "--lang=en_US"))
+	  (if RUN-TOGETHER
+		  (setq args (append args '("--run-together" "--run-together-limit=5" "--run-together-min=2")))))
+	 ((string-match "hunspell$" ispell-program-name)
+	  (setq args nil)))
+	args))
+(cond
+ ((executable-find "aspell")
+  (setq ispell-program-name "aspell")
+  (setq ispell-personal-dictionary "~/.emacs.d/aspell.en.pws"))
+ ((executable-find "hunspell")
+  (setq ispell-program-name "hunspell")
+  (setq ispell-personal-dictionary "~/.emacs.d/hunspell_en_US")
+  ;; just reset dictionary to the safe one "en_US" for hunspell.
+  ;; if we need use different dictionary, we specify it in command line arguments
+  (setq ispell-local-dictionary "en_US")
+  (setq ispell-local-dictionary-alist
+		'(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil nil nil utf-8))))
+ (t (setq ispell-program-name nil)))
+(setq ispell-extra-args (flyspell-detect-ispell-args t))
+;; (setq ispell-cmd-args (flyspell-detect-ispell-args))
+(defadvice ispell-word (around my-ispell-word activate)
+  (let ((old-ispell-extra-args ispell-extra-args))
+    (ispell-kill-ispell t)
+    (setq ispell-extra-args (flyspell-detect-ispell-args))
+    ad-do-it
+    (setq ispell-extra-args old-ispell-extra-args)
+    (ispell-kill-ispell t)
+    ))
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; C-. or C-M-i 'flyspell-auto-correct-word
 ;; if you don't know how to spell the rest of a word
@@ -1227,7 +1259,7 @@ Emacs session."
 ;; click the left button to show the correct words list
 (eval-after-load "flyspell"
   '(define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
-	 ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
+  ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
   )
 ;; or use the M-f8 to check from the beginning and correct
 (defun flyspell-check-next-highlighted-word ()
@@ -1236,19 +1268,6 @@ Emacs session."
   (flyspell-goto-next-error)
   (ispell-word))
 (global-set-key (kbd "M-<f8>") 'flyspell-check-next-highlighted-word)
-;;
-(add-hook 'ispell-initialize-spellchecker-hook
-		  (lambda ()
-			(setq ispell-base-dicts-override-alist
-				  '((nil ; default
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
-					("american" ; Yankee English
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
-					("british" ; British English
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Tab & indent
@@ -1716,7 +1735,6 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;;				  company-etags
 ;;				  company-oddmuse
 ;;				  company-files))
-
 
 ;; undo-tree
 ;; C-x u -> undo-tree-visualize
@@ -2443,6 +2461,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(org-indent-mode . "")
 	(color-identifiers-mode . "")
 	(bbyac-mode . "")
+	(magit-auto-revert-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
