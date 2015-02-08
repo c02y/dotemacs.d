@@ -1945,8 +1945,9 @@ into one step."
 		("*" (:foreground "cyan" :weight bold))
 		("/" (:foreground "cyan" :slant italic))
 		("_" (:foreground "cyan" :underline t))
-		("=" (:background "#545454"))
-		("~" (:background "#545454" :box (:line-width 3 :color "#545454" :style released-button)))
+		("=" (:foreground "cyan" :weight bold))
+		("~" (:foreground "cyan" :weight bold
+						  :box (:line-width 3 :color "#545454" :style released-button)))
 		("+" (:foreground "cyan" :strike-through t))))
 ;; in html file
 (setq org-html-text-markup-alist
