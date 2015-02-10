@@ -370,19 +370,19 @@ With a prefix argument, this acts like M-x compile, you can reconfigure the comp
 (setq-default
  mode-line-buffer-identification
  '(#("%2b" 0 3
-  (local-map
-   (keymap
-	(header-line keymap
-				 (mouse-3 . mode-line-next-buffer)
-				 (down-mouse-3 . ignore)
-				 (mouse-1 . mode-line-previous-buffer)
-				 (down-mouse-1 . ignore))
-	(mode-line keymap
-			   (mouse-3 . mode-line-next-buffer)
-			   (mouse-1 . mode-line-previous-buffer)))
-   mouse-face mode-line-highlight help-echo
-   "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer"
-   face mode-line-buffer-id))))
+	 (local-map
+	  (keymap
+	   (header-line keymap
+					(mouse-3 . mode-line-next-buffer)
+					(down-mouse-3 . ignore)
+					(mouse-1 . mode-line-previous-buffer)
+					(down-mouse-1 . ignore))
+	   (mode-line keymap
+				  (mouse-3 . mode-line-next-buffer)
+				  (mouse-1 . mode-line-previous-buffer)))
+	  mouse-face mode-line-highlight help-echo
+	  "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer"
+	  face mode-line-buffer-id))))
 ;; show which function in mode-line
 (which-function-mode 1)
 ;; replace ??? to n/a
@@ -464,11 +464,11 @@ With a prefix argument, this acts like M-x compile, you can reconfigure the comp
 
 ;; ;; smooth-scrolling, just deal with C-n/p and arrow
 (setq redisplay-dont-pause t
-  scroll-margin 1
-  scroll-step 1
-  scroll-conservatively 10000
-  auto-window-vscroll nil
-  scroll-preserve-screen-position 1)
+	  scroll-margin 1
+	  scroll-step 1
+	  scroll-conservatively 10000
+	  auto-window-vscroll nil
+	  scroll-preserve-screen-position 1)
 (setq-default
  scroll-up-aggressively 0.01
  scroll-down-aggressively 0.01)
@@ -476,7 +476,7 @@ With a prefix argument, this acts like M-x compile, you can reconfigure the comp
 (require 'smooth-scroll)
 (smooth-scroll-mode t)
 (setq mouse-wheel-scroll-amount '(0.08)
-   mouse-wheel-progressive-speed nil)
+	  mouse-wheel-progressive-speed nil)
 
 ;; set the query-replace from top
 (defun query-replace-from-top ()
@@ -764,7 +764,10 @@ See `fill-paragraph' and `fill-region'."
 (add-hook 'before-save-hook
 		  '(lambda ()
 			 (yafolding-show-all) ;; avoid data loss
-			 (delete-trailing-whitespace)))
+			 (delete-trailing-whitespace)
+			 ;; indent the whole buffer before-save
+			 (when (derived-mode-p 'prog-mode)
+			   (indent-region (point-min) (point-max)))))
 
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
@@ -1335,7 +1338,7 @@ Emacs session."
 (show-paren-mode t)
 (setq show-paren-style 'expression)
 (defadvice show-paren-function
-  (after show-matching-paren-offscreen activate)
+	(after show-matching-paren-offscreen activate)
   "If the matching paren is offscreen, show the matching line in the echo area.
 Has no effect if the character before point is not of the syntax class ')'."
   (interactive)
@@ -1951,18 +1954,18 @@ into one step."
 		("+" (:foreground "cyan" :strike-through t))))
 ;; in html file
 (setq org-html-text-markup-alist
-  '((bold . "<b>%s</b>")
-    (code . "<kbd>%s</kbd>")
-    (italic . "<i>%s</i>")
-    (strike-through . "<del>%s</del>")
-    (underline . "<span class=\"underline\">%s</span>")
-    (verbatim . "<code>%s</code>")))
+	  '((bold . "<b>%s</b>")
+		(code . "<kbd>%s</kbd>")
+		(italic . "<i>%s</i>")
+		(strike-through . "<del>%s</del>")
+		(underline . "<span class=\"underline\">%s</span>")
+		(verbatim . "<code>%s</code>")))
 ;; C-tab(original 'org-force-cycle-archived) to show the element
 ;; in another window(simpler version of org-panes.el)
 ;; then M-PageUp/Down to scroll another window
 (define-key org-mode-map (kbd "C-<tab>") 'org-tree-to-indirect-buffer)
 ;; (setq org-emphasis-alist
-	  ;; (append org-emphasis-alist '((" ` " bold "<b>" "</b>"))))
+;; (append org-emphasis-alist '((" ` " bold "<b>" "</b>"))))
 ;; (add-to-list 'org-emphasis-alist '("`" (:foreground "cyan")))
 ;;;;;;;;;;;;;;;
 ;; org-plus-contrib
@@ -1988,12 +1991,12 @@ background of code to whatever theme I'm using's background"
 ;; Use styles at http://orgmode.org/manual/Footnotes.html such as [fn:1]
 ;; C-c C-c to jump to/back definition/reference
 (setq org-footnote-re
-   (concat "\\[\\(?:"
-           ;; Match inline footnotes.
-           (org-re "fn:\\([-_[:word:]]+\\)?:\\|")
-           ;; Match other footnotes. "\\(?:\\([0-9]+\\)\\]\\)\\|"
-           (org-re "\\(fn:[-_[:word:]]+\\)")
-           "\\)"))
+	  (concat "\\[\\(?:"
+			  ;; Match inline footnotes.
+			  (org-re "fn:\\([-_[:word:]]+\\)?:\\|")
+			  ;; Match other footnotes. "\\(?:\\([0-9]+\\)\\]\\)\\|"
+			  (org-re "\\(fn:[-_[:word:]]+\\)")
+			  "\\)"))
 (setq org-footnote-definition-re
       (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
 ;; remove the end part of the exported file such as `author, date, emacs and org-mode version`
@@ -2200,12 +2203,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; http://docs.emmet.io/
 (dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
   (add-hook mode
-         '(lambda ()
-            (emmet-mode))))
+			'(lambda ()
+			   (emmet-mode))))
 ;; web-mode
 ;; http://web-mode.org/
 (dolist (hook '(css-mode-hook
-             html-mode-hook))
+				html-mode-hook))
   (add-hook hook (lambda () (web-mode))))
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
@@ -2332,8 +2335,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (define-key rebox-mode-map (kbd "C-k") nil)
 
 ;; comment-dwim-2 to replace default comment-dwim
-;; comment-dwim can also be repeated several times to switch between the
-;; different behaviors.
+;; comment-dwim can also be repeated several times to switch between the different behaviors.
 ;; Called it with a prefix argument to reindent the comment
 (global-set-key (kbd "M-;") 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
@@ -2400,15 +2402,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (setq guide-key/popup-window-position 'bottom)
 (guide-key-mode 1)
 
-;; noflet, iedit required by lispy
+;; noflet, iedit, ace-window, hydra required by lispy
 
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
 ;; http://oremacs.com/lispy/
-;; http://www.lonecpluspluscoder.com/2014/11/using-elpa-pinned-packages-gnu-emacs-24-4/
-;; update lispy only from melpa-stable
-(when (boundp 'package-pinned-packages)
-  (setq-default package-pinned-packages
-				'((lispy . "melpa-stable"))))
 (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (eval-after-load "lispy"
   '(progn
@@ -2424,7 +2421,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	ad-do-it))
 
 ;; browse-kill-ring required by bbyac
-;;
+
 ;; bbyac
 (bbyac-global-mode 1)
 
