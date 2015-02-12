@@ -355,8 +355,8 @@ With a prefix argument, this acts like M-x compile, you can reconfigure the comp
   ;; the combination colors of highlighted line and comments
   ;; (custom-set-faces
   ;;  '(font-lock-comment-face
-  ;;	((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
-  ;;	))
+  ;; 	 ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
+  ;; 	 ))
   ;; (set-face-background 'highlight "gray30")
   )
 ;;
@@ -385,6 +385,9 @@ With a prefix argument, this acts like M-x compile, you can reconfigure the comp
 	  face mode-line-buffer-id))))
 ;; show which function in mode-line
 (which-function-mode 1)
+;; make which-function-mode work only for specific modes
+(eval-after-load "which-func"
+  '(setq which-func-modes '(c-mode emacs-lisp-mode python-mode)))
 ;; replace ??? to n/a
 (setq which-func-unknown "n/a")
 ;; repalce the 8 with other number to change the position
@@ -2155,8 +2158,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; C-c ! p 'flycheck-previous-error
 ;; C-c ! c 'flycheck-buffer
 ;; install clang cppcheck first for c/c++ checker
-(require 'flycheck)
-(add-hook 'after-init-hook #'global-flycheck-mode)
+;; (require 'flycheck)
+(add-hook 'prog-mode-hook 'flycheck-mode)
 
 ;; magit
 ;;
