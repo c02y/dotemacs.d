@@ -180,13 +180,15 @@
 (defun compile-again (ARG)
   "Run the same compile as the last time.
 
-First split the current source code window in a given size if no existed window contains *compilation* buffer.
+First split the current source code window in a given size if
+no existed window contains *compilation* buffer.
 
-With a prefix argument, this acts like M-x compile, you can reconfigure the compile args."
+With a prefix argument or no last time, this acts like M-x compile,
+and you can reconfigure the compile args."
   (interactive "p")
   (if (not (get-buffer-window "*compilation*"))
 	  (split-window-vertically -10))
-  (if (eq ARG 1)
+  (if (and (eq ARG 1) compilation-last-buffer)
 	  (recompile)
 	(call-interactively 'compile)))
 (global-set-key (kbd "C-x C-m") 'compile-again)
