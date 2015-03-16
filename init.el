@@ -173,6 +173,13 @@
 				   (interactive)
 				   (switch-to-buffer "*scratch*")))
 
+;; assembly
+(autoload 'nasm-mode "~/.emacs.d/lisp/nasm-mode.el" "" t)
+(add-to-list 'auto-mode-alist '("\\.\\(asm\\|s\\)$" . nasm-mode))
+;; To set your own indentation level to 4:
+(add-hook 'nasm-mode-hook
+		  (lambda () (setq-default nasm-basic-offset 4)))
+
 ;; compile
 ;; use `C-c ! n/p` 'flycheck-next/previous-error to navigate errors
 (require 'compile)
@@ -449,7 +456,7 @@ and you can reconfigure the compile args."
 (set-default 'cursor-type '(bar . 3))
 
 ;; using a visible bell when error occurs
-(setq visible-bell t)
+;;(setq visible-bell t)
 
 ;; Using F8 to make the face transparent
 (global-set-key [(f8)] 'loop-alpha)
@@ -1451,6 +1458,10 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
 (add-to-list 'semantic-default-submodes 'global-semantic-idle-completions-mode)
 (add-to-list 'semantic-default-submodes 'global-semantic-idle-summary-mode)
+;; stickyfunc-enhance package
+(require 'stickyfunc-enhance)
+(add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode)
+;;
 (setq semantic-load-turn-useful-things-on t)
 ;; Semantic's customization
 (semantic-mode 1)
@@ -1507,10 +1518,6 @@ Has no effect if the character before point is not of the syntax class ')'."
 		  (lambda() (set
 					 (make-local-variable 'semantic-mode) nil)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;    plugin in .emacs.d/plugin
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packages from  elpa, marmelade and melpa.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1527,8 +1534,11 @@ Has no effect if the character before point is not of the syntax class ')'."
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
 ;; (defalias 'plp 'package-list-packages)
+;;
+;; spinner required by paradox
 (defalias 'plp 'paradox-list-packages)
 (setq paradox-github-token t)
+(setq paradox-execute-asynchronously t)
 ;; Update the packages automatically
 ;;(when (not package-archive-contents) (package-refresh-contents))
 
@@ -2085,7 +2095,6 @@ background of code to whatever theme I'm using's background"
 ;; select more than one candidates and execute actions on them, such as grep or open.
 ;; helm-find-files will prompt y/n if the file doesn't exist, find-file won't
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
-(global-set-key (kbd "C-s") 'helm-occur)
 ;; Use C-S-s to search other-window, when this is used in more than 3 windows,
 ;; it would be confused by 'other-window
 (defun helm-other-occur ()
@@ -2127,6 +2136,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
 (add-hook 'after-init-hook 'helm-descbinds-mode)
+;;
+;; helm-swoop
+(global-set-key (kbd "C-s") 'helm-swoop)
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
