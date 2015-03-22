@@ -2136,9 +2136,32 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
 (add-hook 'after-init-hook 'helm-descbinds-mode)
-;;
+
 ;; helm-swoop
 (global-set-key (kbd "C-s") 'helm-swoop)
+;; speed(nil) or text color(t)
+(setq helm-swoop-speed-or-color t)
+;;
+(setq helm-swoop-pre-input-function (lambda () ""))
+(defun my-helm-swoop-move-line-with-string-at-point-if-needed ($move-fn)
+  (if (equal helm-swoop-pattern "")
+      (let (($string ""))
+        (with-current-buffer (get-buffer-create (cdr helm-swoop-last-point))
+          (save-excursion
+            (goto-char (car helm-swoop-last-point))
+            (setq $string (thing-at-point 'symbol))))
+        (with-selected-window (or (active-minibuffer-window)
+                                  (minibuffer-window))
+          (insert $string)))
+    (call-interactively $move-fn)))
+(defun my-helm-swoop-next-line-with-string-at-point-if-needed ()
+  (interactive)
+  (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-next-line))
+(defun my-helm-swoop-prev-line-with-string-at-point-if-needed ()
+  (interactive)
+  (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-previous-line))
+(define-key helm-swoop-map (kbd "C-s") 'my-helm-swoop-next-line-with-string-at-point-if-needed)
+(define-key helm-swoop-map (kbd "C-r") 'my-helm-swoop-prev-line-with-string-at-point-if-needed)
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
