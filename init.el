@@ -768,18 +768,31 @@ See `fill-paragraph' and `fill-region'."
 (global-set-key (kbd "M-q") 'toggle-fill-paragraph)
 
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
-(global-set-key (kbd "C-c d")
-				'(lambda ()
-				   (interactive)
-				   (yafolding-show-all) ;; avoid data loss
-				   (delete-trailing-whitespace)))
+(defun cleanup-buffer ()
+  "Cleanup the buffer:
+1. yafolding-show-all to avoid date loss
+2. delete-trailing-whitespace
+"
+  (interactive)
+  (yafolding-show-all) ;; avoid data loss
+  (delete-trailing-whitespace))
+(global-set-key (kbd "C-c d") 'cleanup-buffer)
+(defvar all-make-modes
+  '(makefile-makepp-mode makefile-bsdmake-mode makefile-imake-mode
+						 makefile-automake-mode makefile-mode makefile-gmake-mode)
+  "A list of the makefile major modes")
+(defun indent-buffer-safe ()
+  "Indent the whole buffer unless it is a Makefile,
+Emacs by default won't treat the TAB as indent"
+  (interactive)
+  ;; indent the whole buffer but not Makefile because of must TAB
+  (when (and (derived-mode-p 'prog-mode)
+			 (not (member major-mode all-make-modes)))
+	(indent-region (point-min) (point-max))))
 (add-hook 'before-save-hook
-		  '(lambda ()
-			 (yafolding-show-all) ;; avoid data loss
-			 (delete-trailing-whitespace)
-			 ;; indent the whole buffer before-save
-			 (when (derived-mode-p 'prog-mode)
-			   (indent-region (point-min) (point-max)))))
+		  (lambda ()
+			(cleanup-buffer)
+			(indent-buffer-safe)))
 
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
@@ -1091,37 +1104,9 @@ In other non-comment situations, try C-M-j to split."
 (global-set-key (kbd "C-x 2") 'vsplit-last-buffer)
 (global-set-key (kbd "C-x 3") 'hsplit-last-buffer)
 ;;
-;; new window to vertically by default
-;; (setq split-height-threshold nil)
-;; (setq split-width-threshold 0)
-;; Automatically split window horizontally(side-by-side) if current window is wide enough
-(defun display-new-buffer (buffer force-other-window)
-  "If BUFFER is visible, select it.
+;; split new window direction by default
+(setq split-width-threshold 90)
 
-If it's not visible and there's only one window, split the current window
-and select BUFFER in the new window.
-
-If the current window (before the split) is more than 100 columns wide,
-split horizontally(left/right), else split vertically(up/down).
-
-If the current buffer contains more than one window, select BUFFER in the
-least recently used window.
-
-This function returns the window which holds BUFFER. FORCE-OTHER-WINDOW is ignored."
-  (or (get-buffer-window buffer)
-	  (if (one-window-p)
-		  (let ((new-win
-				 (if (> (window-width) 100)
-					 (split-window-horizontally)
-				   (split-window-vertically))))
-			(set-window-buffer new-win buffer)
-			new-win)
-		(let ((new-win (get-lru-window)))
-		  (set-window-buffer new-win buffer)
-		  new-win))))
-;; use display-buffer-alist instead of display-buffer-function if you cannot
-;; create a new buffer such as using just M-x
-(setq display-buffer-function 'display-new-buffer)
 ;; reuse frames
 (setq-default display-buffer-reuse-frames t)
 ;; toggle two windows between vertically and horizontally
@@ -1257,12 +1242,12 @@ Emacs session."
 ;; (setq ispell-cmd-args (flyspell-detect-ispell-args))
 (defadvice ispell-word (around my-ispell-word activate)
   (let ((old-ispell-extra-args ispell-extra-args))
-    (ispell-kill-ispell t)
-    (setq ispell-extra-args (flyspell-detect-ispell-args))
-    ad-do-it
-    (setq ispell-extra-args old-ispell-extra-args)
-    (ispell-kill-ispell t)
-    ))
+	(ispell-kill-ispell t)
+	(setq ispell-extra-args (flyspell-detect-ispell-args))
+	ad-do-it
+	(setq ispell-extra-args old-ispell-extra-args)
+	(ispell-kill-ispell t)
+	))
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; C-. or C-M-i 'flyspell-auto-correct-word
 ;; if you don't know how to spell the rest of a word
@@ -1992,14 +1977,14 @@ into one step."
   "Insert custom inline css to automatically set the
 background of code to whatever theme I'm using's background"
   (when (eq exporter 'html)
-    (let* ((my-pre-bg (face-background 'default))
-           (my-pre-fg (face-foreground 'default)))
-      (setq
-       org-html-head-extra
-       (concat
-        org-html-head-extra
-        (format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
-                my-pre-bg my-pre-fg))))))
+	(let* ((my-pre-bg (face-background 'default))
+		   (my-pre-fg (face-foreground 'default)))
+	  (setq
+	   org-html-head-extra
+	   (concat
+		org-html-head-extra
+		(format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
+				my-pre-bg my-pre-fg))))))
 (add-hook 'org-export-before-processing-hook 'my/org-inline-css-hook)
 ;; If you never use "plain" footnotes like [1] or p[1], you can adjust two variables
 ;; to avoid org-mode wrongly interpreting square brackets as footnote
@@ -2013,7 +1998,7 @@ background of code to whatever theme I'm using's background"
 			  (org-re "\\(fn:[-_[:word:]]+\\)")
 			  "\\)"))
 (setq org-footnote-definition-re
-      (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
+	  (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
 ;; remove the end part of the exported file such as `author, date, emacs and org-mode version`
 (setq org-html-postamble nil)
 
@@ -2108,9 +2093,9 @@ background of code to whatever theme I'm using's background"
 On error (read-only), quit without selecting(showing 'Text is read only' in minibuffer)."
   (interactive)
   (condition-case nil
-      (backward-delete-char 1)
-    (error
-     (helm-keyboard-quit))))
+	  (backward-delete-char 1)
+	(error
+	 (helm-keyboard-quit))))
 (define-key helm-map (kbd "DEL") 'helm-backspace)
 (global-set-key (kbd "M-x") 'helm-M-x)
 ;; M-y cycles the kill ring
@@ -2119,7 +2104,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (global-set-key (kbd "C-c x") 'helm-resume)
 (setq
  ;; helm-quick-update t  ; do not display invisible candidates
- helm-split-window-default-side 'other	; open helm buffer in another window
+ ;; helm-split-window-default-side 'other	; open helm buffer in another window
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
  helm-buffers-favorite-modes
  (append helm-buffers-favorite-modes
@@ -2129,31 +2114,46 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
  ;; move to end or beginning of source when reaching top or bottom of source.
  ;; helm-move-to-line-cycle-in-source t
  ;; fuzzy matching buffer names when non--nil, useful in helm-mini that lists buffers
- helm-buffers-fuzzy-matching t)
+ helm-buffers-fuzzy-matching t
+ helm-semantic-fuzzy-match t
+ helm-M-x-fuzzy-match t
+ helm-imenu-fuzzy-match t
+ helm-lisp-fuzzy-completion t
+ )
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
 (defalias 'hg 'helm-do-grep)
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
 (add-hook 'after-init-hook 'helm-descbinds-mode)
+;; Resize candidates window  according to the number of candidates
+(helm-autoresize-mode 1)
+;; (setq helm-autoresize-min-height 10)
+;; (setq helm-autoresize-max-height 30)
+;; (helm-adaptive-mode 1)
+;;
+;; (setq helm-display-header-line nil)
 
 ;; helm-swoop
+(require 'helm-swoop)
 (global-set-key (kbd "C-s") 'helm-swoop)
 ;; speed(nil) or text color(t)
 (setq helm-swoop-speed-or-color t)
+;; If this value is t, split window inside the current window
+(setq helm-swoop-split-with-multiple-windows t)
 ;;
 (setq helm-swoop-pre-input-function (lambda () ""))
 (defun my-helm-swoop-move-line-with-string-at-point-if-needed ($move-fn)
   (if (equal helm-swoop-pattern "")
-      (let (($string ""))
-        (with-current-buffer (get-buffer-create (cdr helm-swoop-last-point))
-          (save-excursion
-            (goto-char (car helm-swoop-last-point))
-            (setq $string (thing-at-point 'symbol))))
-        (with-selected-window (or (active-minibuffer-window)
-                                  (minibuffer-window))
-          (insert $string)))
-    (call-interactively $move-fn)))
+	  (let (($string ""))
+		(with-current-buffer (get-buffer-create (cdr helm-swoop-last-point))
+		  (save-excursion
+			(goto-char (car helm-swoop-last-point))
+			(setq $string (thing-at-point 'symbol))))
+		(with-selected-window (or (active-minibuffer-window)
+								  (minibuffer-window))
+		  (insert $string)))
+	(call-interactively $move-fn)))
 (defun my-helm-swoop-next-line-with-string-at-point-if-needed ()
   (interactive)
   (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-next-line))
