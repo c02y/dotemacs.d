@@ -575,7 +575,7 @@ extraneous space at beginning of line."
   (interactive)
   ;; convert from head of the word
   (unless (looking-back "\\b")
-    (backward-word))
+	(backward-word))
   (endless/convert-punctuation "," ".")
   (if (use-region-p)
 	  (call-interactively 'capitalize-region)
@@ -753,18 +753,18 @@ See `fill-paragraph' and `fill-region'."
   ;; (i.e. on 'toggle-fill-paragraph), thus avoiding the need to
   ;; create a variable for remembering the current fill state.
   (save-excursion
-    (let* ((deactivate-mark nil)
-           (line-length (- (line-end-position) (line-beginning-position)))
-           (currently-filled (if (eq last-command this-command)
-                                 (get this-command 'currently-filled-p)
-                               (< line-length fill-column)))
-           (fill-column (if currently-filled
-                            most-positive-fixnum
-                          fill-column)))
-      (if (region-active-p)
-          (fill-region (region-beginning) (region-end))
-        (fill-paragraph))
-      (put this-command 'currently-filled-p (not currently-filled)))))
+	(let* ((deactivate-mark nil)
+		   (line-length (- (line-end-position) (line-beginning-position)))
+		   (currently-filled (if (eq last-command this-command)
+								 (get this-command 'currently-filled-p)
+							   (< line-length fill-column)))
+		   (fill-column (if currently-filled
+							most-positive-fixnum
+						  fill-column)))
+	  (if (region-active-p)
+		  (fill-region (region-beginning) (region-end))
+		(fill-paragraph))
+	  (put this-command 'currently-filled-p (not currently-filled)))))
 (global-set-key (kbd "M-q") 'toggle-fill-paragraph)
 
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
@@ -1564,6 +1564,27 @@ Has no effect if the character before point is not of the syntax class ')'."
 (global-set-key (kbd "C-@") 'hippie-expand-dabbrev-limited-chars)
 ;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
 (global-set-key (kbd "M-/") 'hippie-expand)
+(defun try-expand-by-dict (old)
+  ;; old is true if we have already attempted an expansion
+  (unless (bound-and-true-p ispell-minor-mode)
+	(ispell-minor-mode 1))
+  (let ((lookup-func
+		 (if (fboundp 'ispell-lookup-words)
+			 'ispell-lookup-words
+		   'lookup-words)))
+	(unless old
+	  (he-init-string (he-lisp-symbol-beg) (point))
+	  (if (not (he-string-member he-search-string he-tried-table))
+		  (setq he-tried-table (cons he-search-string he-tried-table)))
+	  (setq he-expand-list
+			(and (not (equal he-search-string ""))
+				 (funcall lookup-func
+						  (concat (buffer-substring-no-properties
+								   (he-lisp-symbol-beg) (point)) "*")))))
+	(if (null he-expand-list)
+		(if old (he-reset-string))
+	  (he-substitute-string (car he-expand-list))
+	  (setq he-expand-list (cdr he-expand-list)) t)))
 ;; the built-in hippie-exp config
 (setq hippie-expand-try-functions-list
 	  '(
@@ -1580,7 +1601,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 		try-expand-list
 		try-expand-line
 		try-complete-lisp-symbol-partially
-		try-complete-lisp-symbol))
+		try-complete-lisp-symbol
+		try-expand-by-dict))
 
 ;; multiple-cursors
 ;; How to add string at the beginning of multiple lines
@@ -2102,6 +2124,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-/") 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-c x") 'helm-resume)
+(global-set-key (kbd "C-s") 'helm-occur)
 (setq
  ;; helm-quick-update t  ; do not display invisible candidates
  ;; helm-split-window-default-side 'other	; open helm buffer in another window
@@ -2136,7 +2159,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 
 ;; helm-swoop
 (require 'helm-swoop)
-(global-set-key (kbd "C-s") 'helm-swoop)
+(global-set-key (kbd "C-c s") 'helm-swoop)
 ;; speed(nil) or text color(t)
 (setq helm-swoop-speed-or-color t)
 ;; If this value is t, split window inside the current window
