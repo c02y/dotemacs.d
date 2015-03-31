@@ -857,6 +857,11 @@ Emacs by default won't treat the TAB as indent"
          (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
          (match-string 1))))))
 (define-key dired-mode-map (kbd "z") 'dired-get-size)
+;; dired+
+;; stop Emacs dired mode from opening so many buffers
+(setq diredp-hide-details-initially-flag nil)
+(require 'dired+)
+(toggle-diredp-find-file-reuse-dir 1)
 ;; sort in dired, `C-u s` then -S(sort by size), -u(sort by access time),
 ;; -c(sort by last modification time), -X(sort by file extension),
 ;; another, in dired `s`
@@ -2065,9 +2070,9 @@ background of code to whatever theme I'm using's background"
 ;; use C-h SPC to jump back to where you were, like the 'ggtags-view-tag-history
 (global-set-key (kbd "C-h C-SPC") 'helm-all-mark-rings)
 ;; helm-apropos describes commands, functions, variables and faces - all in one command!
-(global-set-key (kbd "C-h C-o") 'helm-apropos)
+(global-set-key (kbd "C-h h") 'helm-apropos)
 (global-set-key (kbd "C-h C-c") 'helm-colors)
-(global-set-key (kbd "<f1>-o") 'helm-apropos)
+(global-set-key (kbd "<f1> h") 'helm-apropos)
 ;; in dired(you have to go to the dir first), helm-find is like find in terminal,
 ;; helm-locate is like locate in terminal, to use local database with prefix argument C-u
 ;;
@@ -2220,6 +2225,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; install clang cppcheck first for c/c++ checker
 ;; (require 'flycheck)
 (add-hook 'prog-mode-hook 'flycheck-mode)
+(setq flycheck-highlighting-mode 'lines)
+(eval-after-load 'flycheck
+  '(progn
+     (set-face-attribute 'flycheck-error nil :foreground "red")
+     (set-face-attribute 'flycheck-warning nil :foreground "yellow" :underline nil)
+	 (set-face-attribute 'flycheck-info nil :foreground "ForestGreen" :underline nil)))
 
 ;; magit
 ;;
