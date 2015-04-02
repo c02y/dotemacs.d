@@ -1110,7 +1110,7 @@ In other non-comment situations, try C-M-j to split."
 (global-set-key (kbd "C-x 3") 'hsplit-last-buffer)
 ;;
 ;; split new window direction by default
-(setq split-width-threshold 90)
+;; (setq split-width-threshold 90)
 
 ;; reuse frames
 (setq-default display-buffer-reuse-frames t)
