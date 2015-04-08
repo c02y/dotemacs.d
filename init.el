@@ -643,6 +643,29 @@ BEG and END (region to sort)."
 		  (goto-char next-line))))))
 (defalias 'ddl 'delete-duplicated-lines)
 
+(defun duplicate-line-or-region (&optional n)
+  "Duplicate current line, or region if active.
+With argument N, make N copies.
+With negative N, comment out original line and use the absolute value."
+  (interactive "*p")
+  (let ((use-region (use-region-p)))
+    (save-excursion
+      (let ((text (if use-region        ;Get region if active, otherwise line
+                      (buffer-substring (region-beginning) (region-end))
+                    (prog1 (thing-at-point 'line)
+                      (end-of-line)
+                      (if (< 0 (forward-line 1));Go to beginning of next line, or make a new one
+                          (newline))))))
+        (dotimes (i (abs (or n 1)))     ;Insert N times, or once if not specified
+          (insert text))))
+    (if use-region nil                  ;Only if we're working with a line (not a region)
+      (let ((pos (- (point) (line-beginning-position)))) ;Save column
+        (if (> 0 n) 					;Comment out original with negative arg
+            (comment-region (line-beginning-position) (line-end-position)))
+        (forward-line 1)
+        (forward-char pos)))))
+(global-set-key (kbd "C-c C-d") 'duplicate-line-or-region)
+
 ;; convert DOS to UNIX
 (defun dos2unix ()
   "Not exactly but it's easier to remember"
@@ -1284,6 +1307,8 @@ Emacs session."
 (require 'cc-vars)
 (setq-default indent-tabs-mode t)
 (setq-default tab-width 4)
+;; for C++
+(setq c-basic-offset 4)
 ;; (setq indent-line-function 'insert-tab)
 (add-hook 'text-mode-hook
 		  (lambda ()
@@ -1297,7 +1322,7 @@ Emacs session."
 			(setq indent-tabs-mode nil)
 			(setq tab-width 4)))
 ;;
-(add-hook 'c-mode-common-hook
+(add-hook 'c-mode-hook
 		  (lambda ()
 			(c-set-style "linux")
 			(setq tab-width 8)
@@ -1438,6 +1463,23 @@ Has no effect if the character before point is not of the syntax class ')'."
 	  (setq compilation-minor-mode nil)
 	(compilation-minor-mode)))
 (global-set-key (kbd "C-c v") 'va)
+(defvar all-gud-modes
+  '(gud-mode comint-mode gdb-locals-mode gdb-frames-mode gdb-breakpoints-mode)
+  "A list of modes when using gdb")
+(defun kill-all-gud-buffers ()
+  "Kill all gud buffers including Debugger, Locals, Frames, Breakpoints.
+Do this after `q` in Debugger buffer."
+  (interactive)
+  (save-excursion
+	(let ((count 0))
+	  (dolist (buffer (buffer-list))
+		(set-buffer buffer)
+		(when (member major-mode all-gud-modes)
+		  (setq count (1+ count))
+		  (kill-buffer buffer)
+		  (delete-other-windows))) ;; fix the remaining two windows issue
+	  (message "Killed %i buffer(s)." count))))
+(defalias 'kg 'kill-all-gud-buffers)
 
 ;; cedet -- built-in
 ;; more detail: http://alexott.net/en/writings/emacs-devenv/EmacsCedet.html
@@ -1882,6 +1924,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 (setq org-completion-use-ido t)
 (define-key org-mode-map (kbd "C-c a") 'org-agenda)
 (define-key org-mode-map (kbd "C-c c") 'org-capture)
+(define-key org-mode-map (kbd "<C-return>") 'org-insert-heading-after-current)
 ;; use global defined C-a/e not `org-end/beginning-of-line`
 (define-key org-mode-map (kbd "C-e") nil)
 (define-key org-mode-map (kbd "C-a") nil)
@@ -2483,8 +2526,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (eval-after-load "lispy"
   '(progn
-	 (define-key lispy-mode-map (kbd "RET") nil)
-	 (define-key lispy-mode-map (kbd "C-e") nil)
+	 (define-key lispy-mode-map (kbd "RET") 'advanced-return)
+	 (define-key lispy-mode-map (kbd "C-e") 'keep-end-of-line)
+	 (define-key lispy-mode-map (kbd "C-a") 'keep-beginning-of-line)
 	 (define-key lispy-mode-map (kbd "M-i") nil)
 	 (define-key lispy-mode-map (kbd "M-o") nil)
 	 (define-key lispy-mode-map (kbd "M-q") nil)))
