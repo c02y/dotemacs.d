@@ -370,6 +370,13 @@ and you can reconfigure the compile args."
   )
 ;;
 (set-frame-size-according-to-resolution)
+;;
+;; disable scroll-bar-mode in newly created frame
+(add-hook 'after-make-frame-functions
+		  '(lambda (frame)
+			 (modify-frame-parameters frame
+									  '((vertical-scroll-bars . nil)
+										(horizontal-scroll-bars . nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;        all about mode line
@@ -396,7 +403,7 @@ and you can reconfigure the compile args."
 (which-function-mode 1)
 ;; make which-function-mode work only for specific modes
 (eval-after-load "which-func"
-  '(setq which-func-modes '(c-mode emacs-lisp-mode python-mode)))
+  '(setq which-func-modes '(c-mode c++-mode emacs-lisp-mode python-mode)))
 ;; replace ??? to n/a
 (setq which-func-unknown "n/a")
 ;; repalce the 8 with other number to change the position
@@ -1946,12 +1953,12 @@ Do this after `q` in Debugger buffer."
 ;; TODO
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
-(setq org-todo-keywords
-	  '((sequence "TODO(t)" "READ(r)" "|" "DONE(d)")
-		;; multiple sets for one file
-		;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
-		;; (sequence "|" "CANCELED(c)")
-		))
+;; (setq org-todo-keywords
+;; 	  '((sequence "TODO(t)" "READ(r)" "|" "DONE(d)")
+;; 		;; multiple sets for one file
+;; 		;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
+;; 		;; (sequence "|" "CANCELED(c)")
+;; 		))
 ;; Keep track of when a certain TODO item was finished.
 ;; (setq org-log-done 'time)
 ;; record a note along with the timestamp
@@ -2492,7 +2499,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;    'helm-projectile)
 ;; modify the indicator in mode line
 (setq projectile-mode-line
-	  '(:eval (format " Pt[%s]" (projectile-project-name))))
+	  '(:eval (format "" (projectile-project-name))))
 
 ;; whole-line-or-region
 (add-hook 'after-init-hook 'whole-line-or-region-mode)
@@ -2578,6 +2585,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(color-identifiers-mode . "")
 	(bbyac-mode . "")
 	(magit-auto-revert-mode . "")
+	(highlight-changes-mode . "")
+	(ggtags-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
