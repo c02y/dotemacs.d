@@ -2200,7 +2200,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
  )
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
-(defalias 'hg 'helm-do-grep)
+;; helm-ag
+(require 'helm-ag)
+(global-set-key (kbd "C-h g") 'helm-ag)
+(setq helm-ag-fuzzy-match t
+	  helm-ag-insert-at-point 'symbol)
+(define-key helm-ag-map (kbd "RET") 'helm-ag--run-other-window-action)
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
 (add-hook 'after-init-hook 'helm-descbinds-mode)
