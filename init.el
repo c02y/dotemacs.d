@@ -2093,6 +2093,13 @@ background of code to whatever theme I'm using's background"
 ;;
 ;; Icicles uses recursive Minibuffers in several ways, Helm does not.
 
+;; ido for dired and kill-buffer that helm doesn't provide the TAB completion
+(ido-mode t)
+(ido-everywhere t)
+(setq ido-enable-flex-matching t)
+;; get find-file-at-point with C-u C-x C-f
+(setq ffap-require-prefix t)
+
 ;; async requird by helm
 
 ;; helm
