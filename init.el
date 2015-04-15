@@ -816,7 +816,7 @@ See `fill-paragraph' and `fill-region'."
 Emacs by default won't treat the TAB as indent"
   (interactive)
   ;; indent the whole buffer but not Makefile because of must TAB
-  (when (and (derived-mode-p 'prog-mode)
+  (when (and (derived-mode-p 'prog-mode 'web-mode)
 			 (not (member major-mode all-make-modes)))
 	(indent-region (point-min) (point-max))))
 (add-hook 'before-save-hook
@@ -2339,6 +2339,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (dolist (hook '(css-mode-hook
 				html-mode-hook))
   (add-hook hook (lambda () (web-mode))))
+(add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
