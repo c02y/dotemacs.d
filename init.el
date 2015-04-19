@@ -174,8 +174,7 @@
 				   (switch-to-buffer "*scratch*")))
 
 ;; assembly
-(autoload 'nasm-mode "~/.emacs.d/lisp/nasm-mode.el" "" t)
-(add-to-list 'auto-mode-alist '("\\.\\(asm\\|s\\)$" . nasm-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(asm\\|s\\|S\\)$" . nasm-mode))
 ;; To set your own indentation level to 4:
 (add-hook 'nasm-mode-hook
 		  (lambda () (setq-default nasm-basic-offset 4)))
@@ -1046,6 +1045,8 @@ In other non-comment situations, try C-M-j to split."
 (setq compilation-scroll-output t)
 ;; overwrite selected region when typing, yanking
 (delete-selection-mode t)
+;; disable Insert key for plugged keyboard
+(define-key global-map [(insert)] nil)
 ;; When C-x n n/s to narrwow the marked region, don't ask whether for future
 ;; session or not C-x n w to go back to normal
 (put 'narrow-to-region 'disabled nil)
@@ -1419,7 +1420,7 @@ Has no effect if the character before point is not of the syntax class ')'."
   (indent-for-tab-command)
   (call-interactively 'previous-line)
   (indent-for-tab-command))
-(dolist (mode '(c-mode-common-hook jave-mode-hook cperl-mode-hook))
+(dolist (mode '(c-mode-common-hook jave-mode-hook cperl-mode-hook web-mode-hook))
   (add-hook mode
 			'(lambda ()
 			   (c-helpers-minor-mode))))
@@ -2099,6 +2100,9 @@ background of code to whatever theme I'm using's background"
 (setq ido-enable-flex-matching t)
 ;; get find-file-at-point with C-u C-x C-f
 (setq ffap-require-prefix t)
+;; ido-vertical-mode
+(ido-vertical-mode 1)
+(setq ido-vertical-show-count t)
 
 ;; async requird by helm
 
@@ -2343,10 +2347,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 			   (emmet-mode))))
 ;; web-mode
 ;; http://web-mode.org/
+(require 'web-mode)
 (dolist (hook '(css-mode-hook
 				html-mode-hook))
   (add-hook hook (lambda () (web-mode))))
 (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
+(define-key web-mode-map (kbd "C-S-SPC") 'web-mode-mark-and-expand)
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
