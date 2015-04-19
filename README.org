@@ -1,33 +1,13 @@
 * This is the .emacs.d configuration files for my Emacs.
 
-* elpa:
-  - packages installed from packages
+: git clone https://github.com/c02y/dotemacs.d.git ~/.emacs.d
 
 * snippets:
   - snippets for yasnippet, revision of the official, use this instead
     of yasnippet/snippets
-
-* init.el:
-  - link for ~/.emacs
 
 * hunspell_en_US:
   - personal dictionary from ispell/hunspell
 
 * bookmarks
   - file bookmarks, mostly inside init.el file
-
-* Hoping list
-  Right now, I push all packages installed by built-in `packages`, and I got to
-  make commit/push every time a package gets update. So a way like [[http://github.com/gmarik/Vundle.vim][Vundle]] for
-  Vim to install(and skip if installed, update if getting new version) all
-  packages from a list is to be done, this is more GNU Emacs team's work, right
-  now built-in package manager isn't very good to use, I have to *fetch* a list
-  of all available packages and *open* the list buffer and *mark* the packages
-  and then *hit* a key to install/update/delete, it's too much comparing with
-  Vundle.
-
-  If I can just login another computer and clone my repo and execute a command
-  in Emacs, and then all packages will be downloaded and compiled
-  automatically. That would be great, like Vundle.
-
-  [[http://stackoverflow.com/questions/13866848/how-to-save-a-list-of-all-the-installed-packages-in-emacs-24][Link1]] and [[http://stackoverflow.com/questions/10092322/how-to-automatically-install-emacs-packages-by-specifying-a-list-of-package-name][Link2]] are not working and they are not what I want.
