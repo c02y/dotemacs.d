@@ -1336,6 +1336,12 @@ Emacs session."
 			(setq tab-width 8)
 			(setq indent-tabs-mode t) ;;default in linux kernel
 			(setq c-basic-offset 8)))
+(add-hook 'c++-mode-hook
+		  (lambda ()
+			(c-set-style "linux")
+			(setq tab-width 4)
+			(setq indent-tabs-mode t) ;;default in linux kernel
+			(setq c-basic-offset 4)))
 (add-hook 'makefile-mode-hook
 		  (lambda ()
 			(setq tab-width 8)))
@@ -1420,7 +1426,7 @@ Has no effect if the character before point is not of the syntax class ')'."
   (indent-for-tab-command)
   (call-interactively 'previous-line)
   (indent-for-tab-command))
-(dolist (mode '(c-mode-common-hook jave-mode-hook cperl-mode-hook web-mode-hook))
+(dolist (mode '(c-mode-common-hook jave-mode-hook cperl-mode-hook css-mode-hook))
   (add-hook mode
 			'(lambda ()
 			   (c-helpers-minor-mode))))
@@ -2348,11 +2354,14 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; web-mode
 ;; http://web-mode.org/
 (require 'web-mode)
-(dolist (hook '(css-mode-hook
+(dolist (hook '(;; css-mode-hook
 				html-mode-hook))
   (add-hook hook (lambda () (web-mode))))
 (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
 (define-key web-mode-map (kbd "C-S-SPC") 'web-mode-mark-and-expand)
+(setq web-mode-enable-current-element-highlight t)
+;; rainbow-mode
+(add-hook 'css-mode-hook 'rainbow-mode)
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
@@ -2546,6 +2555,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (guide-key-mode 1)
 
 ;; noflet, iedit, ace-window, hydra required by lispy
+(global-set-key (kbd "C-x q") 'ace-window)
 
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
 ;; http://oremacs.com/lispy/
@@ -2606,6 +2616,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(magit-auto-revert-mode . "")
 	(highlight-changes-mode . "")
 	(ggtags-mode . "")
+	(rainbow-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
