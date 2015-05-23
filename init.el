@@ -2579,6 +2579,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; bbyac
 (bbyac-global-mode 1)
 
+;; omni-scratch
+(define-key semantic-mru-bookmark-mode-map (kbd "C-x B") nil)
+(global-set-key (kbd "C-x B") 'omni-scratch-new-scratch-major-buffer)
+
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
 ;;
