@@ -154,6 +154,8 @@
 	  (delete-file (concat user-init-file ".elc")))
 	(emacs-lisp-byte-compile-and-load)))
 (add-hook 'after-save-hook 'byte-compile-init-file)
+;; find ~/.emacs.d -name "*.elc" | xargs rm -rfv
+;; C-0 M-x bd or M-x bd C-0 to bd
 (defalias 'bd 'byte-recompile-directory)
 ;; byte-comple and load *.el using "C-x c"
 (define-key emacs-lisp-mode-map (kbd "C-x c") 'emacs-lisp-byte-compile-and-load)
@@ -181,8 +183,11 @@
 
 ;; compile
 ;; use `C-c ! n/p` 'flycheck-next/previous-error to navigate errors
+;; or use M-g n/p for next/previous-error
 (require 'compile)
 (setq compilation-last-buffer nil)
+;; save all modified buffers without asking before compilation
+(setq compilation-ask-about-save nil)
 (defun compile-again (ARG)
   "Run the same compile as the last time.
 
@@ -202,7 +207,7 @@ and you can reconfigure the compile args."
   "Close the compilation window if there was no error at all."
   (when (and (eq STATUS 'exit) (zerop code))
 	(bury-buffer)
-	(delete-window (get-buffer-window (get-buffer "*compilation*"))))
+	(delete-window (get-buffer-window (get-buffer "*compilation*" t))))
   (cons msg code))
 (setq compilation-exit-message-function 'compilation-exit-autoclose)
 
@@ -264,10 +269,11 @@ and you can reconfigure the compile args."
 (dolist (hook '(prog-mode-hook org-mode-hook))
   (add-hook hook
 			(lambda ()
-			  (font-lock-add-keywords nil
-									  ;; '(("\\<\\(TODO\\|FIXME\\|BUG\\):" 1
-									  '(("\\<\\(TODO:\\|NOTE:\\|FIXME:\\|BUG:\\)" 1
-										 font-lock-warning-face t))))))
+			  (font-lock-add-keywords
+			   nil
+			   ;; '(("\\<\\(TODO\\|FIXME\\|BUG\\):" 1
+			   '(("\\<\\(TODO:\\|NOTE:\\|FIXME:\\|BUG:\\)" 1
+				  font-lock-warning-face t))))))
 
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
@@ -355,7 +361,7 @@ and you can reconfigure the compile args."
 					(font . "PragmataPro-13:bold")))
 		  (setq default-frame-alist
 				'((top . 0) (left . 0)
-				  (width . 85) (height . 38)
+				  (width . 85) (height . 37)
 				  (font . "Input Mono Compressed-13.5")
 				  ;; (:family "Menlo-Italic")
 				  )))))
@@ -455,9 +461,6 @@ and you can reconfigure the compile args."
 				mode-line-misc-info
 				"%-"))
 
-
-;; make someWord two words for M-f/b, some-word, some_word are two words already
-(subword-mode)
 (global-hl-line-mode 1)
 (set-default 'cursor-type '(bar . 3))
 
@@ -509,6 +512,15 @@ and you can reconfigure the compile args."
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
 
+(global-set-key (kbd "C-S-e")
+				'(lambda ()
+				   (interactive)
+				   (end-of-visual-line)
+				   (backward-char)))
+(global-set-key (kbd "C-S-a")
+				'(lambda ()
+				   (interactive)
+				   (beginning-of-visual-line)))
 (defun keep-beginning-of-line (arg)
   "Make `C-a` keep going to first non-whitespace character _and_then_ beginning of
   next line(previous with C-u).
@@ -756,7 +768,8 @@ With argument, forward ARG lines."
 	(if (eolp) (forward-line arg) (forward-line (- arg 1)))
 	(move-end-of-line 1)
 	(setq x2 (point))
-	(delete-region x1 x2)))
+	(delete-region x1 x2))
+  (when (bolp) (delete-char 1)))
 (defun delete-line-backward (arg)
   "Delete text between the beginning of the line to the cursor position.
 With argument, backward ARG lines."
@@ -1335,13 +1348,16 @@ Emacs session."
 			(c-set-style "linux")
 			(setq tab-width 8)
 			(setq indent-tabs-mode t) ;;default in linux kernel
-			(setq c-basic-offset 8)))
+			(setq c-basic-offset 8)
+			;; make comment aligned with the code block/line
+			(c-set-offset 'comment-intro 0)))
 (add-hook 'c++-mode-hook
 		  (lambda ()
 			(c-set-style "linux")
 			(setq tab-width 4)
 			(setq indent-tabs-mode t) ;;default in linux kernel
-			(setq c-basic-offset 4)))
+			(setq c-basic-offset 4)
+			(c-set-offset 'comment-intro 0)))
 (add-hook 'makefile-mode-hook
 		  (lambda ()
 			(setq tab-width 8)))
@@ -1943,6 +1959,7 @@ Do this after `q` in Debugger buffer."
 (define-key org-mode-map (kbd "C-e") nil)
 (define-key org-mode-map (kbd "C-a") nil)
 (define-key org-mode-map (kbd "RET") 'advanced-return)
+(define-key org-mode-map (kbd "C-k") 'delete-line)
 ;; show/unshow the descriptive and literal links
 (define-key org-mode-map (kbd "C-c C-x l") 'org-toggle-link-display)
 ;; If you would like to embed a TODO within text without treating it as
@@ -2100,15 +2117,15 @@ background of code to whatever theme I'm using's background"
 ;;
 ;; Icicles uses recursive Minibuffers in several ways, Helm does not.
 
-;; ido for dired and kill-buffer that helm doesn't provide the TAB completion
-(ido-mode t)
-(ido-everywhere t)
-(setq ido-enable-flex-matching t)
-;; get find-file-at-point with C-u C-x C-f
-(setq ffap-require-prefix t)
-;; ido-vertical-mode
-(ido-vertical-mode 1)
-(setq ido-vertical-show-count t)
+;; ;; ido for dired and kill-buffer that helm doesn't provide the TAB completion
+;; (ido-mode t)
+;; (ido-everywhere t)
+;; (setq ido-enable-flex-matching t)
+;; ;; get find-file-at-point with C-u C-x C-f
+;; (setq ffap-require-prefix t)
+;; ;; ido-vertical-mode
+;; (ido-vertical-mode 1)
+;; (setq ido-vertical-show-count t)
 
 ;; async requird by helm
 
@@ -2572,7 +2589,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
   (if (lispy--in-comment-p)
 	  (delete-line (prefix-numeric-value current-prefix-arg))
-	ad-do-it))
+	(delete-line 1)))
 
 ;; browse-kill-ring required by bbyac
 
@@ -2582,6 +2599,14 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; omni-scratch
 (define-key semantic-mru-bookmark-mode-map (kbd "C-x B") nil)
 (global-set-key (kbd "C-x B") 'omni-scratch-new-scratch-major-buffer)
+
+;; make someWord two words for M-f/b, some-word, some_word are two words already
+;; subword-mode is already replaced by syntax-subword
+;; (subword-mode)
+;; syntax-subword
+(global-syntax-subword-mode)
+;; disable C-c C-w for subword-mode, this is defined in cc-mode.el
+(define-key c-mode-base-map "\C-c\C-w" nil)
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
