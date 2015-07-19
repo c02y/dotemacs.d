@@ -278,7 +278,7 @@ and you can reconfigure the compile args."
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
 ;;
-;; Improve performance when editing large size of file and root file
+;; Improve performance when editing large size of file
 (defadvice helm-find-files (after helm-find-files activate)
   ;; "If a file is over a given size, turn off minor modes."
   (progn
@@ -286,16 +286,15 @@ and you can reconfigure the compile args."
 	  (when (> (buffer-size) (* 1024 1024)) ;; 1 MB
 		(require 'vlf)
 		(vlf-mode))
-	  (linum-mode -1))
-	(unless (and buffer-file-name
-				 (file-writable-p buffer-file-name))
-	  (progn
-		;; which-function-mode and projectile-global-mode will get along with
-		;; tramp, its not perfect
-		;; use C-S-p to re-enable them after finishing using tramp
-		(which-function-mode -1)
-		(projectile-global-mode -1)
-		(find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))))
+	  (linum-mode -1))))
+;; C-x C-s to use save-buffer for regular files and use sudo to prompt passwd to
+;; save file need root permission, C-x C-q to edit the root file first
+(global-set-key (kbd "C-x C-s")
+				'(lambda ()
+				   (interactive)
+				   (progn
+					 (if (file-writable-p buffer-file-name) (save-buffer)
+					   (write-file (concat "/sudo:root@localhost:" buffer-file-name))))))
 
 ;; displays the argument list for current func, work for all languages
 (eldoc-mode)
@@ -512,15 +511,12 @@ and you can reconfigure the compile args."
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
 
+(global-set-key (kbd "C-S-a") 'beginning-of-visual-line)
 (global-set-key (kbd "C-S-e")
 				'(lambda ()
 				   (interactive)
 				   (end-of-visual-line)
 				   (backward-char)))
-(global-set-key (kbd "C-S-a")
-				'(lambda ()
-				   (interactive)
-				   (beginning-of-visual-line)))
 (defun keep-beginning-of-line (arg)
   "Make `C-a` keep going to first non-whitespace character _and_then_ beginning of
   next line(previous with C-u).
@@ -1327,14 +1323,18 @@ Emacs session."
 ;; nil-->use spaces instead of tabs, t -- don't replace
 (require 'cc-vars)
 (setq-default indent-tabs-mode t)
-(setq-default tab-width 4)
+(setq-default tab-always-indent 'complete)
+;; sometimes tab-width (4) will make the char's position different from turning on whitespace-mode
+;; (setq-default tab-width 4)
 ;; for C++
 (setq c-basic-offset 4)
 ;; (setq indent-line-function 'insert-tab)
 (add-hook 'text-mode-hook
 		  (lambda ()
 			(setq indent-tabs-mode t)
-			(setq tab-width 4)))
+			;; this will cause the position problem in org-mode
+			;; (setq tab-width 4)
+			))
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
 			(setq tab-width 4)))
@@ -1813,6 +1813,7 @@ Do this after `q` in Debugger buffer."
 					company-dabbrev-code
 					company-semantic
 					company-yasnippet)))))
+(setq company-dabbrev-downcase nil)
 ;; grouped back-ends
 ;; (add-to-list 'company-backends
 ;;				'(
