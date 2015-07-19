@@ -1,11 +1,11 @@
 ;;; magit-filenotify.el --- Refresh status buffer when git tree changes -*- lexical-binding: t -*-
-;; Version: 20150125.1456
 
 ;; Copyright (C) 2013-2015 Rüdiger Sonderfeld
 
 ;; Author: Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 ;; Created: 17 Jul 2013
 ;; Keywords: tools
+;; Package-Version: 20150125.1456
 ;; Package-Requires: ((magit "1.3.0") (emacs "24.4"))
 
 ;; This file is NOT part of GNU Emacs.
