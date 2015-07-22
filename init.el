@@ -575,6 +575,16 @@ If the mark is not active, try to build a region using `symbol-at-point'."
 ;; Now it work for expand-region to expand sentence
 (setq sentence-end-double-space nil)
 
+;; You can do M-c/u/l the whole word in any position inside the word
+(defadvice upcase-word (before upcase-word-advice activate)
+  (unless (looking-back "\\b")
+	(backward-word)))
+(defadvice downcase-word (before downcase-word-advice activate)
+  (unless (looking-back "\\b")
+	(backward-word)))
+(defadvice capitalize-word (before capitalize-word-advice activate)
+  (unless (looking-back "\\b")
+	(backward-word)))
 ;; automatically convert the comma/dot once downcase/upcase next character
 (defun endless/convert-punctuation (rg rp)
   "Look for regexp RG around point, and replace with RP.
@@ -1093,6 +1103,7 @@ In other non-comment situations, try C-M-j to split."
 
 ;; yes/no --> y/n
 (fset 'yes-or-no-p 'y-or-n-p)
+(setq confirm-nonexistent-file-or-buffer nil)
 
 ;; when you edit a file, use C-x C-j to go to the dir which the current file lies
 (global-set-key (kbd "C-x C-j") 'dired-jump)
@@ -2339,11 +2350,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; mapc: http://tuhdo.github.io/emacs-tutor3.html
 ;; use C-u C-x g to ask which repo to choose, C-c m to the current dir
 (global-set-key (kbd "C-x g") 'magit-status)
-(eval-after-load "magit"
-  '(mapc (apply-partially 'add-to-list 'magit-repo-dirs)
-		 '(
-		   "~/.emacs.d"
-		   "~/.vim")))
 ;; open a link not prompt yes/no
 (setq vc-follow-symlinks nil)
 ;; make vc* and magit work for link
@@ -2553,6 +2559,21 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 
 ;; whole-line-or-region
 (add-hook 'after-init-hook 'whole-line-or-region-mode)
+;; ;; these basically do the C/M-w thing
+;; (defadvice kill-region (before slick-cut activate compile)
+;;   "When called interactively with no active region, kill a single line instead."
+;;   (interactive
+;;    (if mark-active (list (region-beginning) (region-end))
+;;      (list (line-beginning-position)
+;;            (line-beginning-position 2)))))
+;; (defadvice kill-ring-save (before slick-cut activate compile)
+;;   "When called interactively with no active region, copy a single line instead."
+;;   (interactive
+;;    (if mark-active (list (region-beginning) (region-end))
+;;      (list (line-beginning-position)
+;;            (line-beginning-position 2)))))
+;; (global-set-key (kbd "M-w") 'kill-ring-save)
+
 
 ;; popwin is required by guide-key
 
