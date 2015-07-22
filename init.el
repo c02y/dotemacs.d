@@ -108,6 +108,7 @@
 ;; C-x RET f undecided-dos RET	   --> \r\n (windows)
 ;; C-x RET f undecided-unix RET	   --> \n  (unix/Linux)
 ;; M-x tabify/untabify convert from spaces to tabs and vice verse
+;; NOTE: call untabify/tabify with prefix argument, it will convert for the entire buffer
 
 ;; (setq debug-on-error t)
 
@@ -231,6 +232,9 @@ and you can reconfigure the compile args."
 (menu-bar-mode 0)
 (global-set-key (kbd "C-S-m") 'menu-bar-mode)
 (global-set-key (kbd "C-S-l") 'global-linum-mode)
+;; scroll text up/down by one line, not cursor
+(global-set-key (kbd "C-M-n") (kbd "C-u 1 C-v"))
+(global-set-key (kbd "C-M-p") (kbd "C-u 1 M-v"))
 ;; use C-M-Backspace to delete whole TAB not the default backward-delete-char-untabify
 ;; in lisp mode
 (global-set-key (kbd "C-M-<backspace>") 'backward-delete-char)
