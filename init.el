@@ -110,7 +110,12 @@
 ;; M-x tabify/untabify convert from spaces to tabs and vice verse
 ;; NOTE: call untabify/tabify with prefix argument, it will convert for the entire buffer
 
+;;; Code:
 ;; (setq debug-on-error t)
+
+;; make starup quicker
+(setq gc-cons-threshold (* 100 1024 1024))
+(let ((file-name-handler-alist nil)) "~/.emacs.d/init.elc")
 
 ;; proxy goagent
 ;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
@@ -138,6 +143,7 @@
 ;; which includes many references to org-mode stuff.)
 ;; to prevent two versions of org-mode messed-up
 (package-initialize)
+(require 'bind-key)
 
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
@@ -159,22 +165,15 @@
 ;; C-0 M-x bd or M-x bd C-0 to bd
 (defalias 'bd 'byte-recompile-directory)
 ;; byte-comple and load *.el using "C-x c"
-(define-key emacs-lisp-mode-map (kbd "C-x c") 'emacs-lisp-byte-compile-and-load)
-(define-key emacs-lisp-mode-map (kbd "C-c c") 'eval-buffer)
-(define-key lisp-mode-map (kbd "C-c c") 'eval-buffer)
-(global-set-key (kbd "C-c C-e")
-				'(lambda ()
-				   (interactive)
-				   (find-file "~/.emacs.d/init.el")))
-(global-set-key (kbd "C-c C-r")
-				'(lambda ()
-				   (interactive)
-				   (load-file "~/.emacs.d/init.elc")))
-;; C-h e to switch to *Message* buffer, C-x M-z to *Scratch* buffer
-(global-set-key (kbd "C-x M-z")
-				'(lambda ()
-				   (interactive)
-				   (switch-to-buffer "*scratch*")))
+(bind-keys :map emacs-lisp-mode-map
+		   ("C-x c" . emacs-lisp-byte-compile-and-load)
+		   ("C-c c" . eval-buffer))
+(bind-keys*
+ ("C-c C-e" . (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
+ ("C-c C-u" . (lambda () (interactive) (find-file "/run/media/chz/UDISK/WORK-HOME")))
+ ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
+ ;; C-h e to switch to *Message* buffer
+ ("C-x M-z" . (lambda () (interactive) (switch-to-buffer "*scratch*"))))
 
 ;; assembly
 (add-to-list 'auto-mode-alist '("\\.\\(asm\\|s\\|S\\)$" . nasm-mode))
@@ -203,14 +202,25 @@ and you can reconfigure the compile args."
   (if (and (eq ARG 1) compilation-last-buffer)
 	  (recompile)
 	(call-interactively 'compile)))
-(global-set-key (kbd "C-x C-m") 'compile-again)
-(defun compilation-exit-autoclose (STATUS code msg)
-  "Close the compilation window if there was no error at all."
-  (when (and (eq STATUS 'exit) (zerop code))
-	(bury-buffer)
-	(delete-window (get-buffer-window (get-buffer "*compilation*" t))))
-  (cons msg code))
-(setq compilation-exit-message-function 'compilation-exit-autoclose)
+(bind-key* "C-x C-m" 'compile-again)
+;; 1.
+;; (defun compilation-exit-autoclose (STATUS code msg)
+;;   "Close the compilation window if there was no error at all."
+;;   (when (and (eq STATUS 'exit) (zerop code))
+;; 	(bury-buffer)
+;; 	(delete-window (get-buffer-window (get-buffer "*compilation*" t))))
+;;   (cons msg code))
+;; (setq compilation-exit-message-function 'compilation-exit-autoclose)
+;; 2.
+(setq compilation-finish-functions
+	  (lambda (buf str)
+		(if (null (string-match ".*exited abnormally.*" str))
+			;;no errors, make the compilation window go away in a few seconds
+			(progn
+			  (run-at-time
+			   "1 sec" nil 'delete-windows-on
+			   (get-buffer-create "*compilation*"))
+			  (message "No Compilation Errors!")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -230,14 +240,13 @@ and you can reconfigure the compile args."
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
-(global-set-key (kbd "C-S-m") 'menu-bar-mode)
-(global-set-key (kbd "C-S-l") 'global-linum-mode)
+(bind-keys*
+ ("C-S-m" . menu-bar-mode)
+ ("C-S-l" . global-linum-mode))
 ;; scroll text up/down by one line, not cursor
 (global-set-key (kbd "C-M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "C-M-p") (kbd "C-u 1 M-v"))
-;; use C-M-Backspace to delete whole TAB not the default backward-delete-char-untabify
-;; in lisp mode
-(global-set-key (kbd "C-M-<backspace>") 'backward-delete-char)
+
 ;; in c-mode
 (setq c-backspace-function 'backward-delete-char)
 ;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
@@ -264,8 +273,13 @@ and you can reconfigure the compile args."
 (setq display-time-day-and-date t)
 (setq global-mode-string nil)
 ;; this will not always show the day of week, weird
+;; (setq frame-title-format
+;; '("%b@%f" "--" display-time-string))
 (setq frame-title-format
-	  '("%b@%f" "--" display-time-string))
+	  '("%b" (:eval (if (buffer-file-name)
+						(concat "@"
+								(abbreviate-file-name default-directory))))
+		" - " display-time-string))
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
@@ -293,6 +307,8 @@ and you can reconfigure the compile args."
 	  (linum-mode -1))))
 ;; C-x C-s to use save-buffer for regular files and use sudo to prompt passwd to
 ;; save file need root permission, C-x C-q to edit the root file first
+;; Note that this C-x C-s will fail if the buffer is not a file, in this case,
+;; use C-x C-w instead
 (global-set-key (kbd "C-x C-s")
 				'(lambda ()
 				   (interactive)
@@ -382,9 +398,10 @@ and you can reconfigure the compile args."
 ;; disable scroll-bar-mode in newly created frame
 (add-hook 'after-make-frame-functions
 		  '(lambda (frame)
-			 (modify-frame-parameters frame
-									  '((vertical-scroll-bars . nil)
-										(horizontal-scroll-bars . nil)))))
+			 (modify-frame-parameters
+			  frame
+			  '((vertical-scroll-bars . nil)
+				(horizontal-scroll-bars . nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;        all about mode line
@@ -471,7 +488,7 @@ and you can reconfigure the compile args."
 ;;(setq visible-bell t)
 
 ;; Using F8 to make the face transparent
-(global-set-key [(f8)] 'loop-alpha)
+(bind-key* "<f8>" 'loop-alpha)
 (setq alpha-list '((70 70) (100 100)))
 ;; When showing warning: reference to free variable `alpha-list'
 ;; add the `(defvar alphs-list)`
@@ -508,19 +525,20 @@ and you can reconfigure the compile args."
   (save-excursion
 	(goto-char (point-min))
 	(call-interactively 'query-replace)))
-(global-set-key (kbd "M-%") 'query-replace-from-top)
+(bind-key* "M-%" 'query-replace-from-top)
 
 ;; flush blank lines
 (defun flush-blank-lines (start end)
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
 
-(global-set-key (kbd "C-S-a") 'beginning-of-visual-line)
-(global-set-key (kbd "C-S-e")
-				'(lambda ()
-				   (interactive)
-				   (end-of-visual-line)
-				   (backward-char)))
+(bind-keys*
+ ("C-S-a" . beginning-of-visual-line)
+ ("C-S-e" .
+  (lambda ()
+	(interactive)
+	(end-of-visual-line)
+	(backward-char))))
 (defun keep-beginning-of-line (arg)
   "Make `C-a` keep going to first non-whitespace character _and_then_ beginning of
   next line(previous with C-u).
@@ -537,8 +555,11 @@ It will become normal in comment block because of goddamn rebox2"
   (interactive "P")
   (when (eolp) (forward-line (if arg -1 1)))
   (move-end-of-line nil))
-(global-set-key [remap move-beginning-of-line] #'keep-beginning-of-line)
-(global-set-key [remap move-end-of-line] #'keep-end-of-line)
+;; (global-set-key [remap move-beginning-of-line] #'keep-beginning-of-line)
+;; (global-set-key [remap move-end-of-line] #'keep-end-of-line)
+(bind-keys*
+ ("C-a" . keep-beginning-of-line)
+ ("C-e" . keep-end-of-line))
 
 (defun increment-region (&optional beg end arg)
   "Increment all decimal numbers in region between `beg' and `end' by `arg'.
@@ -568,23 +589,55 @@ If the mark is not active, try to build a region using `symbol-at-point'."
 	(let ((bounds (bounds-of-thing-at-point 'symbol)))
 	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
   (increment-region beg end (- arg)))
-(global-set-key (kbd "S-M-<up>") 'increment-region)
-(global-set-key (kbd "S-M-<down>") 'decrement-region)
+(bind-keys*
+ ("S-M-<up>" . increment-region)
+ ("S-M-<down>" . decrement-region))
 
 ;; make the default sentence ending with two spaces concept nil
 ;; Now it work for expand-region to expand sentence
 (setq sentence-end-double-space nil)
 
 ;; You can do M-c/u/l the whole word in any position inside the word
-(defadvice upcase-word (before upcase-word-advice activate)
+(defadvice endless/upcase (before upcase-word-advice activate)
   (unless (looking-back "\\b")
 	(backward-word)))
-(defadvice downcase-word (before downcase-word-advice activate)
+(defadvice endless/downcase (before downcase-word-advice activate)
   (unless (looking-back "\\b")
 	(backward-word)))
-(defadvice capitalize-word (before capitalize-word-advice activate)
+(defadvice endless/capitalize (before capitalize-word-advice activate)
   (unless (looking-back "\\b")
 	(backward-word)))
+;; TODO: make the following function accept arg-num
+(defun toggle-letter-case ()
+  "Toggle the letter case of current word or text selection.
+Toggles between: “all lower”, “Init Caps”, “ALL CAPS”.
+
+Based on the comment of http://ergoemacs.org/emacs/modernization_upcase-word.html"
+  (interactive)
+  (let (p1 p2 (deactivate-mark nil) (case-fold-search nil))
+	(if (region-active-p)
+		(setq p1 (region-beginning) p2 (region-end))
+	  (let ((bds (bounds-of-thing-at-point 'word)))
+		(setq p1 (car bds) p2 (cdr bds))))
+	(when (and p1 p2)
+	  (when (not (eq last-command this-command))
+		(save-excursion
+		  (goto-char p1)
+		  (cond
+		   ((looking-at "[[:lower:]][[:lower:]]") (put this-command 'state "all lower"))
+		   ((looking-at "[[:upper:]][[:upper:]]") (put this-command 'state "all caps"))
+		   ((looking-at "[[:upper:]][[:lower:]]") (put this-command 'state "init caps"))
+		   ((looking-at "[[:lower:]]") (put this-command 'state "all lower"))
+		   ((looking-at "[[:upper:]]") (put this-command 'state "all caps"))
+		   (t (put this-command 'state "all lower")))))
+	  (cond
+	   ((string= "all lower" (get this-command 'state))
+		(upcase-initials-region p1 p2) (put this-command 'state "init caps"))
+	   ((string= "init caps" (get this-command 'state))
+		(upcase-region p1 p2) (put this-command 'state "all caps"))
+	   ((string= "all caps" (get this-command 'state))
+		(downcase-region p1 p2) (put this-command 'state "all lower"))))))
+(bind-key* "C-x M-c" 'toggle-letter-case)
 ;; automatically convert the comma/dot once downcase/upcase next character
 (defun endless/convert-punctuation (rg rp)
   "Look for regexp RG around point, and replace with RP.
@@ -632,9 +685,10 @@ Also converts full stops to commas."
   (if (use-region-p)
 	  (call-interactively 'upcase-region)
 	(call-interactively 'subword-upcase)))
-(global-set-key "\M-c" 'endless/capitalize)
-(global-set-key "\M-l" 'endless/downcase)
-(global-set-key "\M-u" 'endless/upcase)
+(bind-keys*
+ ("M-c" . endless/capitalize)
+ ("M-l" . endless/downcase)
+ ("M-u" . endless/upcase))
 
 ;; use M-x list-processes then d to delete
 (defalias 'lps 'list-processes)
@@ -647,7 +701,7 @@ Also converts full stops to commas."
 		   (revert-buffer))
 		  (t
 		   (error "no process at point!")))))
-(define-key process-menu-mode-map (kbd "d") 'delete-process-at-point)
+(bind-key "d" 'delete-process-at-point process-menu-mode-map)
 
 ;; Removing duplicated lines
 ;; Note that the last line should contain the EOF
@@ -692,7 +746,7 @@ With negative N, comment out original line and use the absolute value."
             (comment-region (line-beginning-position) (line-end-position)))
         (forward-line 1)
         (forward-char pos)))))
-(global-set-key (kbd "C-c C-d") 'duplicate-line-or-region)
+(bind-key* "C-c C-d" 'duplicate-line-or-region)
 
 ;; convert DOS to UNIX
 (defun dos2unix ()
@@ -713,7 +767,7 @@ buffer-local variable `show-trailing-whitespace'."
   (message (concat "Display of EOL spaces "
 				   (if show-trailing-whitespace
 					   "enabled" "disabled"))))
-(global-set-key "\C-ce" 'show-ws-toggle-show-trailing-whitespace)
+(bind-key* "C-c e" 'show-ws-toggle-show-trailing-whitespace)
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation, combine two lines
 ;; M-Backspace delete to the previous word 'backword-kill-word
 ;; M-\ delete kill _all_ spaces at point 'delete-horizontal-space
@@ -755,7 +809,7 @@ If current line is a single space, remove that space.
 			(if (not (string= deleted-text " "))
 				(insert " "))))
 	  (progn (delete-blank-lines)))))
-(global-set-key (kbd "C-<backspace>") 'shrink-whitespaces)
+(bind-key* "C-<backspace>" 'shrink-whitespaces)
 ;;;
 ;; delete not kill it into kill-ring
 ;; http://ergoemacs.org/emacs/emacs_kill-ring.html
@@ -790,10 +844,11 @@ With argument, backward ARG lines."
 	(move-beginning-of-line 1)
 	(setq x2 (point))
 	(delete-region x1 x2)))
-(global-set-key (kbd "M-d") 'delete-word)
-(global-set-key (kbd "<M-backspace>") 'backward-delete-word)
-(global-set-key (kbd "C-k") 'delete-line)
-(global-set-key (kbd "C-S-k") 'delete-line-backward)
+(bind-keys*
+ ("M-d" . delete-word)
+ ("<M-backspace>" . backward-delete-word)
+ ("C-k" . delete-line)
+ ("C-S-k" . delete-line-backward))
 
 (defun toggle-fill-paragraph ()
   ;; Based on http://xahlee.org/emacs/modernization_fill-paragraph.html
@@ -817,7 +872,7 @@ See `fill-paragraph' and `fill-region'."
 		  (fill-region (region-beginning) (region-end))
 		(fill-paragraph))
 	  (put this-command 'currently-filled-p (not currently-filled)))))
-(global-set-key (kbd "M-q") 'toggle-fill-paragraph)
+(bind-key* "M-q" 'toggle-fill-paragraph)
 
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (defun cleanup-buffer ()
@@ -828,7 +883,7 @@ See `fill-paragraph' and `fill-region'."
   (interactive)
   (yafolding-show-all) ;; avoid data loss
   (delete-trailing-whitespace))
-(global-set-key (kbd "C-c d") 'cleanup-buffer)
+(bind-key* "C-c d" 'cleanup-buffer)
 (defvar all-make-modes
   '(makefile-makepp-mode makefile-bsdmake-mode makefile-imake-mode
 						 makefile-automake-mode makefile-mode makefile-gmake-mode)
@@ -841,6 +896,7 @@ Emacs by default won't treat the TAB as indent"
   (when (and (derived-mode-p 'prog-mode 'web-mode)
 			 (not (member major-mode all-make-modes)))
 	(indent-region (point-min) (point-max))))
+(bind-key* "C-c C-w" 'indent-buffer-safe)
 (add-hook 'before-save-hook
 		  (lambda ()
 			(cleanup-buffer)
@@ -858,7 +914,7 @@ Emacs by default won't treat the TAB as indent"
 	(save-buffer)
 	(kill-buffer nil)))
 ;; C-x k to kill a buffer specified
-(global-set-key (kbd "C-S-d") 'kill-this-buffer)
+(bind-key* "C-S-d" 'kill-this-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; minibuffer & buffers & dired
@@ -893,10 +949,6 @@ Emacs by default won't treat the TAB as indent"
 (setq dired-listing-switches "-Al --time-style long-iso")
 ;; in dired, hide hidden files by default, toggle them using `C-x M-o`
 (require 'dired-x)
-(setq dired-omit-files "^\\...+$")
-;; map H from dired-do-hardlink to dired-omit-mode since it will not be used
-(define-key dired-mode-map (kbd "H") 'dired-omit-mode)
-(add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
 (defun dired-get-size ()
   "Get the size of a directory or a series of marked files and directories."
   (interactive)
@@ -908,11 +960,16 @@ Emacs by default won't treat the TAB as indent"
        (progn
          (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
          (match-string 1))))))
-(define-key dired-mode-map (kbd "z") 'dired-get-size)
+(setq dired-omit-files "^\\...+$")
+(add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
+;; map H from dired-do-hardlink to dired-omit-mode since it will not be used
+(bind-keys :map dired-mode-map
+		   ("H" . dired-omit-mode)
+		   ("z" . dired-get-size))
 ;; dired+
 ;; stop Emacs dired mode from opening so many buffers
-(setq diredp-hide-details-initially-flag nil)
 (require 'dired+)
+(setq diredp-hide-details-initially-flag nil)
 (toggle-diredp-find-file-reuse-dir 1)
 ;; sort in dired, `C-u s` then -S(sort by size), -u(sort by access time),
 ;; -c(sort by last modification time), -X(sort by file extension),
@@ -924,8 +981,9 @@ Emacs by default won't treat the TAB as indent"
   (interactive)
   (when (active-minibuffer-window)
 	(select-window (active-minibuffer-window))))
-(global-set-key (kbd "<f7>") 'switch-to-minibuffer-window)
-(global-set-key (kbd "C-c b") 'ibuffer)
+(bind-keys*
+ ("<f7>" . switch-to-minibuffer-window)
+ ("C-c b" . ibuffer))
 (setq ibuffer-use-other-window t)
 ;; improve the profermance of the minibuffer
 (setq echo-keystrokes 0.001)
@@ -947,15 +1005,16 @@ Emacs by default won't treat the TAB as indent"
   (let ((i 0))
 	(while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
 	  (setq i (1+ i)) (next-buffer))))
-(global-set-key [C-prior] 'prev-user-buffer)
-(global-set-key [C-next] 'next-user-buffer)
+(bind-keys*
+ ("<C-prior>" . prev-user-buffer)
+ ("<C-next>" . next-user-buffer))
 ;; switch to last visited buffer
 (defun last-visited-buffer ()
   "Switch to last visited buffer.
 Repeated invocations toggle between the two most recently open buffers."
   (interactive)
   (switch-to-buffer (other-buffer (current-buffer) 1)))
-(global-set-key (kbd "C-x x") 'last-visited-buffer)
+(bind-key* "C-x x" 'last-visited-buffer)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
 (defcustom search-all-buffers-ignored-files
@@ -981,7 +1040,7 @@ searches all buffers."
 			  search-all-buffers-ignored-files))
 	  (remove-if-not 'buffer-file-name (buffer-list))))
    regexp))
-(global-set-key [f9] 'search-all-buffers)
+(bind-key* "<f9>" 'search-all-buffers)
 
 ;; lock/stick the buffer
 (defun stick-buffer ()
@@ -993,7 +1052,7 @@ searches all buffers."
 		(face-remap-add-relative 'mode-line-buffer-id '(:background "blue"))
 	  (face-remap-add-relative 'mode-line-buffer-id '(:background "dim gray")))
 	(set-window-dedicated-p window (not dedicated))))
-(global-set-key [f11] 'stick-buffer)
+(bind-key* "<f11>" 'stick-buffer)
 
 ;; Generate unique buffer names if you open many files with same basename
 (require 'uniquify)
@@ -1009,13 +1068,14 @@ searches all buffers."
 ;; 1. M-x diff-buffer-with-file
 ;; 2. After C-x C-c, type d to differ
 ;; If you are in vc dir, use C-x v = to diff the current version with the repo
-(global-set-key (kbd "C-h C-b") 'diff-buffer-with-file)
-(global-set-key (kbd "C-h C-v") 'highlight-changes-visible-mode)
+(bind-keys*
+ ("C-h C-b" . diff-buffer-with-file)
+ ("C-h C-v" . highlight-changes-visible-mode)
+ ("M-<f1>" . highlight-changes-previous-change)
+ ("M-<f2>" . highlight-changes-next-change))
 (global-highlight-changes-mode t)
 ;; initial invisible, use C-h C-v to toggle the highlight of changes
 (setq highlight-changes-visibility-initial-state nil)
-(global-set-key (kbd "M-<f1>") 'highlight-changes-previous-change)
-(global-set-key (kbd "M-<f2>") 'highlight-changes-next-change)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; line issues
@@ -1028,6 +1088,12 @@ searches all buffers."
 ;; Always end a file with a newline
 (setq require-final-newline nil)
 
+(defun in-comment-p ()
+  "Testy if cursor/point in a commented line? lispy--in-comment-p is not working in org-mode, so combine lispy--in-comment-p with org-at-comment-p"
+  (save-excursion
+	(if (derived-mode-p 'org-mode)
+		(save-match-data (beginning-of-line) (looking-at "^[ \t]*#"))
+	  (lispy--in-comment-p))))
 (defun advanced-return (&optional arg)
   "Customized return, more powerful.
 
@@ -1048,12 +1114,13 @@ In other non-comment situations, try C-M-j to split."
 		  (end-of-line)
 		  (open-line 1)
 		  (forward-line))
-	  (if (lispy--in-comment-p)
+	  (if (in-comment-p)
 		  (call-interactively (key-binding (kbd "C-M-j")))
 		(progn
 		  (end-of-line)
 		  (newline-and-indent))))))
-(global-set-key (kbd "RET") 'advanced-return)
+;; donnot use bind-key*, it will affect the Enter in minibuffer
+(bind-key "RET" 'advanced-return)
 
 ;; comment in C code,`M-;` means /* */, use // in C++ code
 (add-hook 'c++-mode-hook
@@ -1068,19 +1135,19 @@ In other non-comment situations, try C-M-j to split."
 (setq compilation-scroll-output t)
 ;; overwrite selected region when typing, yanking
 (delete-selection-mode t)
-;; disable Insert key for plugged keyboard
-(define-key global-map [(insert)] nil)
 ;; When C-x n n/s to narrwow the marked region, don't ask whether for future
 ;; session or not C-x n w to go back to normal
 (put 'narrow-to-region 'disabled nil)
+;; disable Insert key for plugged keyboard
+(unbind-key "<insert>" global-map)
 ;; disable C-z(suspend-frame) , and you can use C-z for others
-(define-key global-map [(control z)] nil)
+(unbind-key "C-z" global-map)
 ;; color
 (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; http://ergoemacs.org/emacs/emacs_shell_vs_term_vs_ansi-term_vs_eshell.html
-(global-set-key (kbd "C-x s") 'shell)
+(bind-key* "C-x s" 'shell)
 ;; shell will prompt if you try to kill the buffer, but eshell will not.  eshell
 ;; will not use the .bashrc/.fishrc, but shell will makes shell command always
 ;; start a new shell, use C-u M-x eshell to create a new eshell,
@@ -1103,27 +1170,19 @@ In other non-comment situations, try C-M-j to split."
 
 ;; yes/no --> y/n
 (fset 'yes-or-no-p 'y-or-n-p)
-(setq confirm-nonexistent-file-or-buffer nil)
 
 ;; when you edit a file, use C-x C-j to go to the dir which the current file lies
-(global-set-key (kbd "C-x C-j") 'dired-jump)
+(bind-key* "C-x C-j" 'dired-jump)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; Window
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; resize the opened windows
-;; firstly disable some shortkeys in org-mode
-;; the following shortkeys are in shift-selection, org-support-shift-select
-(add-hook 'org-mode-hook
-		  (lambda ()
-			(define-key org-mode-map [(control shift left)] nil)
-			(define-key org-mode-map [(control shift right)] nil)
-			(define-key org-mode-map [(control shift up)] nil)
-			(define-key org-mode-map [(control shift down)] nil)))
-(global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "S-C-<right>")	'enlarge-window-horizontally)
-(global-set-key (kbd "S-C-<down>") 'shrink-window)
-(global-set-key (kbd "S-C-<up>") 'enlarge-window)
+(bind-keys*
+ ("S-C-<left>" . shrink-window-horizontally)
+ ("S-C-<right>" . enlarge-window-horizontally)
+ ("S-C-<down>" . shrink-window)
+ ("S-C-<up>" . enlarge-window))
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
 ;; you can C-x 1 to close other windows and C-c <left> to restore
@@ -1145,8 +1204,9 @@ In other non-comment situations, try C-M-j to split."
 	(progn
 	  (window-configuration-to-register '_)
 	  (delete-window))))
-(global-set-key (kbd "C-x z") 'toggle-maximize-buffer)
-(global-set-key (kbd "C-x C-z") 'toggle-maximize-other-buffer)
+(bind-keys*
+ ("C-x z" . toggle-maximize-buffer)
+ ("C-x C-z" . toggle-maximize-other-buffer))
 
 ;; Try C-x 4 C-h for C-x 4 info
 (defun vsplit-last-buffer ()
@@ -1161,8 +1221,9 @@ In other non-comment situations, try C-M-j to split."
   (split-window-horizontally)
   (other-window 1 nil)
   (switch-to-next-buffer))
-(global-set-key (kbd "C-x 2") 'vsplit-last-buffer)
-(global-set-key (kbd "C-x 3") 'hsplit-last-buffer)
+(bind-keys*
+ ("C-x 2" . vsplit-last-buffer)
+ ("C-x 3" . hsplit-last-buffer))
 ;;
 ;; split new window direction by default
 ;; (setq split-width-threshold 90)
@@ -1196,7 +1257,7 @@ In other non-comment situations, try C-M-j to split."
 		  (select-window first-win)
 		  (if this-win-2nd (other-window 1))))))
 ;; C-x 4 t 'toggle-window-split
-(define-key ctl-x-4-map "t" 'toggle-window-split)
+(bind-key "t" 'toggle-window-split ctl-x-4-map)
 
 ;; ediff split horizontal, default is vertically
 (eval-after-load "ediff"
@@ -1210,10 +1271,11 @@ In other non-comment situations, try C-M-j to split."
 
 ;; You can use C-x o 'other-window, but the following is better
 ;; move your point to another window in the specific direction
-(global-set-key (kbd "C-x <left>") 'windmove-left)
-(global-set-key (kbd "C-x <right>") 'windmove-right)
-(global-set-key (kbd "C-x <up>") 'windmove-up)
-(global-set-key (kbd "C-x <down>") 'windmove-down)
+(bind-keys*
+ ("C-x <left>" . windmove-left)
+ ("C-x <right>" . windmove-right)
+ ("C-x <up>" . windmove-up)
+ ("C-x <down>" . windmove-down))
 
 ;;
 ;; revert buffer without confirmation
@@ -1221,7 +1283,7 @@ In other non-comment situations, try C-M-j to split."
 (defun rev()
   (interactive)
   (revert-buffer nil t))
-(global-set-key (kbd "C-c r") 'rev)
+(bind-key* "C-c r" 'rev)
 (defalias 'rtf 'recover-this-file)
 ;;
 ;; reopen killed buffer
@@ -1246,10 +1308,10 @@ Emacs session."
 				(cl-delete file killed-buffers-list :test #'equal))
 		  (find-file file)))
 	(error "No recently-killed files to reopen")))
-(global-set-key (kbd "C-S-t") 'reopen-killed-buffer-fancy)
+(bind-key* "C-S-t" 'reopen-killed-buffer-fancy)
 
 ;; set M-x align-regexp to C-c a
-(global-set-key (kbd "C-c a") 'align-regexp)
+(bind-key "C-c a" 'align-regexp)
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
@@ -1311,9 +1373,10 @@ Emacs session."
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; C-. or C-M-i 'flyspell-auto-correct-word
 ;; if you don't know how to spell the rest of a word
-(global-set-key (kbd "C-?") 'ispell-complete-word)
-;; check comments and string constants already in the file
-(global-set-key (kbd "<f5>") 'ispell-comments-and-strings)
+(bind-keys*
+ ("C-?" . ispell-complete-word)
+ ;; check comments and string constants already in the file
+ ("<f5>" . ispell-comments-and-strings))
 ;; check in the comments and string constants as you type
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 ;; click the left button to show the correct words list
@@ -1327,13 +1390,13 @@ Emacs session."
   (interactive)
   (flyspell-goto-next-error)
   (ispell-word))
-(global-set-key (kbd "M-<f8>") 'flyspell-check-next-highlighted-word)
+(bind-key* "M-<f8>" 'flyspell-check-next-highlighted-word)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Tab & indent
 ;;;;;;;;;;; '(global-)whitespace-mode to show tab/space
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(global-set-key (kbd "C-c w") 'whitespace-mode)
+(bind-key* (kbd "C-c w") 'whitespace-mode)
 
 ;; nil-->use spaces instead of tabs, t -- don't replace
 (require 'cc-vars)
@@ -1448,16 +1511,19 @@ Has no effect if the character before point is not of the syntax class ')'."
 (define-minor-mode c-helpers-minor-mode
   "This mode contains little helpers for C developement" nil ""
   '(((kbd "{") . insert-c-block-parentheses)))
+;; this breaks under function name suddenly, don't why
 (defun insert-c-block-parentheses ()
   (interactive)
   (insert "{")
   (newline)
   (newline)
   (insert "}")
-  (indent-for-tab-command)
-  (call-interactively 'previous-line)
-  (indent-for-tab-command))
-(dolist (mode '(c-mode-common-hook jave-mode-hook cperl-mode-hook css-mode-hook))
+  ;; donot use indent-for-tab-command since TAB is rebound, or point will stop
+  ;; after the }
+  (indent-according-to-mode)
+  (forward-line -1)
+  (indent-according-to-mode))
+(dolist (mode '(c-mode-common-hook java-mode-hook cperl-mode-hook css-mode-hook))
   (add-hook mode
 			'(lambda ()
 			   (c-helpers-minor-mode))))
@@ -1470,9 +1536,11 @@ Has no effect if the character before point is not of the syntax class ')'."
   (insert "{")
   (insert "}")
   (call-interactively 'left-char))
-(define-key c-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
-(define-key c++-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
-(define-key java-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent)
+(require 'cc-mode)
+(bind-key "C-{" 'insert-c-block-parentheses-without-indent c-mode-map)
+(bind-key "C-{" 'insert-c-block-parentheses-without-indent c++-mode-map)
+(bind-key "C-{" 'insert-c-block-parentheses-without-indent java-mode-map)
+
 ;; use cperl-mode as default mode for Perl code instead of perl-mode
 ;; cperl-mode offers much more features than perl-mode.
 ;; http://ergoemacs.org/emacs/emacs_perl_vs_cperl_mode.html
@@ -1483,7 +1551,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-to-list 'interpreter-mode-alist '("perl5" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("miniperl" . cperl-mode))
 (eval-after-load "cperl-mode"
-  '(define-key cperl-mode-map (kbd "C-{") 'insert-c-block-parentheses-without-indent))
+  '(bind-key "C-{" 'insert-c-block-parentheses-without-indent cperl-mode-map))
 
 ;; gdb, Debugging with GDB Many Windows layout
 ;; https://tuhdo.github.io/c-ide.html
@@ -1507,7 +1575,7 @@ Has no effect if the character before point is not of the syntax class ')'."
   (if compilation-minor-mode
 	  (setq compilation-minor-mode nil)
 	(compilation-minor-mode)))
-(global-set-key (kbd "C-c v") 'va)
+(bind-key  "C-c v" 'va prog-mode-map)
 (defvar all-gud-modes
   '(gud-mode comint-mode gdb-locals-mode gdb-frames-mode gdb-breakpoints-mode)
   "A list of modes when using gdb")
@@ -1589,7 +1657,7 @@ Do this after `q` in Debugger buffer."
 ;; Enables project mode on all files.
 (global-ede-mode t)
 ;; Starting for inline completion when "." is pressed
-(define-key prog-mode-map "." 'semantic-complete-self-insert)
+(bind-key "." 'semantic-complete-self-insert prog-mode-map)
 ;;
 (add-hook 'org-mode-hook
 		  (lambda() (set
@@ -1639,7 +1707,7 @@ Do this after `q` in Debugger buffer."
 (yas-global-mode 1)
 ;; stop yasnippet auto-indent
 ;; (setq yas/indent-line nil)
-(global-set-key (kbd "C-c y") 'yas-reload-all)
+(bind-key "C-c y" 'yas-reload-all)
 
 ;; ecb, use M-x ecb-minor-mode, or Tools->Start Code Browser you'll be suprised
 ;; If you want to load the ECB first after starting it by ecb-activate
@@ -1653,9 +1721,10 @@ Do this after `q` in Debugger buffer."
 
 ;; hippie-expand-etx
 (autoload 'hippie-exp-ext "hippie-exp-ext" t)
-(global-set-key (kbd "C-@") 'hippie-expand-dabbrev-limited-chars)
-;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
-(global-set-key (kbd "M-/") 'hippie-expand)
+(bind-keys*
+ ("C-@" . hippie-expand-dabbrev-limited-chars)
+ ;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
+ ("M-/" . hippie-expand))
 (defun try-expand-by-dict (old)
   ;; old is true if we have already attempted an expansion
   (unless (bound-and-true-p ispell-minor-mode)
@@ -1704,12 +1773,13 @@ Do this after `q` in Debugger buffer."
 (autoload 'multiple-cursors "multiple-cursors" t)
 ;; When you have an active region that spans multiple lines, the following will
 ;; add a cursor to each line
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(bind-key* "C-S-c C-S-c" 'mc/edit-lines)
 ;; When you want to add multiple cursors not based on continuous lines, but
 ;; based on keywords in the buffer, first mark the word, then add more cursors:
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+(bind-keys*
+ ("C->" . mc/mark-next-like-this)
+ ("C-<" . mc/mark-previous-like-this)
+ ("C-c C-<" . mc/mark-all-like-this))
 
 ;; ace-jump-mode
 (autoload
@@ -1725,10 +1795,11 @@ Do this after `q` in Debugger buffer."
   "Ace jump back:-)" t)
 (eval-after-load "ace-jump-mode" '(ace-jump-mode-enable-mark-sync))
 ;; Use C-x SPC or C-u C-SPC to jump back
-(define-key global-map (kbd "C-c SPC") 'ace-jump-mode-pop-mark)
-(define-key global-map (kbd "C-c j") 'ace-jump-mode)
-(define-key global-map (kbd "C-c J") 'ace-jump-char-mode)
-(define-key global-map (kbd "C-c l") 'ace-jump-line-mode)
+(bind-keys*
+ ("C-c SPC" . ace-jump-mode-pop-mark)
+ ("C-c j" . ace-jump-mode)
+ ("C-c J" . ace-jump-char-mode)
+ ("C-c l" . ace-jump-line-mode))
 
 ;;
 ;; dash required by ace-jump-buffer
@@ -1736,15 +1807,15 @@ Do this after `q` in Debugger buffer."
 ;; ace-jump-buffer, requires dash and ace-jump-mode
 (autoload 'ace-jump-buffer "ace-jump-buffer" t)
 ;; C-x C-b default to 'list-buffers
-(define-key global-map (kbd "C-x C-b") nil)
-(global-set-key (kbd "C-x C-b") 'ace-jump-buffer)
+(unbind-key "C-x C-b" global-map)
+(bind-key* "C-x C-b" 'ace-jump-buffer)
 
 ;; sml-mode requird by expand-region
 (autoload 'sml-mode "sml-mode" t)
 ;;
 ;; expand-region
 (autoload 'expand-region "expand-region" t)
-(global-set-key (kbd "C-S-SPC") 'er/expand-region)
+(bind-key* "C-S-SPC" 'er/expand-region)
 ;; mark word->sentence->paragraph->buffer
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
@@ -1763,9 +1834,9 @@ Do this after `q` in Debugger buffer."
 ;; `change-inner {` would kill the content inside of {}
 ;; `change-outer {` would kill the entire block（including {）
 ;; Giving these commands a prefix argument `C-u` means copy instead of kill.
-(require 'change-inner)
-(global-set-key (kbd "M-i") 'change-inner)
-(global-set-key (kbd "M-o") 'change-outer)
+(bind-keys*
+ ("M-i" . change-inner)
+ ("M-o" . change-outer))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;	 company-mode
@@ -1782,7 +1853,7 @@ Do this after `q` in Debugger buffer."
 ;; (setq company-auto-complete t)
 ;; use F1 or C-h in the drop list to show the doc, Use C-s/C-M-s to search the candidates,
 ;; M-NUM to select specific one, C-w to view its source file
-(global-set-key (kbd "C-c <tab>") 'company-files)
+(bind-key* "C-c <tab>" 'company-files)
 ;; this will show a lot of garbage, use it only necessary
 ;; (add-to-list 'company-backends 'company-ispell)
 (defalias 'ci 'company-ispell)
@@ -1863,26 +1934,25 @@ Do this after `q` in Debugger buffer."
   (buffer-face-mode)
   (setq undo-tree-visualizer-timestamps t)
   (setq undo-tree-visualizer-diff t))
-(define-key undo-tree-map (kbd "C-_") nil)
-(global-unset-key (kbd "C-_"))
-(define-key undo-tree-map (kbd "M-_") nil)
-(define-key undo-tree-map (kbd "C-?") nil)
-(define-key undo-tree-map (kbd "C-/") nil)
-(define-key global-map (kbd "C-z") 'undo-tree-undo)
-(define-key global-map (kbd "C-S-z") 'undo-tree-redo)
+(unbind-key "C-_" global-map)
+(unbind-key "M-_" global-map)
+(bind-keys*
+ ("C-z" . undo-tree-undo)
+ ("C-S-z" . undo-tree-redo))
 
 ;; findr
-(autoload 'findr "findr" "Find file name." t)
-(define-key global-map [(meta control S)] 'findr)
 (autoload 'findr-search "findr" "Find text in files." t)
-(define-key global-map [(meta control s)] 'findr-search)
 (autoload 'findr-query-replace "findr" "Replace text in files." t)
-(define-key global-map [(meta control r)] 'findr-query-replace)
+(bind-keys*
+ ("C-M-S-s" . findr)
+ ("C-M-s" . findr-search)
+ ("C-M-r" . findr-query-replace))
 
 ;; iy-go-to-char better work with multiple-cursors
 (autoload 'iy-go-to-char "iy-go-to-char" t)
-(global-set-key (kbd "C-c f") 'iy-go-to-char)
-(global-set-key (kbd "C-c F") 'iy-go-to-char-backward)
+(bind-keys*
+ ("C-c f" . iy-go-to-char)
+ ("C-c F" . iy-go-to-char-backward))
 ;; (global-set-key (kbd "C-c ;") 'iy-go-to-or-up-to-continue)
 ;; (global-set-key (kbd "C-c ,") 'iy-go-to-or-up-to-continue-backward)
 ;;
@@ -1894,9 +1964,6 @@ Do this after `q` in Debugger buffer."
 
 (autoload 'markdown-mode "markdown-mode"
   "Major mode for editing Markdown files" t)
-(add-to-list 'auto-mode-alist '("\\.txt\\'" . markdown-mode))
-(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
-(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 ;; markdown-mode+
 (autoload 'markdown-mode+ "markdown-mode+" t)
 
@@ -1951,7 +2018,7 @@ Do this after `q` in Debugger buffer."
 ;; or you can use C-c , to set the TODO priority
 ;; (define-key semantic-mode-map "\C-c," 'org-priority)
 ;; or you have to M-x org-mode to use (C-u)C-c . org-time-stamp
-(define-key ede-minor-mode-map "\C-c." 'org-time-stamp)
+(bind-key "\C-c." 'org-time-stamp ede-minor-mode-map)
 ;;
 ;; the next line is needed before load org-mode
 ;; Non-nil means single character alphabetical bullets are allowed.
@@ -1968,16 +2035,13 @@ Do this after `q` in Debugger buffer."
 (require 'ob-tangle)
 (require 'org)
 (setq org-completion-use-ido t)
-(define-key org-mode-map (kbd "C-c a") 'org-agenda)
-(define-key org-mode-map (kbd "C-c c") 'org-capture)
-(define-key org-mode-map (kbd "<C-return>") 'org-insert-heading-after-current)
-;; use global defined C-a/e not `org-end/beginning-of-line`
-(define-key org-mode-map (kbd "C-e") nil)
-(define-key org-mode-map (kbd "C-a") nil)
-(define-key org-mode-map (kbd "RET") 'advanced-return)
-(define-key org-mode-map (kbd "C-k") 'delete-line)
-;; show/unshow the descriptive and literal links
-(define-key org-mode-map (kbd "C-c C-x l") 'org-toggle-link-display)
+(bind-keys :map org-mode-map
+		   ("C-c a" . org-agenda)
+		   ("C-c c" . org-capture)
+		   ("<C-return>" . org-insert-heading-after-current)
+		   ("RET" . advanced-return)
+		   ;; show/unshow the descriptive and literal links
+		   ("C-c C-x l" . org-toggle-link-display))
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
 (require 'org-inlinetask)
@@ -2025,7 +2089,8 @@ Do this after `q` in Debugger buffer."
 ;; syntax highlight in the source code snippet
 (setq org-src-fontify-natively t)
 ;; TAB to indent the _whole_(not lines) code snippet block comparing with "#+BEGIN_SRC" part
-(setq org-src-tab-acts-natively t)
+;; already forget its effect, but enabling the following will make Enter key insert 3 lines
+;;(setq org-src-tab-acts-natively t)
 ;; space before src content and the header such as #+BEGIN_SRC
 ;; (setq org-edit-src-content-indentation 4)
 ;; fix problems of more spaces before source code lines in the exported html file
@@ -2040,6 +2105,7 @@ Do this after `q` in Debugger buffer."
 			(setq org-hide-leading-stars nil)))
 ;; don not put this into hook
 (setq org-startup-indented t)
+(setq org-indent-indentation-per-level 3)
 ;; Prevents accidentally editing hidden text when the point is inside a folded region.
 ;; use C-c C-r 'org-reveal to show where your point is
 (setq org-catch-invisible-edits 'error)
@@ -2058,7 +2124,7 @@ into one step."
 	(org-edit-special)
 	(indent-region (point-min) (point-max))
 	(org-edit-src-exit)))
-(define-key org-mode-map (kbd "C-c <C-tab>") 'org-src-format)
+(bind-key "C-c <C-tab>" 'org-src-format org-mode-map)
 ;; in org-mode file
 (setq org-emphasis-alist
 	  '(
@@ -2080,7 +2146,7 @@ into one step."
 ;; C-tab(original 'org-force-cycle-archived) to show the element
 ;; in another window(simpler version of org-panes.el)
 ;; then M-PageUp/Down to scroll another window
-(define-key org-mode-map (kbd "C-<tab>") 'org-tree-to-indirect-buffer)
+(bind-key "C-<tab>" 'org-tree-to-indirect-buffer org-mode-map)
 ;; (setq org-emphasis-alist
 ;; (append org-emphasis-alist '((" ` " bold "<b>" "</b>"))))
 ;; (add-to-list 'org-emphasis-alist '("`" (:foreground "cyan")))
@@ -2164,35 +2230,55 @@ background of code to whatever theme I'm using's background"
 ;;(require 'helm-config)
 (require 'helm-files)
 ;; make TAB to complete the existence
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+(bind-key "<tab>" 'helm-execute-persistent-action helm-map)
 (helm-mode 1)
-;; view the content of the both the local and global mark rings in a friendly interface,
-;; use C-h SPC to jump back to where you were, like the 'ggtags-view-tag-history
-(global-set-key (kbd "C-h C-SPC") 'helm-all-mark-rings)
-;; helm-apropos describes commands, functions, variables and faces - all in one command!
-(global-set-key (kbd "C-h h") 'helm-apropos)
-(global-set-key (kbd "C-h C-c") 'helm-colors)
-(global-set-key (kbd "<f1> h") 'helm-apropos)
-;; in dired(you have to go to the dir first), helm-find is like find in terminal,
-;; helm-locate is like locate in terminal, to use local database with prefix argument C-u
-;;
-;; helm-for-files
-;; list buffers, recentf, bookmarks, files in current dir and even in *locate* after typing
-;; but it won't create a new file/buffer/bookmark if it doesn't exist in emacs/disk
-(global-set-key (kbd "C-x C-p") 'helm-for-files)
-;;
-;; helm-mini is like helm-for-files(buffers and recentf only) = helm-buffers-list + helm-recentf
-;; but will create a new if a buffer(only buffer) doesn't exit
-;; use C/M-v or left/right to change part(buffers/recentf/create), up/down only work in one part
-;; use C-x C-f to create a new file C-x b to create a new buffer
-;; in helm-mini, *c/l to filter the c/l mode files(c/h), *c/l! show all the other but c/l
-;; /.emacs to filter only the files/buffers in .emacs.., !/.emacs show them not in .emacs...
-;; @elpa filter only the buffers contain the string 'elpa', then C-s to go to the positions
-;; in the buffer selected, maybe C-SPC to mark multi-files first, C-u C-s work on the current buffer
-;; you can combine the above cases, such as: *lisp, *c/l ^helm @helm-find-files(more than one mode using , to seperate)
-(global-set-key (kbd "M-z") 'helm-mini)
-;; (global-set-key (kbd "C-x b") 'helm-buffers-list)
-(global-set-key (kbd "C-x C-r") 'helm-recentf)
+(bind-keys*
+ ("M-x" . helm-M-x)
+ ;; M-y cycles the kill ring
+ ("C-x y" . helm-show-kill-ring)
+ ("C-/" . helm-semantic-or-imenu)
+ ("C-c x" . helm-resume)
+ ("C-s" . helm-occur)
+ ;; view the content of the both the local and global mark rings in a friendly interface,
+ ;; use C-h SPC to jump back to where you were, like the 'ggtags-view-tag-history
+ ("C-h C-SPC" . helm-all-mark-rings)
+ ;; helm-apropos describes commands, functions, variables and faces - all in one command!
+ ("C-h h" . helm-apropos)
+ ("C-h C-c" . helm-colors)
+ ("<f1> h" . helm-apropos)
+ ;; in dired(you have to go to the dir first), helm-find is like find in terminal,
+ ;; helm-locate is like locate in terminal, to use local database with prefix argument C-u
+ ;;
+ ;; helm-for-files
+ ;; list buffers, recentf, bookmarks, files in current dir and even in *locate* after typing
+ ;; but it won't create a new file/buffer/bookmark if it doesn't exist in emacs/disk
+ ("C-x C-p" . helm-for-files)
+ ;;
+ ;; helm-mini is like helm-for-files(buffers and recentf only) = helm-buffers-list + helm-recentf
+ ;; but will create a new if a buffer(only buffer) doesn't exit
+ ;; use C/M-v or left/right to change part(buffers/recentf/create), up/down only work in one part
+ ;; use C-x C-f to create a new file C-x b to create a new buffer
+ ;; in helm-mini, *c/l to filter the c/l mode files(c/h), *c/l! show all the other but c/l
+ ;; /.emacs to filter only the files/buffers in .emacs.., !/.emacs show them not in .emacs...
+ ;; @elpa filter only the buffers contain the string 'elpa', then C-s to go to the positions
+ ;; in the buffer selected, maybe C-SPC to mark multi-files first, C-u C-s work on the current buffer
+ ;; you can combine the above cases, such as: *lisp, *c/l ^helm @helm-find-files(more than one mode using , to seperate)
+ ("M-z" . helm-mini)
+ ;; (global-set-key (kbd "C-x b") 'helm-buffers-list)
+ ("C-x C-r" . helm-recentf)
+ ;;
+ ;; C-s(helm-ff-run-grep) after C-x C-f to search a file/directory on highlighted...,
+ ;; With prefix argument, recursively grep a selected directory. )
+ ;; In sessions such as helm-find-files or helm-mini, you can use C-SPC to
+ ;; select more than one candidates and execute actions on them, such as grep or open.
+ ;; helm-find-files will prompt y/n if the file doesn't exist, find-file won't
+ ("C-x C-f" . helm-find-files)
+ ("C-x f" . find-file-read-only))
+(with-eval-after-load 'helm-semantic
+  (setq helm-semantic-display-style
+		'((c-mode . semantic-format-tag-summarize)
+		  (emacs-lisp-mode . semantic-format-tag-summarize))))
+(unbind-key "C-x f" global-map)
 ;; (recentf-mode t)
 (setq
  ;; recentf-save-file
@@ -2200,13 +2286,6 @@ background of code to whatever theme I'm using's background"
  recentf-max-saved-items 100
  ;; recentf-max-menu-items 15
  )
-;;
-;; C-s(helm-ff-run-grep) after C-x C-f to search a file/directory on highlighted...,
-;; With prefix argument, recursively grep a selected directory. )
-;; In sessions such as helm-find-files or helm-mini, you can use C-SPC to
-;; select more than one candidates and execute actions on them, such as grep or open.
-;; helm-find-files will prompt y/n if the file doesn't exist, find-file won't
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
 ;; Use C-S-s to search other-window, when this is used in more than 3 windows,
 ;; it would be confused by 'other-window
 (defun helm-other-occur ()
@@ -2214,7 +2293,7 @@ background of code to whatever theme I'm using's background"
   (save-selected-window
 	(other-window 1)
 	(helm-occur)))
-(global-set-key (kbd "C-S-s") 'helm-other-occur)
+(bind-key* "C-S-s" 'helm-other-occur)
 (defun helm-backspace ()
   "Forward to `backward-delete-char'.
 On error (read-only), quit without selecting(showing 'Text is read only' in minibuffer)."
@@ -2223,13 +2302,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	  (backward-delete-char 1)
 	(error
 	 (helm-keyboard-quit))))
-(define-key helm-map (kbd "DEL") 'helm-backspace)
-(global-set-key (kbd "M-x") 'helm-M-x)
-;; M-y cycles the kill ring
-(global-set-key (kbd "C-x y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-/") 'helm-semantic-or-imenu)
-(global-set-key (kbd "C-c x") 'helm-resume)
-(global-set-key (kbd "C-s") 'helm-occur)
+(bind-key "DEL" 'helm-backspace helm-map)
 (setq
  ;; helm-quick-update t  ; do not display invisible candidates
  ;; helm-split-window-default-side 'other	; open helm buffer in another window
@@ -2252,10 +2325,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
 ;; helm-ag
 (require 'helm-ag)
-(global-set-key (kbd "C-h g") 'helm-ag)
+(bind-key "C-h g" 'helm-ag)
 (setq helm-ag-fuzzy-match t
 	  helm-ag-insert-at-point 'symbol)
-(define-key helm-ag-map (kbd "RET") 'helm-ag--run-other-window-action)
+(bind-key "RET" 'helm-ag--run-other-window-action helm-ag-map)
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
 (add-hook 'after-init-hook 'helm-descbinds-mode)
@@ -2269,7 +2342,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 
 ;; helm-swoop
 (require 'helm-swoop)
-(global-set-key (kbd "C-c s") 'helm-swoop)
+(bind-key "C-c s" 'helm-swoop)
 ;; speed(nil) or text color(t)
 (setq helm-swoop-speed-or-color t)
 ;; If this value is t, split window inside the current window
@@ -2293,8 +2366,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (defun my-helm-swoop-prev-line-with-string-at-point-if-needed ()
   (interactive)
   (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-previous-line))
-(define-key helm-swoop-map (kbd "C-s") 'my-helm-swoop-next-line-with-string-at-point-if-needed)
-(define-key helm-swoop-map (kbd "C-r") 'my-helm-swoop-prev-line-with-string-at-point-if-needed)
+(bind-keys :map helm-swoop-map
+		   ("C-s" . my-helm-swoop-next-line-with-string-at-point-if-needed)
+		   ("C-r" . my-helm-swoop-prev-line-with-string-at-point-if-needed))
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
@@ -2349,7 +2423,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; magit prompt you to choose from one of your favorite repos.
 ;; mapc: http://tuhdo.github.io/emacs-tutor3.html
 ;; use C-u C-x g to ask which repo to choose, C-c m to the current dir
-(global-set-key (kbd "C-x g") 'magit-status)
+(bind-key* "C-x g" 'magit-status)
 ;; open a link not prompt yes/no
 (setq vc-follow-symlinks nil)
 ;; make vc* and magit work for link
@@ -2386,7 +2460,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 				html-mode-hook))
   (add-hook hook (lambda () (web-mode))))
 (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
-(define-key web-mode-map (kbd "C-S-SPC") 'web-mode-mark-and-expand)
+(bind-key "C-S-SPC" 'web-mode-mark-and-expand web-mode-map)
 (setq web-mode-enable-current-element-highlight t)
 ;; rainbow-mode
 (add-hook 'css-mode-hook 'rainbow-mode)
@@ -2420,9 +2494,11 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 				  (interactive "e")
 				  (goto-char (posn-point (event-start event)))
 				  (highlight-symbol-at-point)))
-(global-set-key (kbd "M-n") 'highlight-symbol-next)
-(global-set-key (kbd "M-p") 'highlight-symbol-prev)
-(global-set-key (kbd "M-'") 'highlight-symbol-query-replace)
+;; donnot use bind-keys* here, it will affect the history in minibuffer
+(bind-keys
+ ("M-n" . highlight-symbol-next)
+ ("M-p" . highlight-symbol-prev)
+ ("M-'" . highlight-symbol-query-replace))
 ;;
 ;; highlight-parentheses-mode, highlight nested parens, brackets, braces at each
 ;; depth, use hl-sexp-mode to replace if you like
@@ -2455,7 +2531,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; discover-my-major
 ;; Discover key bindings and meaning for the current Emacs major mode
 ;; C-h C-m or C-h RET 'discover-my-major
-(global-set-key (kbd "C-h C-m") 'discover-my-major)
+(bind-key* "C-h C-m" 'discover-my-major)
 
 ;; drag-stuff
 ;; word(s), line(s), region, M-<left/right/up/down> to move select if (s)
@@ -2474,11 +2550,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 		  (lambda() (set (make-local-variable 'drag-stuff-mode) nil)))
 
 ;; transpose
-(define-key global-map (kbd "M-t") nil)
-(global-set-key (kbd "M-t w") 'transpose-words)
-(global-set-key (kbd "M-t l") 'transpose-lines)
-(global-set-key (kbd "M-t s") 'transpose-sexps)
-(global-set-key (kbd "M-t t") 'anchored-transpose)
+(bind-keys* :prefix-map global-map
+			:prefix "M-t"
+			("w" . transpose-words)
+			("l" . transpose-lines)
+			("s" . transpose-sexps)
+			("t" . anchored-transpose))
 (autoload 'anchored-transpose "anchored-transpose" nil t)
 
 ;; gnus
@@ -2491,10 +2568,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; default style
 ;; (setq rebox-style-loop '(11 15 111))
 (setq rebox-min-fill-column 40)
-;; no need to format, directly to comment
-(global-set-key (kbd "M-r") 'rebox-cycle)
-;; rebox-dwim to fill first
-(global-set-key (kbd "M-S-r") 'rebox-dwim)
+;; M-q(rebox-dwim) is to fill first
+(bind-key* "M-r" 'rebox-cycle)
 ;; you can change the style in the box(no mark needed) to such as 126
 ;; using M-126 M-q, but only from the original to 126, not 126 to another again
 (add-hook 'emacs-lisp-mode-hook
@@ -2509,15 +2584,13 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 		  (lambda ()
 			(set (make-local-variable 'rebox-style-loop) '(25 21 111))
 			(rebox-mode 1)))
-(define-key rebox-mode-map [(control y)] nil)
-(define-key rebox-mode-map [(shift return )] nil)
-(define-key rebox-mode-map (kbd "M-w") nil)
-(define-key rebox-mode-map (kbd "C-k") nil)
+(unbind-key "<S-return>" rebox-mode-map)
+(unbind-key "M-w" rebox-mode-map)
 
 ;; comment-dwim-2 to replace default comment-dwim
 ;; comment-dwim can also be repeated several times to switch between the different behaviors.
 ;; Called it with a prefix argument to reindent the comment
-(global-set-key (kbd "M-;") 'comment-dwim-2)
+(bind-key* "M-;" 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
 ;; projectile required by helm-projectile
@@ -2574,43 +2647,43 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;            (line-beginning-position 2)))))
 ;; (global-set-key (kbd "M-w") 'kill-ring-save)
 
-
-;; popwin is required by guide-key
-
-;; guide-key
-(setq guide-key/guide-key-sequence t)
-(setq guide-key/recursive-key-sequence-flag t)
-;; highlights and color of highlights
-(setq guide-key/highlight-command-regexp
-	  '(("^helm-" . warning)
-		("^projectile-" . error)
-		("^cscope-" . success)
-		("^ggtags-" . success)
-		("register" . success)
-		("bookmark" . highlight)
-		("toggle" . link)
-		("rectangle" . link)
-		("help" . highlight)
-		("emacs" . highlight)))
-;; font size of guide buffer
-(setq guide-key/text-scale-amount -0.5)
-(setq guide-key/popup-window-position 'bottom)
-(guide-key-mode 1)
+;; which-key to replace guide-key
+(which-key-mode)
+;; this will make C-h show next page if C-h in the first place instead of
+;; help page, use ? for help page
+(unbind-key "C-h" help-map)
+(which-key-setup-minibuffer)
+;; C-h to cycle the which-key pages
+(setq which-key-use-C-h-for-paging nil
+	  which-key-special-keys nil
+	  which-key-sort-order 'which-key-description-order
+	  which-key-show-remaining-keys t
+	  which-key-max-description-length 35)
+(setq which-key-highlighted-command-list
+	  '("helm\\|toggle\\|projectile\\|describe" ;; default link
+		("\\(^cscope\\)\\|\\(^ggtags\\)" . warning) ; orange
+		("register" . success) ; green
+		("rectangle" . error) ; red
+		("help\\|emacs\\|bookmarks" . highlight) ; gray and bg
+		))
+;; this is in which-key.el
+(defun which-key--lighter-status (n-shown n-tot)
+  "Possibly show N-SHOWN keys and N-TOT keys in the mode line."
+  (when which-key-show-remaining-keys
+	(setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
+	(setcar (cdr (assq 'which-key-mode minor-mode-alist))
+			;; Changed the following part
+			(format " %s/%s" n-shown n-tot))))
 
 ;; noflet, iedit, ace-window, hydra required by lispy
-(global-set-key (kbd "C-x q") 'ace-window)
+(bind-key* "C-x q" 'ace-window)
 
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
 ;; http://oremacs.com/lispy/
 (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (eval-after-load "lispy"
   '(progn
-	 (define-key lispy-mode-map (kbd "RET") 'advanced-return)
-	 (define-key lispy-mode-map (kbd "C-e") 'keep-end-of-line)
-	 (define-key lispy-mode-map (kbd "C-a") 'keep-beginning-of-line)
-	 (define-key lispy-mode-map (kbd "M-i") nil)
-	 (define-key lispy-mode-map (kbd "M-o") nil)
-	 (define-key lispy-mode-map (kbd "M-q") nil)))
+	 (bind-key "RET" 'advanced-return lispy-mode-map)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
   (if (lispy--in-comment-p)
@@ -2623,8 +2696,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bbyac-global-mode 1)
 
 ;; omni-scratch
-(define-key semantic-mru-bookmark-mode-map (kbd "C-x B") nil)
-(global-set-key (kbd "C-x B") 'omni-scratch-new-scratch-major-buffer)
+(bind-key* "C-x B" 'omni-scratch-new-scratch-major-buffer)
 
 ;; make someWord two words for M-f/b, some-word, some_word are two words already
 ;; subword-mode is already replaced by syntax-subword
@@ -2632,7 +2704,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; syntax-subword
 (global-syntax-subword-mode)
 ;; disable C-c C-w for subword-mode, this is defined in cc-mode.el
-(define-key c-mode-base-map "\C-c\C-w" nil)
+(unbind-key "C-c C-w" c-mode-base-map)
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
@@ -2694,18 +2766,3 @@ want to use in the modeline *in lieu of* the original.")
 			 (when (eq mode major-mode)
 			   (setq mode-name mode-str)))))
 (add-hook 'after-change-major-mode-hook 'clean-mode-line)
-;;; alias the new `flymake-report-status-slim' to
-;;; `flymake-report-status'
-(defalias 'flymake-report-status 'flymake-report-status-slim)
-;; (defun flymake-report-status-slim (e-w &optional status)
-;; "Show \"slim\" flymake status in mode line."
-;; (when e-w
-;; (setq flymake-mode-line-e-w e-w))
-;; (when status
-;; (setq flymake-mode-line-status status))
-;; (let* ((mode-line " Φ"))
-;; (when (> (length flymake-mode-line-e-w) 0)
-;; (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
-;; (setq mode-line (concat mode-line flymake-mode-line-status))
-;; (setq flymake-mode-line mode-line)
-;; (force-mode-line-update)))
