@@ -1,0 +1,1 @@
+(define-package "which-key" "20151029.1810" "Display available keybindings in popup" '((emacs "24.3")) :stars '(#("93" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/justbur/emacs-which-key")
