@@ -375,13 +375,14 @@ and you can reconfigure the compile args."
 			;; (add-to-list 'default-frame-alist (cons 'width 85)))
 			(setq default-frame-alist
 				  '((top . 0) (left . 0)
-					(width . 85) (height . 48)
+					(width . 95) (height . 48)
 					;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
-					(font . "PragmataPro-13:bold")))
+					(font . "Input Mono Compressed-14")))
 		  (setq default-frame-alist
 				'((top . 0) (left . 0)
 				  (width . 85) (height . 37)
 				  (font . "Input Mono Compressed-13.5")
+				  ;; (font . "PragmataPro-13")
 				  ;; (:family "Menlo-Italic")
 				  )))))
   ;; the following two settings are specifically for afternoon-theme
@@ -664,7 +665,8 @@ extraneous space at beginning of line."
 	(when (looking-at "^\\s-\\b")
 	  ;; get rid of it!
 	  (delete-char 1))
-	(call-interactively 'subword-capitalize)))
+	;; (call-interactively 'subword-capitalize)
+	(call-interactively 'capitalize-word)))
 (defun endless/downcase ()
   "Downcase region or word.
 Also converts full stops to commas."
@@ -675,16 +677,18 @@ Also converts full stops to commas."
   (endless/convert-punctuation "\\." ",")
   (if (use-region-p)
 	  (call-interactively 'downcase-region)
-	(call-interactively 'subword-downcase)))
+	;; (call-interactively 'subword-downcase)
+	(call-interactively 'downcase-word)))
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
   ;; convert from head of the word
   (unless (looking-back "\\b")
-    (backward-word))
+	(backward-word))
   (if (use-region-p)
 	  (call-interactively 'upcase-region)
-	(call-interactively 'subword-upcase)))
+	;; (call-interactively 'subword-upcase)
+	(call-interactively 'upcase-word)))
 (bind-keys*
  ("M-c" . endless/capitalize)
  ("M-l" . endless/downcase)
@@ -984,6 +988,9 @@ Emacs by default won't treat the TAB as indent"
 (bind-keys*
  ("<f7>" . switch-to-minibuffer-window)
  ("C-c b" . ibuffer))
+;; don't let the cursor go into minibuffer prompt, donnot know the actual effect
+;; http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
+(setq minibuffer-prompt-properties (quote (read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)))
 (setq ibuffer-use-other-window t)
 ;; improve the profermance of the minibuffer
 (setq echo-keystrokes 0.001)
@@ -1015,6 +1022,17 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive)
   (switch-to-buffer (other-buffer (current-buffer) 1)))
 (bind-key* "C-x x" 'last-visited-buffer)
+(defun last-visited-window ()
+  "Switch to last visited window.
+Repeated invocations toggle between the two most recently open windows."
+  (interactive)
+  (let ((win (get-mru-window t t t)))
+	(unless win (error "Last window not found!"))
+	(let ((frame (window-frame win)))
+	  (raise-frame frame)
+	  (select-frame frame)
+	  (select-window win))))
+(bind-key* "C-x o" 'last-visited-window)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
 (defcustom search-all-buffers-ignored-files
@@ -1310,8 +1328,8 @@ Emacs session."
 	(error "No recently-killed files to reopen")))
 (bind-key* "C-S-t" 'reopen-killed-buffer-fancy)
 
-;; set M-x align-regexp to C-c a
-(bind-key "C-c a" 'align-regexp)
+;; set M-x align to C-c a, or use align-regexp
+(bind-key "C-c a" 'align)
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
@@ -1376,7 +1394,7 @@ Emacs session."
 (bind-keys*
  ("C-?" . ispell-complete-word)
  ;; check comments and string constants already in the file
- ("<f5>" . ispell-comments-and-strings))
+ ("<f6>" . ispell-comments-and-strings))
 ;; check in the comments and string constants as you type
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 ;; click the left button to show the correct words list
@@ -1396,7 +1414,7 @@ Emacs session."
 ;;;;;;;;;;; Tab & indent
 ;;;;;;;;;;; '(global-)whitespace-mode to show tab/space
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(bind-key* (kbd "C-c w") 'whitespace-mode)
+(bind-key* (kbd "C-c w") 'global-whitespace-mode)
 
 ;; nil-->use spaces instead of tabs, t -- don't replace
 (require 'cc-vars)
@@ -1503,7 +1521,7 @@ Has no effect if the character before point is not of the syntax class ')'."
   (local-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
   ;; (local-set-key (kbd "`") 'skeleton-pair-insert-maybe)
   )
-(dolist (hook '(prog-mode-hook python-mode-hook ielm-mode-hook org-mode-hook))
+(dolist (hook '(prog-mode-hook python-mode-hook ielm-mode-hook org-mode-hook racket-repl-mode-hook))
   (add-hook hook 'my-mode-auto-pair))
 
 ;;
@@ -1523,7 +1541,7 @@ Has no effect if the character before point is not of the syntax class ')'."
   (indent-according-to-mode)
   (forward-line -1)
   (indent-according-to-mode))
-(dolist (mode '(c-mode-common-hook java-mode-hook cperl-mode-hook css-mode-hook))
+(dolist (mode '(c-mode-common-hook java-mode-hook cperl-mode-hook css-mode-hook go-mode-hook))
   (add-hook mode
 			'(lambda ()
 			   (c-helpers-minor-mode))))
@@ -1970,6 +1988,7 @@ Do this after `q` in Debugger buffer."
 ;; xcscope -- requird by ascope
 
 ;; ascope
+;; Usage: in Emacs, use M-x cscope-index-files or in terminal, `cscope-index -r -v` to cr
 ;; Almost all the features are provided by xcscope(cscope-* commands), ascope is
 ;; extension to xcscope, it allow cscope to keep the history of jumping in one
 ;; *cscope* buffer and M-n/p commands
@@ -1985,6 +2004,9 @@ Do this after `q` in Debugger buffer."
 		  (lambda ()
 			;; defined in xcscope
 			(cscope-minor-mode)))
+(defadvice cscope-bury-buffer (after cscope-bury-buffer activate)
+  "Kill the *cscope* window after hitting q or Q instead of leaving it open."
+  (delete-window))
 
 ;; ggtags
 ;; ggtags supports jump/navigation
@@ -2508,6 +2530,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; rainbow nested parens, brackets, braces a different color at each depth
 ;;  like highlight-parentheses-mode but static
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'racket-repl-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
 ;; make the outermost delimiters not red
 (custom-set-faces
  '(rainbow-delimiters-depth-1-face
@@ -2652,7 +2676,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; this will make C-h show next page if C-h in the first place instead of
 ;; help page, use ? for help page
 (unbind-key "C-h" help-map)
-(which-key-setup-minibuffer)
+;; using this instead of minibuffer prevent the confict of semantic and the
+;; which-key window at the minibuffer
+(which-key-setup-side-window-bottom)
 ;; C-h to cycle the which-key pages
 (setq which-key-use-C-h-for-paging nil
 	  which-key-special-keys nil
@@ -2705,6 +2731,27 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (global-syntax-subword-mode)
 ;; disable C-c C-w for subword-mode, this is defined in cc-mode.el
 (unbind-key "C-c C-w" c-mode-base-map)
+
+;; ;; ranger
+;; (setq ranger-cleanup-on-disable nil)
+;; (setq ranger-cleanup-eagerly t)
+;; (setq ranger-width-parents 0.12)
+;; ;; (setq ranger-max-parent-width 0.12)
+(setq ranger-parent-depth 2)
+(bind-keys*
+ ("C-x C-r" . ranger)
+ ("C-c h" . ranger-show-history))
+
+;; go-mode, go-eldoc
+(add-hook 'go-mode-hook 'go-eldoc-setup)
+(add-hook 'before-save-hook #'gofmt-before-save)
+
+;; racket
+(add-to-list 'auto-mode-alist '("\\.rkt\\'" . racket-mode))
+
+;; zeal-at-point
+(bind-key* "C-c z" 'zeal-at-point)
+
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
