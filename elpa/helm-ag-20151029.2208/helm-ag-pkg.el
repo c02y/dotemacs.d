@@ -1,1 +1,0 @@
-(define-package "helm-ag" "20151029.2208" "the silver searcher with helm interface" '((helm "1.7.7") (cl-lib "0.5")) :stars '(#("126" 0 3 (font-lock-face paradox-star-face))) :url "https://github.com/syohex/emacs-helm-ag")

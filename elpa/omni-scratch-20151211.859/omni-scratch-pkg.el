@@ -1,0 +1,1 @@
+(define-package "omni-scratch" "20151211.859" "Easy and mode-specific draft buffers" 'nil :stars '(#("3" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/AdrieanKhisbe/omni-scratch.el" :keywords '("convenience" "languages" "tools"))

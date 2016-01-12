@@ -1,1 +1,0 @@
-(define-package "helm-descbinds" "20151019.230" "Yet Another `describe-bindings' with `helm'." '((helm "1.5")) :stars '(#("43" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/emacs-helm/helm-descbinds" :keywords '("helm" "help"))

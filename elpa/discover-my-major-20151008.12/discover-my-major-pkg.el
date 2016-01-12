@@ -1,1 +1,0 @@
-(define-package "discover-my-major" "20151008.12" "Discover key bindings and their meaning for the current Emacs major mode" '((makey "0.2")) :stars '(#("53" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/steckerhalter/discover-my-major" :keywords '("discover" "help" "major-mode" "keys"))
