@@ -7,11 +7,11 @@
 ;; Copyright (C) 2006-2016, Drew Adams, all rights reserved.
 ;; Created: Thu Sep 14 08:15:39 2006
 ;; Version: 0
-;; Package-Version: 20151231.1521
+;; Package-Version: 20160112.649
 ;; Package-Requires: ()
-;; Last-Updated: Thu Dec 31 15:27:17 2015 (-0800)
+;; Last-Updated: Tue Jan 12 06:53:15 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 814
+;;     Update #: 815
 ;; URL: http://www.emacswiki.org/modeline-posn.el
 ;; Doc URL: http://www.emacswiki.org/emacs/ModeLinePosition
 ;; Keywords: mode-line, region, column
@@ -495,7 +495,8 @@ delete others, mouse-3: delete this"))
                                        'modelinepos-column-warning)
                             'local-map mode-line-column-line-number-mode-map
                             'mouse-face 'mode-line-highlight
-                            'help-echo "Column number, mouse-1: Line/col menu"))))))))) 
+                            'help-echo "Column number, mouse-1: Line/col menu")))))))))
+ 
 
 ;;; Advise some standard functions, so they use `modelinepos-region-acting-on' during
 ;;; initial input when they act on the active region.

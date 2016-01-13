@@ -6,7 +6,7 @@
 ;; Maintainer: John Wiegley <jwiegley@gmail.com>
 ;; Created: 16 Jun 2012
 ;; Version: 1.0
-;; Package-Version: 20160111.2238
+;; Package-Version: 20160112.758
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
@@ -189,7 +189,7 @@ See `bind-key' for more details."
 ;;;###autoload
 (defmacro bind-key* (key-name command &optional predicate)
   "Similar to `bind-key', but overrides any mode-specific bindings."
-  `(bind-key ,key-name ,command override-global-map predicate))
+  `(bind-key ,key-name ,command override-global-map ,predicate))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)

@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "modeline-posn" "modeline-posn.el" (22155 63891
-;;;;;;  4441 68000))
+;;;### (autoloads nil "modeline-posn" "modeline-posn.el" (22166 25158
+;;;;;;  809872 88000))
 ;;; Generated autoloads from modeline-posn.el
 
 (defface modelinepos-column-warning '((t (:foreground "Red"))) "\

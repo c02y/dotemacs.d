@@ -805,7 +805,9 @@ means that `company-mode' is always turned on except in `message-mode' buffers."
   (let ((col (car (posn-col-row posn)))
         ;; `posn-col-row' doesn't work well with lines of different height.
         ;; `posn-actual-col-row' doesn't handle multiple-width characters.
-        (row (cdr (posn-actual-col-row posn))))
+        (row (cdr (or (posn-actual-col-row posn)
+                      ;; When position is non-visible for some reason.
+                      (posn-col-row posn)))))
     (when (and header-line-format (version< emacs-version "24.3.93.3"))
       ;; http://debbugs.gnu.org/18384
       (cl-decf row))
@@ -1524,13 +1526,20 @@ from the rest of the backends in the group, if any, will be left at the end."
 
 (defun company-cancel (&optional result)
   (unwind-protect
-      (when company-prefix
-        (if (stringp result)
-            (progn
-              (company-call-backend 'pre-completion result)
-              (run-hook-with-args 'company-completion-finished-hook result)
-              (company-call-backend 'post-completion result))
-          (run-hook-with-args 'company-completion-cancelled-hook result)))
+      (progn
+        (when company-timer
+          (cancel-timer company-timer))
+        (company-echo-cancel t)
+        (company-search-mode 0)
+        (company-call-frontends 'hide)
+        (company-enable-overriding-keymap nil)
+        (when company-prefix
+          (if (stringp result)
+              (progn
+                (company-call-backend 'pre-completion result)
+                (run-hook-with-args 'company-completion-finished-hook result)
+                (company-call-backend 'post-completion result))
+            (run-hook-with-args 'company-completion-cancelled-hook result))))
     (setq company-backend nil
           company-prefix nil
           company-candidates nil
@@ -1543,13 +1552,7 @@ from the rest of the backends in the group, if any, will be left at the end."
           company--manual-action nil
           company--manual-prefix nil
           company--point-max nil
-          company-point nil)
-    (when company-timer
-      (cancel-timer company-timer))
-    (company-echo-cancel t)
-    (company-search-mode 0)
-    (company-call-frontends 'hide)
-    (company-enable-overriding-keymap nil))
+          company-point nil))
   ;; Make return value explicit.
   nil)
 
@@ -2958,8 +2961,8 @@ Returns a negative number if the tooltip should be displayed above point."
             "}")))
 
 (defun company-echo-hide ()
-  (unless (equal company-echo-last-msg "")
-    (setq company-echo-last-msg "")
+  (unless (null company-echo-last-msg)
+    (setq company-echo-last-msg nil)
     (company-echo-show)))
 
 (defun company-echo-frontend (command)
