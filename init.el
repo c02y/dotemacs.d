@@ -656,7 +656,7 @@ Also converts commas to full stops, and kills
 extraneous space at beginning of line."
   (interactive)
   ;; convert from head of the word
-  (unless (looking-back "\\b")
+  (unless (looking-back "\\s-")
 	(backward-word))
   (endless/convert-punctuation "," ".")
   (if (use-region-p)
@@ -672,7 +672,7 @@ extraneous space at beginning of line."
 Also converts full stops to commas."
   (interactive)
   ;; convert from head of the word
-  (unless (looking-back "\\b")
+  (unless (looking-back "\\s-")
 	(backward-word))
   (endless/convert-punctuation "\\." ",")
   (if (use-region-p)
@@ -683,7 +683,7 @@ Also converts full stops to commas."
   "Upcase region or word."
   (interactive)
   ;; convert from head of the word
-  (unless (looking-back "\\b")
+  (unless (looking-back "\\s-")
 	(backward-word))
   (if (use-region-p)
 	  (call-interactively 'upcase-region)
