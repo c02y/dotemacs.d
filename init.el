@@ -148,6 +148,19 @@
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
 (defalias 'man 'woman)
+;; use man for a function inside Emacs
+(dolist (hook
+		 '(
+		   ;; c-mode-hook
+		   ;; c++-mode-hook
+		   c-mode-common-hook))
+  (add-hook hook
+			(lambda ()
+			  (local-set-key (kbd "C-h d")
+							 (lambda ()
+							   (interactive)
+							   (manual-entry (current-word)))))))
+
 (setq byte-compile-warnings nil)
 (defalias 'eit 'emacs-init-time)
 ;; re/compile every elisp file when saving it
@@ -666,7 +679,8 @@ extraneous space at beginning of line."
 	  ;; get rid of it!
 	  (delete-char 1))
 	;; (call-interactively 'subword-capitalize)
-	(call-interactively 'capitalize-word)))
+	(call-interactively 'capitalize-word))
+  (forward-char 1))
 (defun endless/downcase ()
   "Downcase region or word.
 Also converts full stops to commas."
@@ -678,7 +692,8 @@ Also converts full stops to commas."
   (if (use-region-p)
 	  (call-interactively 'downcase-region)
 	;; (call-interactively 'subword-downcase)
-	(call-interactively 'downcase-word)))
+	(call-interactively 'downcase-word))
+  (forward-char 1))
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
@@ -688,7 +703,8 @@ Also converts full stops to commas."
   (if (use-region-p)
 	  (call-interactively 'upcase-region)
 	;; (call-interactively 'subword-upcase)
-	(call-interactively 'upcase-word)))
+	(call-interactively 'upcase-word))
+  (forward-char 1))
 (bind-keys*
  ("M-c" . endless/capitalize)
  ("M-l" . endless/downcase)
@@ -818,12 +834,12 @@ If current line is a single space, remove that space.
 ;; delete not kill it into kill-ring
 ;; http://ergoemacs.org/emacs/emacs_kill-ring.html
 (defun delete-word (arg)
-  "Delete(not kill) characters forward until encountering the end of a word.
+  "Delete(not kill) characters forward until encountering the end of the syntax-subword.
 With argument, do this many times."
   (interactive "p")
-  (delete-region (point) (progn (forward-word arg) (point))))
+  (delete-region (point) (progn (syntax-subword-forward arg) (point))))
 (defun backward-delete-word (arg)
-  "Delete(not kill) characters backward until encountering the beginning of a word.
+  "Delete(not kill) characters backward until encountering the beginning of the syntax-subword.
 With argument, do this that many times."
   (interactive "p")
   (delete-word (- arg)))
@@ -1352,42 +1368,13 @@ Emacs session."
 ;; spell check
 (require 'ispell)
 (defalias 'ib 'ispell-buffer)
-;; spell check engine, aspell better for programmers than hunspell
-(defun flyspell-detect-ispell-args (&optional RUN-TOGETHER)
-  "if RUN-TOGETHER is true, spell check the CamelCase words"
-  (let (args)
-	(cond
-	 ((string-match "aspell$" ispell-program-name)
-	  ;; force the English dictionary, support Camel Case spelling check (tested with aspell 0.6)
-	  (setq args (list "--sug-mode=ultra" "--lang=en_US"))
-	  (if RUN-TOGETHER
-		  (setq args (append args '("--run-together" "--run-together-limit=5" "--run-together-min=2")))))
-	 ((string-match "hunspell$" ispell-program-name)
-	  (setq args nil)))
-	args))
-(cond
- ((executable-find "aspell")
-  (setq ispell-program-name "aspell")
-  (setq ispell-personal-dictionary "~/.emacs.d/aspell.en.pws"))
- ((executable-find "hunspell")
-  (setq ispell-program-name "hunspell")
-  (setq ispell-personal-dictionary "~/.emacs.d/hunspell_en_US")
-  ;; just reset dictionary to the safe one "en_US" for hunspell.
-  ;; if we need use different dictionary, we specify it in command line arguments
-  (setq ispell-local-dictionary "en_US")
-  (setq ispell-local-dictionary-alist
-		'(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil nil nil utf-8))))
- (t (setq ispell-program-name nil)))
-(setq ispell-extra-args (flyspell-detect-ispell-args t))
-;; (setq ispell-cmd-args (flyspell-detect-ispell-args))
-(defadvice ispell-word (around my-ispell-word activate)
-  (let ((old-ispell-extra-args ispell-extra-args))
-	(ispell-kill-ispell t)
-	(setq ispell-extra-args (flyspell-detect-ispell-args))
-	ad-do-it
-	(setq ispell-extra-args old-ispell-extra-args)
-	(ispell-kill-ispell t)
-	))
+;; spell check
+(require 'ispell)
+(defalias 'ib 'ispell-buffer)
+;; spell check engine
+(when (executable-find "hunspell")
+  (setq-default ispell-program-name "hunspell")
+  (setq ispell-really-hunspell t))
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; C-. or C-M-i 'flyspell-auto-correct-word
 ;; if you don't know how to spell the rest of a word
@@ -1409,6 +1396,19 @@ Emacs session."
   (flyspell-goto-next-error)
   (ispell-word))
 (bind-key* "M-<f8>" 'flyspell-check-next-highlighted-word)
+;;
+(add-hook 'ispell-initialize-spellchecker-hook
+		  (lambda ()
+			(setq ispell-base-dicts-override-alist
+				  '((nil ; default
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
+					("american" ; Yankee English
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
+					("british" ; British English
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Tab & indent
@@ -1948,15 +1948,12 @@ Do this after `q` in Debugger buffer."
 ;; more infomation please check the doc
 ;; replace the standard undo system
 (global-undo-tree-mode)
-(defadvice undo-tree-visualizer-mode (after undo-tree-face activate)
-  (buffer-face-mode)
-  (setq undo-tree-visualizer-timestamps t)
-  (setq undo-tree-visualizer-diff t))
 (unbind-key "C-_" global-map)
 (unbind-key "M-_" global-map)
 (bind-keys*
  ("C-z" . undo-tree-undo)
- ("C-S-z" . undo-tree-redo))
+ ("C-S-z" . undo-tree-redo)
+ ("C-x u" . undo-tree-visualize))
 
 ;; findr
 (autoload 'findr-search "findr" "Find text in files." t)
