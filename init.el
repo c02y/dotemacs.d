@@ -680,7 +680,7 @@ extraneous space at beginning of line."
 	  (delete-char 1))
 	;; (call-interactively 'subword-capitalize)
 	(call-interactively 'capitalize-word))
-  (forward-char 1))
+  (unless (eolp) (forward-char 1)))
 (defun endless/downcase ()
   "Downcase region or word.
 Also converts full stops to commas."
@@ -693,7 +693,7 @@ Also converts full stops to commas."
 	  (call-interactively 'downcase-region)
 	;; (call-interactively 'subword-downcase)
 	(call-interactively 'downcase-word))
-  (forward-char 1))
+  (unless (eolp) (forward-char 1)))
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
@@ -704,7 +704,7 @@ Also converts full stops to commas."
 	  (call-interactively 'upcase-region)
 	;; (call-interactively 'subword-upcase)
 	(call-interactively 'upcase-word))
-  (forward-char 1))
+  (unless (eolp) (forward-char 1)))
 (bind-keys*
  ("M-c" . endless/capitalize)
  ("M-l" . endless/downcase)
@@ -751,21 +751,23 @@ With argument N, make N copies.
 With negative N, comment out original line and use the absolute value."
   (interactive "*p")
   (let ((use-region (use-region-p)))
-    (save-excursion
-      (let ((text (if use-region        ;Get region if active, otherwise line
-                      (buffer-substring (region-beginning) (region-end))
-                    (prog1 (thing-at-point 'line)
-                      (end-of-line)
-                      (if (< 0 (forward-line 1));Go to beginning of next line, or make a new one
-                          (newline))))))
-        (dotimes (i (abs (or n 1)))     ;Insert N times, or once if not specified
-          (insert text))))
-    (if use-region nil                  ;Only if we're working with a line (not a region)
-      (let ((pos (- (point) (line-beginning-position)))) ;Save column
-        (if (> 0 n) 					;Comment out original with negative arg
-            (comment-region (line-beginning-position) (line-end-position)))
-        (forward-line 1)
-        (forward-char pos)))))
+	(save-excursion
+	  (let ((text (if use-region        ;Get region if active, otherwise line
+					  (buffer-substring (region-beginning) (region-end))
+					(prog1 (thing-at-point 'line)
+					  (end-of-line)
+					  (if (< 0 (forward-line 1)) ;Go to beginning of next line,
+										;or make a new one
+						  (newline))))))
+		(dotimes (i (abs (or n 1)))		;Insert N times, or once if not
+										;specified
+		  (insert text))))
+	(if use-region nil		   ;Only if we're working with a line (not a region)
+	  (let ((pos (- (point) (line-beginning-position)))) ;Save column
+		(if (> 0 n) 					;Comment out original with negative arg
+			(comment-region (line-beginning-position) (line-end-position)))
+		(forward-line 1)
+		(forward-char pos)))))
 (bind-key* "C-c C-d" 'duplicate-line-or-region)
 
 ;; convert DOS to UNIX
@@ -799,17 +801,17 @@ Repeat the function will remove the remaining one space or blank line.
 If current line is a single space, remove that space.
 `shrink-whitespaces` combine `delete-blank-lines`, `just-one-space`, `fixup-whitespace`,
 `delete-horizontal-space`, and `cycle-spacing`(in emacs 24.4) into one.
---URL http://ergoemacs.org/emacs/emacs_shrink_whitespace.html version 2014-10-21"
+--URL http://ergoemacs.org/emacs/emacs_shrink_whitespace.html version 2015-11-04"
   (interactive)
   (let ((pos (point))
-		line-has-meat-p ; current line contains non-white space chars
-		space-tab-neighbor-p
+		line-has-char-p			   ; current line contains non-white space chars
+		has-space-tab-neighbor-p
 		whitespace-begin whitespace-end
 		space-or-tab-begin space-or-tab-end)
 	(save-excursion
-	  (setq space-tab-neighbor-p (if (or (looking-at " \\|\t") (looking-back " \\|\t")) t nil))
+	  (setq has-space-tab-neighbor-p (if (or (looking-at " \\|\t") (looking-back " \\|\t")) t nil))
 	  (beginning-of-line)
-	  (setq line-has-meat-p (search-forward-regexp "[[:graph:]]" (line-end-position) t))
+	  (setq line-has-char-p (search-forward-regexp "[[:graph:]]" (line-end-position) t))
 	  (goto-char pos)
 	  (skip-chars-backward "\t ")
 	  (setq space-or-tab-begin (point))
@@ -820,14 +822,18 @@ If current line is a single space, remove that space.
 	  (setq space-or-tab-end (point))
 	  (skip-chars-forward "\t \n")
 	  (setq whitespace-end (point)))
-	(if line-has-meat-p
-		(let (deleted-text)
-		  (when space-tab-neighbor-p
-			;; remove all whitespaces in the range
-			(setq deleted-text (delete-and-extract-region space-or-tab-begin space-or-tab-end))
-			;; insert a whitespace only if we have removed something different than a simple whitespace
-			(if (not (string= deleted-text " "))
-				(insert " "))))
+	(if line-has-char-p
+		(if has-space-tab-neighbor-p
+			(let (deleted-text)
+			  ;; remove all whitespaces in the range
+			  (setq deleted-text
+					(delete-and-extract-region space-or-tab-begin space-or-tab-end))
+			  ;; insert a whitespace only if we have removed something different than a simple whitespace
+			  (when (not (string= deleted-text " "))
+				(insert " ")))
+		  (progn
+			(when (equal (char-before) 10) (delete-char -1))
+			(when (equal (char-after) 10) (delete-char 1))))
 	  (progn (delete-blank-lines)))))
 (bind-key* "C-<backspace>" 'shrink-whitespaces)
 ;;;
@@ -837,8 +843,14 @@ If current line is a single space, remove that space.
   "Delete(not kill) characters forward until encountering the end of the syntax-subword.
 With argument, do this many times."
   (interactive "p")
-  (delete-region (point) (progn (syntax-subword-forward arg) (point))))
-(defun backward-delete-word (arg)
+  ;; eolpp is about the end-of-line, because if you are at the eol and doing
+  ;; M-Backspace, if will combine the following line with the current
+  (let (eolpp) (setq eolpp 1))
+  (setq eolpp (if (eolp) 1 nil))
+  (shrink-whitespaces)
+  (delete-region (point) (progn (syntax-subword-forward-syntax arg) (point)))
+  (if eolpp (if (not (eolp)) (open-line 1))))
+(defun delete-word-backward (arg)
   "Delete(not kill) characters backward until encountering the beginning of the syntax-subword.
 With argument, do this that many times."
   (interactive "p")
@@ -866,7 +878,7 @@ With argument, backward ARG lines."
 	(delete-region x1 x2)))
 (bind-keys*
  ("M-d" . delete-word)
- ("<M-backspace>" . backward-delete-word)
+ ("<M-backspace>" . delete-word-backward)
  ("C-k" . delete-line)
  ("C-S-k" . delete-line-backward))
 
@@ -973,13 +985,13 @@ Emacs by default won't treat the TAB as indent"
   "Get the size of a directory or a series of marked files and directories."
   (interactive)
   (let ((files (dired-get-marked-files)))
-    (with-temp-buffer
-      (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
-      (message
-       "Size of all marked files: %s"
-       (progn
-         (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
-         (match-string 1))))))
+	(with-temp-buffer
+	  (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
+	  (message
+	   "Size of all marked files: %s"
+	   (progn
+		 (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
+		 (match-string 1))))))
 (setq dired-omit-files "^\\...+$")
 (add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
 ;; map H from dired-do-hardlink to dired-omit-mode since it will not be used
@@ -1148,11 +1160,15 @@ In other non-comment situations, try C-M-j to split."
 		  (end-of-line)
 		  (open-line 1)
 		  (forward-line))
-	  (if (in-comment-p)
-		  (call-interactively (key-binding (kbd "C-M-j")))
-		(progn
-		  (end-of-line)
-		  (newline-and-indent))))))
+	  (progn
+		(end-of-line)
+		(newline-and-indent)))))
+(defun Meta-return ()
+  (interactive)
+  (progn
+	(call-interactively (key-binding (kbd "C-M-j")))
+	(indent-according-to-mode)))
+(bind-key "M-RET" 'Meta-return)
 ;; donnot use bind-key*, it will affect the Enter in minibuffer
 (bind-key "RET" 'advanced-return)
 
@@ -1297,7 +1313,7 @@ In other non-comment situations, try C-M-j to split."
 (eval-after-load "ediff"
   '(progn
 	 (setq ediff-split-window-function
-		   'split-window-horizontally) 	;; use | to change the style
+		   'split-window-horizontally) ;; use | to change the style
 	 (setq ediff-window-setup-function
 		   'ediff-setup-windows-plain)
 	 ;; delete these buffers (if they are not modified) after q
@@ -1712,8 +1728,8 @@ Do this after `q` in Debugger buffer."
 ;; dropdown-list required by yasnippet (optional)
 ;; yasnippet
 ;; C-c & C-v('yas-visit-snippet-file) to edit a snippet in current mode
-;; C-c C-c('yas-load-snippet-buffer) to reload it
 ;; C-c & C-n('yas-new-snippet) to create a new one for current mode
+;; C-c C-c('yas-load-snippet-buffer) to reload it
 (require 'yasnippet)
 (require 'dropdown-list)
 (setq yas-prompt-functions '(yas-dropdown-prompt
@@ -1766,7 +1782,7 @@ Do this after `q` in Debugger buffer."
 	  (setq he-expand-list (cdr he-expand-list)) t)))
 ;; the built-in hippie-exp config
 (setq hippie-expand-try-functions-list
-	  '(
+      '(
 		;; from yasnippet
 		yas-hippie-try-expand
 		;;
@@ -2102,7 +2118,7 @@ Do this after `q` in Debugger buffer."
 ;; change to DONE when all children are done:
 (defun org-summary-todo (n-done n-not-done)
   "Switch entry to DONE when all subentries are done, to TODO otherwise."
-  (let (org-log-done org-log-states)   ; turn off logging
+  (let (org-log-done org-log-states)	; turn off logging
 	(org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 ;; syntax highlight in the source code snippet
@@ -2271,7 +2287,7 @@ background of code to whatever theme I'm using's background"
  ;; helm-for-files
  ;; list buffers, recentf, bookmarks, files in current dir and even in *locate* after typing
  ;; but it won't create a new file/buffer/bookmark if it doesn't exist in emacs/disk
- ("C-x C-p" . helm-for-files)
+ ("M-z" . helm-for-files)  ; use other shortcuts to create
  ;;
  ;; helm-mini is like helm-for-files(buffers and recentf only) = helm-buffers-list + helm-recentf
  ;; but will create a new if a buffer(only buffer) doesn't exit
@@ -2282,7 +2298,7 @@ background of code to whatever theme I'm using's background"
  ;; @elpa filter only the buffers contain the string 'elpa', then C-s to go to the positions
  ;; in the buffer selected, maybe C-SPC to mark multi-files first, C-u C-s work on the current buffer
  ;; you can combine the above cases, such as: *lisp, *c/l ^helm @helm-find-files(more than one mode using , to seperate)
- ("M-z" . helm-mini)
+ ;; ("M-z" . helm-mini)
  ;; (global-set-key (kbd "C-x b") 'helm-buffers-list)
  ("C-x C-r" . helm-recentf)
  ;;
@@ -2344,7 +2360,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
 ;; helm-ag
 (require 'helm-ag)
-(bind-key "C-h g" 'helm-ag)
+(bind-keys*
+ ("C-h g" . helm-projectile-ag)
+ ("C-h G" . helm-do-ag))
 (setq helm-ag-fuzzy-match t
 	  helm-ag-insert-at-point 'symbol)
 (bind-key "RET" 'helm-ag--run-other-window-action helm-ag-map)
@@ -2426,8 +2444,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (setq flycheck-highlighting-mode 'lines)
 (eval-after-load 'flycheck
   '(progn
-     (set-face-attribute 'flycheck-error nil :foreground "red")
-     (set-face-attribute 'flycheck-warning nil :foreground "yellow" :underline nil)
+	 (set-face-attribute 'flycheck-error nil :foreground "red")
+	 (set-face-attribute 'flycheck-warning nil :foreground "yellow" :underline nil)
 	 (set-face-attribute 'flycheck-info nil :foreground "ForestGreen" :underline nil)))
 
 ;; magit
@@ -2683,11 +2701,11 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	  which-key-show-remaining-keys t
 	  which-key-max-description-length 35)
 (setq which-key-highlighted-command-list
-	  '("helm\\|toggle\\|projectile\\|describe" ;; default link
-		("\\(^cscope\\)\\|\\(^ggtags\\)" . warning) ; orange
-		("register" . success) ; green
-		("rectangle" . error) ; red
-		("help\\|emacs\\|bookmarks" . highlight) ; gray and bg
+	  '("helm\\|toggle\\|projectile\\|describe"		;; default link
+		("\\(^cscope\\)\\|\\(^ggtags\\)" . warning)		; orange
+		("register" . success)								; green
+		("rectangle" . error)								; red
+		("help\\|emacs\\|bookmarks" . highlight)			; gray and bg
 		))
 ;; this is in which-key.el
 (defun which-key--lighter-status (n-shown n-tot)
@@ -2706,12 +2724,21 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (eval-after-load "lispy"
   '(progn
-	 (bind-key "RET" 'advanced-return lispy-mode-map)))
+	 (bind-keys :map lispy-mode-map
+				("RET" . advanced-return)
+				("M-RET" . Meta-return))))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
   (if (lispy--in-comment-p)
 	  (delete-line (prefix-numeric-value current-prefix-arg))
 	(delete-line 1)))
+
+;; minibuffer
+(dolist (mode '(emacs-lisp-mode-hook ielm-mode-hook eval-expression-minibuffer-setup-hook))
+  (add-hook mode
+			'(lambda ()
+			   (eldoc-mode)
+			   (lispy-mode))))
 
 ;; browse-kill-ring required by bbyac
 
