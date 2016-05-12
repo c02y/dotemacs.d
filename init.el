@@ -250,6 +250,13 @@ and you can reconfigure the compile args."
 (setq comment-style 'extra-line)
 ;; file size in mode line
 (setq size-indication-mode t)
+;; symbol to indicate the end of the buffer
+(setq-default indicate-empty-lines t)
+;; change the color and symbol of the tilde
+(progn
+  (define-fringe-bitmap 'tilde [0 0 0 113 219 142 0 0] nil nil 'center)
+  (setcdr (assq 'empty-line fringe-indicator-alist) 'tilde))
+(set-fringe-bitmap-face 'tilde 'font-lock-comment-face)
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
@@ -496,6 +503,7 @@ and you can reconfigure the compile args."
 				"%-"))
 
 (global-hl-line-mode 1)
+(set-face-attribute hl-line-face nil :underline t)
 (set-default 'cursor-type '(bar . 3))
 
 ;; using a visible bell when error occurs
@@ -2407,6 +2415,43 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 		   ("C-s" . my-helm-swoop-next-line-with-string-at-point-if-needed)
 		   ("C-r" . my-helm-swoop-prev-line-with-string-at-point-if-needed))
 
+;; projectile required by helm-projectile
+
+;; helm-projectile
+;; http://tuhdo.github.io/helm-projectile.html
+;; all projectile & helm-projectile commands has prefix C-c p
+(require 'helm-projectile)
+(projectile-global-mode)
+;; (helm-projectile-on)
+;; (eval-after-load "projectile"
+;;   '(progn
+;; 	 (setq magit-repo-dirs
+;; 		   (mapcar
+;; 			(lambda (dir)
+;; 			  (substring dir 0 -1))
+;; 			(remove-if-not
+;; 			 (lambda (project)
+;; 			   (file-directory-p (concat project "/.git/")))
+;; 			 (projectile-relevant-known-projects))))
+;; 	 ))
+(setq projectile-completion-system 'helm)
+(helm-projectile-on)
+;; for large projects
+;;(setq helm-projectile-sources-list
+;;    '(helm-source-projectile-projects
+;;      helm-source-projectile-files-list))
+;; cache make it quick for large project, but cache will make the `C-c c p` only
+;; work for cached files, use `C-c p i` or prefix `C-u` to make the cache invalidated
+(setq projectile-enable-caching t)
+;; change projectile to helm-projectile
+;; projectile can create a file or dir if not found, but helm-projectile cannot
+(setq projectile-switch-project-action 'helm-projectile-find-file)
+;;(setq projectile-switch-project-action
+;;    'helm-projectile)
+;; modify the indicator in mode line
+(setq projectile-mode-line
+	  '(:eval (format "" (projectile-project-name))))
+
 ;;;; s required by flycheck
 ;;;; f required by flycheck
 ;;
@@ -2442,11 +2487,18 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; (require 'flycheck)
 (add-hook 'prog-mode-hook 'flycheck-mode)
 (setq flycheck-highlighting-mode 'lines)
+;; only check the buffer when it is saved
+;; but never while you are making changes to the buffer
+(setq flycheck-check-syntax-automatically '(mode-enabled save))
 (eval-after-load 'flycheck
   '(progn
 	 (set-face-attribute 'flycheck-error nil :foreground "red")
 	 (set-face-attribute 'flycheck-warning nil :foreground "yellow" :underline nil)
 	 (set-face-attribute 'flycheck-info nil :foreground "ForestGreen" :underline nil)))
+;; flycheck-pos-tip
+(with-eval-after-load 'flycheck
+  (flycheck-pos-tip-mode))
+
 
 ;; magit
 ;;
@@ -2631,43 +2683,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; Called it with a prefix argument to reindent the comment
 (bind-key* "M-;" 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
-
-;; projectile required by helm-projectile
-
-;; helm-projectile
-;; http://tuhdo.github.io/helm-projectile.html
-;; all projectile & helm-projectile commands has prefix C-c p
-(require 'helm-projectile)
-(projectile-global-mode)
-;; (helm-projectile-on)
-;; (eval-after-load "projectile"
-;;   '(progn
-;; 	 (setq magit-repo-dirs
-;; 		   (mapcar
-;; 			(lambda (dir)
-;; 			  (substring dir 0 -1))
-;; 			(remove-if-not
-;; 			 (lambda (project)
-;; 			   (file-directory-p (concat project "/.git/")))
-;; 			 (projectile-relevant-known-projects))))
-;; 	 ))
-(setq projectile-completion-system 'helm)
-(helm-projectile-on)
-;; for large projects
-;;(setq helm-projectile-sources-list
-;;    '(helm-source-projectile-projects
-;;      helm-source-projectile-files-list))
-;; cache make it quick for large project, but cache will make the `C-c c p` only
-;; work for cached files, use `C-c p i` or prefix `C-u` to make the cache invalidated
-(setq projectile-enable-caching t)
-;; change projectile to helm-projectile
-;; projectile can create a file or dir if not found, but helm-projectile cannot
-(setq projectile-switch-project-action 'helm-projectile-find-file)
-;;(setq projectile-switch-project-action
-;;    'helm-projectile)
-;; modify the indicator in mode line
-(setq projectile-mode-line
-	  '(:eval (format "" (projectile-project-name))))
 
 ;; whole-line-or-region
 (add-hook 'after-init-hook 'whole-line-or-region-mode)
