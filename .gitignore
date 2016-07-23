@@ -4,6 +4,7 @@
 .mc-lists.el
 ac-comphist.dat
 auto-save-list
+places
 ede-projects.el
 elpa/archives/*
 org-clock-save.el
