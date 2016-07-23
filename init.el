@@ -1387,9 +1387,11 @@ Emacs session."
 			(local-set-key	(kbd "C-c o") 'ff-find-other-file)))
 
 ;; Saveplace & desktop
-(setq-default save-place t)
-(require 'saveplace)
-(setq save-place-file "~/.emacs.d/saved-places")
+(if (version< emacs-version "25.0")
+    (progn
+      (require 'saveplace)
+      (setq-default save-place t))
+  (save-place-mode 1))
 ;;
 (setq desktop-save 'ask)
 ;;desktop-save ask means always ask
