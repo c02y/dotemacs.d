@@ -1,1 +1,0 @@
-(define-package "restart-emacs" "20151203.835" "Restart emacs from within emacs" 'nil :stars '(#("19" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/iqbalansari/restart-emacs" :keywords '("convenience"))
