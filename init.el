@@ -110,6 +110,12 @@
 ;; M-x tabify/untabify convert from spaces to tabs and vice verse
 ;; NOTE: call untabify/tabify with prefix argument, it will convert for the entire buffer
 
+;; If Emacs stucks at startup, uncomment the following lines or put
+;; 255.255.255.255 host.does.not.exist
+;; in /etc/hosts
+;; (setq tramp-default-method "ssh")
+;; (setq tramp-ssh-controlmaster-options "-o ControlMaster=auto -o ControlPath='tramp.%%C' -o ControlPersist=no")
+
 ;;; Code:
 ;; (setq debug-on-error t)
 
@@ -242,8 +248,6 @@ and you can reconfigure the compile args."
 (setq column-number-mode t)
 (setq-default fill-column 80)
 (add-hook 'prog-mode-hook 'highlight-beyond-fill-column)
-(custom-set-faces '(highlight-beyond-fill-column-face
-					((t (:foreground "red" )))))
 
 ;; C-x </> 'scroll-left/right if line is too long
 (put 'scroll-left 'disabled nil)
@@ -256,13 +260,13 @@ and you can reconfigure the compile args."
 (progn
   (define-fringe-bitmap 'tilde [0 0 0 113 219 142 0 0] nil nil 'center)
   (setcdr (assq 'empty-line fringe-indicator-alist) 'tilde))
-(set-fringe-bitmap-face 'tilde 'font-lock-comment-face)
+(set-fringe-bitmap-face 'tilde nil)
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
 (bind-keys*
  ("C-S-m" . menu-bar-mode)
- ("C-S-l" . global-linum-mode))
+ ("C-S-l" . linum-mode))
 ;; scroll text up/down by one line, not cursor
 (global-set-key (kbd "C-M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "C-M-p") (kbd "C-u 1 M-v"))
@@ -452,6 +456,7 @@ and you can reconfigure the compile args."
   '(setq which-func-modes '(c-mode c++-mode emacs-lisp-mode python-mode)))
 ;; replace ??? to n/a
 (setq which-func-unknown "n/a")
+(set-face-attribute 'which-func nil :background nil :foreground nil)
 ;; repalce the 8 with other number to change the position
 (let ((which-func '(which-func-mode ("" which-func-format " "))))
   (setq-default mode-line-format
@@ -460,7 +465,6 @@ and you can reconfigure the compile args."
 				(remove which-func mode-line-misc-info))
   (setq cell (last mode-line-format 8)) ;; just next to buffer name
   (setcdr cell (cons which-func (cdr cell))))
-;;
 ;; line/column/percent/size, just "(%l,%c)[%p/%I]" if not highlight
 (setq-default mode-line-position
 			  '(("(%l_"
@@ -474,15 +478,11 @@ and you can reconfigure the compile args."
 (make-face 'mode-line-position-face)
 (set-face-attribute 'mode-line-80col-face nil :background "red1")
 (set-face-attribute 'mode-line-position-face nil)
-
+(set-face-attribute 'mode-line nil :background "dim gray" :foreground "white")
+(set-face-attribute 'mode-line-buffer-id nil :foreground nil :background nil)
+(set-face-attribute 'mode-line-inactive nil :background nil)
 ;; mode-line color
-(custom-set-faces
- ;; no special for which-func
- '(which-func ((t (:background nil :foreground nil))))
- '(mode-line ((t (:background "dim gray" :foreground "white"))))
- '(mode-line-inactive ((t (:background nil))))
- '(mode-line-buffer-id ((t (:foreground nil :background nil))))
- )
+
 ;; whole structure of mode line
 (setq-default mode-line-format
 			  '(
@@ -784,6 +784,16 @@ With negative N, comment out original line and use the absolute value."
   (interactive)
   (set-buffer-file-coding-system 'unix 't))
 
+(defun cp ()
+  "Copy the path of current buffer file to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filename
+      (kill-new filename)
+      (message "'%s' path copied!" filename))))
+
 ;; Display trailing whitespace at end of lines
 (defun toggle-trailing-whitespace-display ()
   "Toggle the display of trailing whitespace, by changing the
@@ -954,7 +964,7 @@ Emacs by default won't treat the TAB as indent"
 	(save-buffer)
 	(kill-buffer nil)))
 ;; C-x k to kill a buffer specified
-(bind-key* "C-S-d" 'kill-this-buffer)
+(bind-key* "C-S-q" 'kill-this-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; minibuffer & buffers & dired
@@ -1112,10 +1122,9 @@ searches all buffers."
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)
 (setq uniquify-separator "/")
-;; rename after killing uniquified
-(setq uniquify-after-kill-buffer-p t)
 ;; don't muck with special buffers
 (setq uniquify-ignore-buffers-re "^\\*")
+(setq uniquify-strip-common-suffix nil)
 
 ;; highlight buffer modifications
 ;; you can also(before saving):
@@ -1438,7 +1447,7 @@ Emacs session."
 ;;;;;;;;;;; Tab & indent
 ;;;;;;;;;;; '(global-)whitespace-mode to show tab/space
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(bind-key* (kbd "C-c w") 'global-whitespace-mode)
+(bind-key* (kbd "C-c w") 'whitespace-mode)
 
 ;; nil-->use spaces instead of tabs, t -- don't replace
 (require 'cc-vars)
@@ -1527,61 +1536,6 @@ Has no effect if the character before point is not of the syntax class ')'."
 
 ;; show the open parentheses when typing the closing one
 (setq blink-matching-paren t)
-;;
-;; auto insert the other half of parentheses
-(defun my-mode-auto-pair ()
-  (interactive)
-  (make-local-variable 'skeleton-pair-alist)
-  (setq skeleton-pair-alist '(
-							  (?\" _ "\"")
-							  (?\( _ ")")
-							  (?\[ _ "]")
-							  (?\{ _ "}")
-							  (?` _ "'")))
-  (setq skeleton-pair t)
-  (local-set-key (kbd "(") 'skeleton-pair-insert-maybe)
-  (local-set-key (kbd "{") 'skeleton-pair-insert-maybe)
-  (local-set-key (kbd "[") 'skeleton-pair-insert-maybe)
-  (local-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
-  ;; (local-set-key (kbd "`") 'skeleton-pair-insert-maybe)
-  )
-(dolist (hook '(prog-mode-hook python-mode-hook ielm-mode-hook org-mode-hook racket-repl-mode-hook))
-  (add-hook hook 'my-mode-auto-pair))
-
-;;
-;; automatically insert new line with } and indent when typing {
-(define-minor-mode c-helpers-minor-mode
-  "This mode contains little helpers for C developement" nil ""
-  '(((kbd "{") . insert-c-block-parentheses)))
-;; this breaks under function name suddenly, don't why
-(defun insert-c-block-parentheses ()
-  (interactive)
-  (insert "{")
-  (newline)
-  (newline)
-  (insert "}")
-  ;; donot use indent-for-tab-command since TAB is rebound, or point will stop
-  ;; after the }
-  (indent-according-to-mode)
-  (forward-line -1)
-  (indent-according-to-mode))
-(dolist (mode '(c-mode-common-hook java-mode-hook cperl-mode-hook css-mode-hook go-mode-hook))
-  (add-hook mode
-			'(lambda ()
-			   (c-helpers-minor-mode))))
-
-;;
-;; automatically insert } after typing {, not indent
-;; When you need this, type C-{, in some modes
-(defun insert-c-block-parentheses-without-indent ()
-  (interactive)
-  (insert "{")
-  (insert "}")
-  (call-interactively 'left-char))
-(require 'cc-mode)
-(bind-key "C-{" 'insert-c-block-parentheses-without-indent c-mode-map)
-(bind-key "C-{" 'insert-c-block-parentheses-without-indent c++-mode-map)
-(bind-key "C-{" 'insert-c-block-parentheses-without-indent java-mode-map)
 
 ;; use cperl-mode as default mode for Perl code instead of perl-mode
 ;; cperl-mode offers much more features than perl-mode.
@@ -1714,9 +1668,9 @@ Do this after `q` in Debugger buffer."
 	  '(
 		("gnu" . "http://elpa.gnu.org/packages/")
 		("ELPA" . "http://tromey.com/elpa/")
-		("melpa" . "http://melpa.org/packages/")
-		("melpa-stable" . "http://stable.melpa.org/packages/")
-		("marmalade" . "http://marmalade-repo.org/packages/")
+		("melpa" . "https://melpa.org/packages/")
+		("melpa-stable" . "https://stable.melpa.org/packages/")
+		("marmalade" . "https://marmalade-repo.org/packages/")
 		))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
@@ -2129,6 +2083,7 @@ Do this after `q` in Debugger buffer."
   (let (org-log-done org-log-states)	; turn off logging
 	(org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
+(setq org-tags-column 0)
 ;; syntax highlight in the source code snippet
 (setq org-src-fontify-natively t)
 ;; TAB to indent the _whole_(not lines) code snippet block comparing with "#+BEGIN_SRC" part
@@ -2317,6 +2272,8 @@ background of code to whatever theme I'm using's background"
  ;; helm-find-files will prompt y/n if the file doesn't exist, find-file won't
  ("C-x C-f" . helm-find-files)
  ("C-x f" . find-file-read-only))
+;; create it without prompt when C-x C-f a file that doesn't exist
+(setq helm-ff-newfile-prompt-p nil)
 (with-eval-after-load 'helm-semantic
   (setq helm-semantic-display-style
 		'((c-mode . semantic-format-tag-summarize)
@@ -2487,9 +2444,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; (require 'flycheck)
 (add-hook 'prog-mode-hook 'flycheck-mode)
 (setq flycheck-highlighting-mode 'lines)
-;; only check the buffer when it is saved
-;; but never while you are making changes to the buffer
-(setq flycheck-check-syntax-automatically '(mode-enabled save))
 (eval-after-load 'flycheck
   '(progn
 	 (set-face-attribute 'flycheck-error nil :foreground "red")
@@ -2599,10 +2553,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
 (add-hook 'racket-repl-mode-hook #'rainbow-delimiters-mode)
 (add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
-;; make the outermost delimiters not red
-(custom-set-faces
- '(rainbow-delimiters-depth-1-face
-   ((t (:foreground "#00d7af")))))
+
 ;; ;;
 ;; ;; rainbow-identifiers
 ;; ;; rainbow identifiers according to their names
@@ -2791,6 +2742,38 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; zeal-at-point
 (bind-key* "C-c z" 'zeal-at-point)
 
+;; smartparens
+;; M-x customize-group smartparens
+;; M-x sp-cheat-sheet
+(require 'smartparens-config)
+(smartparens-global-mode t)
+(eval-after-load "smartparens"
+  '(progn
+	 (sp-use-smartparens-bindings)))
+;; hit C-(
+;; |foobar becomes (foobar)
+(sp-pair "(" ")" :wrap "C-(")
+;; ;; 1. use this one or 2, only can be enabled
+;; (defun insert-c-block-parentheses (id action context)
+;;   (when (eq action 'insert)
+;;     (newline)
+;;     (newline)
+;;     (indent-according-to-mode)
+;;     (previous-line)
+;;     (indent-according-to-mode)))
+;; (sp-local-pair '(c-mode c++-mode java-mode) "{" nil :post-handlers '(:add insert-c-block-parentheses))
+;; 2. use this one to insert {} and then M-return to insert the effect of 1
+(sp-local-pair '(c-mode c++-mode java-mode) "{" nil :post-handlers '((insert-c-block-parentheses-without-indent "M-RET")))
+(defun insert-c-block-parentheses-without-indent (&rest _ignored)
+  "Open a new brace or bracket expression, with relevant newlines and indent. "
+  (newline)
+  (indent-according-to-mode)
+  (forward-line -1)
+  (indent-according-to-mode))
+(setq sp-override-key-bindings
+	  '(
+		("M-<backspace>" . delete-word-backward)))
+(sp--update-override-key-bindings)
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
@@ -2852,3 +2835,6 @@ want to use in the modeline *in lieu of* the original.")
 			 (when (eq mode major-mode)
 			   (setq mode-name mode-str)))))
 (add-hook 'after-change-major-mode-hook 'clean-mode-line)
+
+(setq custom-file "~/.emacs.d/package-selected-packages.el")
+(load custom-file)
