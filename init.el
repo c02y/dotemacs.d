@@ -1864,7 +1864,11 @@ Do this after `q` in Debugger buffer."
 					company-dabbrev-code
 					company-ispell
 					company-files
-					company-yasnippet)))))
+					company-yasnippet
+					company-capf)))))
+(defun my-org-mode-hook ()
+  (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
+(add-hook 'org-mode-hook #'my-org-mode-hook)
 (add-hook 'c-mode-common-hook
 		  (lambda ()
 			(company-mode)
@@ -2776,6 +2780,13 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	  '(
 		("M-<backspace>" . delete-word-backward)))
 (sp--update-override-key-bindings)
+
+;; deft
+(setq deft-directory "~/Org")
+(setq deft-recursive t)
+(setq deft-default-extension "org")
+(setq deft-use-filename-as-title t)
+(global-set-key (kbd "C-x C-d") 'deft)
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
