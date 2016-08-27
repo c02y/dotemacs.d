@@ -505,6 +505,29 @@ and you can reconfigure the compile args."
 (global-hl-line-mode 1)
 (set-face-attribute hl-line-face nil :underline t)
 (set-default 'cursor-type '(bar . 3))
+(setq-default cursor-in-non-selected-windows 1)
+
+;; highlight the active window
+;; flash the active window
+(global-set-key (kbd "s-<f12>") 'flash-active-buffer)
+(make-face 'flash-active-buffer-face)
+(set-face-attribute 'flash-active-buffer-face nil
+                    :background "blue" :foreground nil)
+(defun flash-active-buffer ()
+  (interactive)
+  (run-at-time "150 millisec" nil
+               (lambda (remap-cookie)
+                 (face-remap-remove-relative remap-cookie))
+               (face-remap-add-relative 'default 'flash-active-buffer-face)))
+;; another way to highlight the active window
+(defun highlight-active-window ()
+  "Highlight active window with a different background color."
+  (walk-windows (lambda (w)
+                  (unless (eq w (selected-window))
+                    (with-current-buffer (window-buffer w)
+                      (buffer-face-set '(:background "#111"))))))
+  (buffer-face-set 'default))
+(add-hook 'buffer-list-update-hook 'highlight-active-window)
 
 ;; using a visible bell when error occurs
 ;;(setq visible-bell t)
@@ -561,21 +584,21 @@ and you can reconfigure the compile args."
 	(interactive)
 	(end-of-visual-line)
 	(backward-char))))
-(defun keep-beginning-of-line (arg)
+(defun keep-beginning-of-line (ARG)
   "Make `C-a` keep going to first non-whitespace character _and_then_ beginning of
   next line(previous with C-u).
 It will not work as expected in comment block because of goddamn rebox2"
   (interactive "P")
-  (when (bolp) (forward-line (if arg -1 1)))
+  (when (bolp) (forward-line (if ARG -1 1)))
   (let ((orig-point (point)))
 	(back-to-indentation)
 	(when (= orig-point (point))
 	  (move-beginning-of-line 1))))
-(defun keep-end-of-line (arg)
+(defun keep-end-of-line (ARG)
   "Make `C-e` keep going to end of next line(previous with C-u).
 It will become normal in comment block because of goddamn rebox2"
   (interactive "P")
-  (when (eolp) (forward-line (if arg -1 1)))
+  (when (eolp) (forward-line (if ARG -1 1)))
   (move-end-of-line nil))
 ;; (global-set-key [remap move-beginning-of-line] #'keep-beginning-of-line)
 ;; (global-set-key [remap move-end-of-line] #'keep-end-of-line)
@@ -583,12 +606,12 @@ It will become normal in comment block because of goddamn rebox2"
  ("C-a" . keep-beginning-of-line)
  ("C-e" . keep-end-of-line))
 
-(defun increment-region (&optional beg end arg)
-  "Increment all decimal numbers in region between `beg' and `end' by `arg'.
-If no prefix arg is given, increment by 1.
+(defun increment-region (&optional beg end ARG)
+  "Increment all decimal numbers in region between `beg' and `end' by `ARG'.
+If no prefix ARG is given, increment by 1.
 If the mark is not active, try to build a region using `symbol-at-point'."
   (interactive "r\np")
-  (or arg (setq arg 1))
+  (or ARG (setq ARG 1))
   (unless (and mark-active transient-mark-mode)
 	(let ((bounds (bounds-of-thing-at-point 'symbol)))
 	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
@@ -598,19 +621,19 @@ If the mark is not active, try to build a region using `symbol-at-point'."
   (save-excursion
 	(goto-char beg)
 	(while (re-search-forward "-?[0-9]+" end t)
-	  (replace-match (number-to-string (+ arg (string-to-number (match-string 0)))))))
+	  (replace-match (number-to-string (+ ARG (string-to-number (match-string 0)))))))
   (setq deactivate-mark nil))
 ;;
-(defun decrement-region (&optional beg end arg)
-  "Decrement all decimal numbers in region between `beg' and `end' by `arg'.
- If no prefix arg is given, increment by 1.
+(defun decrement-region (&optional beg end ARG)
+  "Decrement all decimal numbers in region between `beg' and `end' by `ARG'.
+ If no prefix ARG is given, increment by 1.
  If the mark is not active, try to build a region using `symbol-at-point'."
   (interactive "r\np")
-  (or arg (setq arg 1))
+  (or ARG (setq ARG 1))
   (unless (and mark-active transient-mark-mode)
 	(let ((bounds (bounds-of-thing-at-point 'symbol)))
 	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
-  (increment-region beg end (- arg)))
+  (increment-region beg end (- ARG)))
 (bind-keys*
  ("S-M-<up>" . increment-region)
  ("S-M-<down>" . decrement-region))
@@ -794,6 +817,20 @@ With negative N, comment out original line and use the absolute value."
       (kill-new filename)
       (message "'%s' path copied!" filename))))
 
+(defun insert-date-or-time (ARG)
+  "Without prefix, print `2016-08-11'
+With C-u, print `15:39:35'
+With C--, print `2016-08-11 15:39:43'
+With C-u C-u, print `Thu, 11. Aug 2016'"
+  (interactive "P")
+  (let ((format (cond
+				 ((not ARG) "%Y-%m-%d")
+				 ((equal ARG '-) "%Y-%m-%d %H:%M:%S")
+				 ((equal ARG '(4)) "%H:%M:%S")
+				 ((equal ARG '(16)) "%a, %d. %b %Y")))
+		(system-time-locale "en_US"))
+	(insert (format-time-string format))))
+
 ;; Display trailing whitespace at end of lines
 (defun toggle-trailing-whitespace-display ()
   "Toggle the display of trailing whitespace, by changing the
@@ -857,7 +894,7 @@ If current line is a single space, remove that space.
 ;;;
 ;; delete not kill it into kill-ring
 ;; http://ergoemacs.org/emacs/emacs_kill-ring.html
-(defun delete-word (arg)
+(defun delete-word (ARG)
   "Delete(not kill) characters forward until encountering the end of the syntax-subword.
 With argument, do this many times."
   (interactive "p")
@@ -866,31 +903,31 @@ With argument, do this many times."
   (let (eolpp) (setq eolpp 1))
   (setq eolpp (if (eolp) 1 nil))
   (shrink-whitespaces)
-  (delete-region (point) (progn (syntax-subword-forward-syntax arg) (point)))
+  (delete-region (point) (progn (syntax-subword-forward-syntax ARG) (point)))
   (if eolpp (if (not (eolp)) (open-line 1))))
-(defun delete-word-backward (arg)
+(defun delete-word-backward (ARG)
   "Delete(not kill) characters backward until encountering the beginning of the syntax-subword.
 With argument, do this that many times."
   (interactive "p")
-  (delete-word (- arg)))
-(defun delete-line (arg)
+  (delete-word (- ARG)))
+(defun delete-line (ARG)
   "Delete text from current position to end of line char.
 With argument, forward ARG lines."
   (interactive "p")
   (let (x1 x2)
 	(setq x1 (point))
-	(if (eolp) (forward-line arg) (forward-line (- arg 1)))
+	(if (eolp) (forward-line ARG) (forward-line (- ARG 1)))
 	(move-end-of-line 1)
 	(setq x2 (point))
 	(delete-region x1 x2))
   (when (bolp) (delete-char 1)))
-(defun delete-line-backward (arg)
+(defun delete-line-backward (ARG)
   "Delete text between the beginning of the line to the cursor position.
 With argument, backward ARG lines."
   (interactive "p")
   (let (x1 x2)
 	(setq x1 (point))
-	(if (bolp) (forward-line (- arg)) (forward-line (- 1 arg)))
+	(if (bolp) (forward-line (- ARG)) (forward-line (- 1 ARG)))
 	(move-beginning-of-line 1)
 	(setq x2 (point))
 	(delete-region x1 x2)))
@@ -1157,7 +1194,7 @@ searches all buffers."
 	(if (derived-mode-p 'org-mode)
 		(save-match-data (beginning-of-line) (looking-at "^[ \t]*#"))
 	  (lispy--in-comment-p))))
-(defun advanced-return (&optional arg)
+(defun advanced-return (&optional ARG)
   "Customized return, more powerful.
 
 Default(without prefix), create a line, jump into it and indent(like C-e C-m)
@@ -1168,11 +1205,11 @@ line and jump into it(like C-a C-o)
 In comments, RET will automatically use C-M-j instead.
 In other non-comment situations, try C-M-j to split."
   (interactive "P")
-  (if (equal arg '-)
+  (if (equal ARG '-)
 	  (progn
 		(beginning-of-line)
 		(open-line 1))
-	(if (equal arg '(4))
+	(if (equal ARG '(4))
 		(progn
 		  (end-of-line)
 		  (open-line 1)
@@ -1669,10 +1706,10 @@ Do this after `q` in Debugger buffer."
 (setq package-archives
 	  '(
 		("gnu" . "http://elpa.gnu.org/packages/")
-		("ELPA" . "http://tromey.com/elpa/")
 		("melpa" . "https://melpa.org/packages/")
 		("melpa-stable" . "https://stable.melpa.org/packages/")
 		("marmalade" . "https://marmalade-repo.org/packages/")
+		("ELPA" . "http://tromey.com/elpa/")
 		))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
@@ -2188,6 +2225,8 @@ background of code to whatever theme I'm using's background"
 	  (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
 ;; remove the end part of the exported file such as `author, date, emacs and org-mode version`
 (setq org-html-postamble nil)
+;; ? before the star at the beginning of headline for all speed commands
+(setq org-use-speed-commands t)
 
 ;; icicles
 ;; icicles & helm differences:
@@ -2679,14 +2718,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 		("rectangle" . error)								; red
 		("help\\|emacs\\|bookmarks" . highlight)			; gray and bg
 		))
-;; this is in which-key.el
-(defun which-key--lighter-status (n-shown n-tot)
-  "Possibly show N-SHOWN keys and N-TOT keys in the mode line."
-  (when which-key-show-remaining-keys
-	(setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
-	(setcar (cdr (assq 'which-key-mode minor-mode-alist))
-			;; Changed the following part
-			(format " %s/%s" n-shown n-tot))))
 
 ;; noflet, iedit, ace-window, hydra required by lispy
 (bind-key* "C-x q" 'ace-window)
@@ -2787,6 +2818,56 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (setq deft-default-extension "org")
 (setq deft-use-filename-as-title t)
 (global-set-key (kbd "C-x C-d") 'deft)
+
+;; electric-operator
+;; check electric-operator--mode-rules-table
+;; another system tool is GNU indent
+(require 'electric-operator)
+(add-hook 'c-mode-common-hook #'electric-operator-mode)
+(electric-operator-add-rules-for-mode
+ 'c-mode
+ (cons "<" " < ")
+ (cons ">" " > "))
+(electric-operator-add-rules-for-mode
+ 'c++-mode
+ (cons "<" " < ")
+ (cons ">" " > "))
+
+;; multifiles
+(require 'multifiles)
+(eval-after-load "multifiles"
+  '(progn
+	 (multifiles-minor-mode 1)
+	 (global-set-key (kbd "C-x n c") 'mf/mirror-region-in-multifile)))
+
+;; AucTex
+;; C-c ? (or M-x TeX-doc) gives documentation for the symbol at point,
+;; or for any package, command or document.
+(load "auctex.el" nil t t)
+(require 'tex-mik)
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(add-hook 'LaTeX-mode-hook 'visual-line-mode) ; or auto-fill-mode
+(add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+;; compile documents to PDF by default
+(setq TeX-PDF-mode t)
+;; C-c C-c without prompt, use Clean by default, to clean aux and log files
+;; Use "Clean All" to clean files including generated pdf file
+;; Or use M-x Tex-clean (Clean) and prefix(Clean All)
+(setq TeX-command-force "Clean")
+;; Use C-c C-c to compile the tex file into pdf file automatically using LaTex,
+;; and C-c C-v to view it using okular
+;; NOTE: C-c C-a to combine C-c C-c and C-c C-v"
+(setq TeX-view-program-selection
+	  '((output-pdf "PDF Viewer")))
+(setq TeX-view-program-list
+	  '(("PDF Viewer" "okular -p %(outpage) %o")))
+;; RefTex -- built-in
+;; Turn on RefTeX in AUCTeX
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+;; Activate nice interface between RefTeX and AUCTeX
+(setq reftex-plug-into-AUCTeX t)
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
