@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: docblock
-# key: /**
+# key: docb
 # --
 /**
  * ${1:name} - ${2:short description}
