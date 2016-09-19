@@ -261,12 +261,14 @@ and you can reconfigure the compile args."
   (define-fringe-bitmap 'tilde [0 0 0 113 219 142 0 0] nil nil 'center)
   (setcdr (assq 'empty-line fringe-indicator-alist) 'tilde))
 (set-fringe-bitmap-face 'tilde nil)
+(set-fringe-mode '(8 . 0))
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
+(require 'nlinum)
 (bind-keys*
  ("C-S-m" . menu-bar-mode)
- ("C-S-l" . linum-mode))
+ ("C-S-l" . nlinum-mode))
 ;; scroll text up/down by one line, not cursor
 (global-set-key (kbd "C-M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "C-M-p") (kbd "C-u 1 M-v"))
@@ -509,7 +511,7 @@ and you can reconfigure the compile args."
 
 ;; highlight the active window
 ;; flash the active window
-(global-set-key (kbd "s-<f12>") 'flash-active-buffer)
+(bind-key* "s-<f12>" 'flash-active-buffer)
 (make-face 'flash-active-buffer-face)
 (set-face-attribute 'flash-active-buffer-face nil
                     :background "blue" :foreground nil)
@@ -964,11 +966,11 @@ See `fill-paragraph' and `fill-region'."
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (defun cleanup-buffer ()
   "Cleanup the buffer:
-1. yafolding-show-all to avoid date loss
+1. origami-open-all-nodes to avoid date loss
 2. delete-trailing-whitespace
 "
   (interactive)
-  (yafolding-show-all) ;; avoid data loss
+  (origami-open-all-nodes) ;; avoid data loss
   (delete-trailing-whitespace))
 (bind-key* "C-c d" 'cleanup-buffer)
 (defvar all-make-modes
@@ -1220,6 +1222,7 @@ In other non-comment situations, try C-M-j to split."
 (defun Meta-return ()
   (interactive)
   (progn
+	;; executing key in a function
 	(call-interactively (key-binding (kbd "C-M-j")))
 	(indent-according-to-mode)))
 (bind-key "M-RET" 'Meta-return)
@@ -1311,6 +1314,37 @@ In other non-comment situations, try C-M-j to split."
 (bind-keys*
  ("C-x z" . toggle-maximize-buffer)
  ("C-x C-z" . toggle-maximize-other-buffer))
+
+;; register copy/paste
+;; C-x r SPC/j save/jump position
+;; C-x r s/x/g/i save/insert register
+;; a lot of other register commands
+(defun register-1-copy ()
+  "Copy current line or text selection to register 1.
+See also: `register-1-paste', `copy-to-register'.
+URL `http://ergoemacs.org/emacs/elisp_copy-paste_register_1.html'
+Version 2015-12-08"
+  (interactive)
+  (let (-p1 -p2)
+    (if (region-active-p)
+        (progn (setq -p1 (region-beginning))
+               (setq -p2 (region-end)))
+      (progn (setq -p1 (line-beginning-position))
+             (setq -p2 (line-end-position))))
+    (copy-to-register ?1 -p1 -p2)
+    (message "copied to register 1: 「%s」." (buffer-substring-no-properties -p1 -p2))))
+(defun register-1-paste ()
+  "Paste text from register 1.
+See also: `register-1-copy', `insert-register'.
+URL `http://ergoemacs.org/emacs/elisp_copy-paste_register_1.html'
+Version 2015-12-08"
+  (interactive)
+  (when (use-region-p)
+    (delete-region (region-beginning) (region-end)))
+  (insert-register ?1 t))
+(bind-keys*
+ ("C-x r !" . register-1-copy)
+ ("C-x r 1" . register-1-paste))
 
 ;; Try C-x 4 C-h for C-x 4 info
 (defun vsplit-last-buffer ()
@@ -1882,87 +1916,89 @@ Do this after `q` in Debugger buffer."
 (setq company-tooltip-limit 20)
 (setq company-minimum-prefix-length 3)
 (setq company-show-numbers t)
-(setq company-dabbrev-other-buffers t)
 (setq company-transformers '(company-sort-by-occurrence))
+(setq company-selection-wrap-around t)
+(setq company-tooltip-align-annotations t)
+(setq company-dabbrev-downcase nil)
+(setq company-dabbrev-other-buffers t)
+;; donnot change this, company issues #584
+(setq company-dabbrev-ignore-case t)
+;; default company-backends for all modes
+(setq company-backends
+	  '(
+		(
+		 company-files
+		 company-dabbrev
+		 company-keywords
+		 company-capf
+		 company-yasnippet
+		 company-semantic
+		 company-ispell
+		 )
+		(company-dabbrev company-dabbrev-code company-abbrev)
+		))
 ;; turn on this, space will insert the candidate not space
 ;; (setq company-auto-complete t)
 ;; use F1 or C-h in the drop list to show the doc, Use C-s/C-M-s to search the candidates,
 ;; M-NUM to select specific one, C-w to view its source file
-(bind-key* "C-c <tab>" 'company-files)
+(global-set-key (kbd "C-c <tab>") 'company-files)
 ;; this will show a lot of garbage, use it only necessary
 ;; (add-to-list 'company-backends 'company-ispell)
 (defalias 'ci 'company-ispell)
-(add-hook 'org-mode-hook
-		  (lambda ()
-			(company-mode)
-			(set (make-local-variable 'company-backends)
-				 '((
-					company-dabbrev
-					company-dabbrev-code
-					company-ispell
-					company-files
-					company-yasnippet
-					company-capf)))))
+;; TAB to complete keywords in org-mode
 (defun my-org-mode-hook ()
   (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
 (add-hook 'org-mode-hook #'my-org-mode-hook)
 (add-hook 'c-mode-common-hook
 		  (lambda ()
-			(company-mode)
 			(set (make-local-variable 'company-backends)
-				 '((
-					company-c-headers
-					company-clang
-					company-dabbrev
-					company-dabbrev-code
-					company-gtags
-					company-semantic
-					company-yasnippet
-					company-keywords)))))
+				 (list
+				  (cons
+				   '((
+					  company-c-headers
+					  company-clang
+					  company-gtags))
+				   (car company-backends))))))
 (add-hook 'emacs-lisp-mode-hook
-		  (lambda ()
-			(company-mode)
-			(set (make-local-variable 'company-backends)
-				 '((
-					company-elisp
-					company-dabbrev
-					company-dabbrev-code
-					company-semantic
-					company-yasnippet)))))
+          (lambda ()
+            (set (make-local-variable 'company-backends)
+                 (list
+                  (cons 'company-elisp
+                        (car company-backends))))))
 (add-hook 'python-mode-hook
 		  (lambda ()
 			(set (make-local-variable 'company-backends)
-				 '((
-					company-ropemacs
-					company-dabbrev
-					company-dabbrev-code
-					company-semantic
-					company-yasnippet)))))
-(setq company-dabbrev-downcase nil)
-;; grouped back-ends
-;; (add-to-list 'company-backends
-;;				'(
-;;				  (
-;;				  company-clang
-;;				  company-gtags
-;;				  company-elisp
-;;				  company-semantic
-;;				  company-dabbrev
-;;				  company-dabbrev-code
-;;				  company-c-headers
-;;				  company-keywords)
-;;				  ;; company-yasnippet
-;;				  company-bbdb
-;;				  company-nxml
-;;				  company-css
-;;				  company-eclim
-;;				  company-xcode
-;;				  company-ropemacs
-;;				  company-cmake
-;;				  company-capf
-;;				  company-etags
-;;				  company-oddmuse
-;;				  company-files))
+				 (list
+				  (cons
+				   'company-ropemacs
+				   (car company-backends))))))
+;; grouped default back-ends for all major mode
+;; (with-eval-after-load 'company
+;;   (add-hook 'company-mode-hook
+;; 			(lambda ()
+;; 			  (add-to-list 'company-backends
+;; 						   '(
+;; 							 company-dabbrev-code
+;; 							 company-semantic
+;; 							 company-capf
+;; 							 ;; company-dabbrev
+;; 							 company-keywords
+;; 							 company-clang
+;; 							 company-elisp
+;; 							 company-files
+;; 							 company-gtags
+;; 							 company-etags
+;; 							 company-c-headers
+;; 							 company-yasnippet
+;; 							 company-bbdb
+;; 							 ;; company-nxml
+;; 							 ;; company-css
+;; 							 ;; company-eclim
+;; 							 ;; company-xcode
+;; 							 ;; company-ropemacs
+;; 							 ;; company-cmake
+;; 							 ;; company-oddmuse
+;; 							 )))))
 
 ;; undo-tree
 ;; C-x u -> undo-tree-visualize
@@ -2438,6 +2474,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; 	 ))
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
+
 ;; for large projects
 ;;(setq helm-projectile-sources-list
 ;;    '(helm-source-projectile-projects
@@ -2569,6 +2606,16 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (autoload 'yafolding "yafolding" t)
 (add-hook 'python-mode-hook 'yafolding-mode)
 (add-hook 'prog-mode-hook 'yafolding-mode)
+
+;; origami
+(require 'origami)
+(global-origami-mode)
+(setq origami-show-fold-header t)
+(set-face-attribute 'origami-fold-fringe-face nil :foreground "yellow")
+(bind-keys*
+ ("C-c <C-return>" . origami-toggle-node)
+ ("C-c <S-return>" . origami-recursively-toggle-node)
+ ("C-c <C-M-return>" . origami-toggle-all-nodes))
 
 ;; highlight-symbol
 (autoload 'highlight-symbol "highlight-symbol" t)
@@ -2729,7 +2776,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
   '(progn
 	 (bind-keys :map lispy-mode-map
 				("RET" . advanced-return)
-				("M-RET" . Meta-return))))
+				("M-RET" . Meta-return)
+				("M-n" . highlight-symbol-next))))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
   (if (lispy--in-comment-p)
@@ -2817,7 +2865,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (setq deft-recursive t)
 (setq deft-default-extension "org")
 (setq deft-use-filename-as-title t)
-(global-set-key (kbd "C-x C-d") 'deft)
+(bind-key* "C-x C-d" 'deft)
 
 ;; electric-operator
 ;; check electric-operator--mode-rules-table
@@ -2838,24 +2886,96 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (eval-after-load "multifiles"
   '(progn
 	 (multifiles-minor-mode 1)
-	 (global-set-key (kbd "C-x n c") 'mf/mirror-region-in-multifile)))
+	 (bind-key* "C-x n c" 'mf/mirror-region-in-multifile)))
 
-;; AucTex
+;; LaTeX -- AucTex
 ;; C-c ? (or M-x TeX-doc) gives documentation for the symbol at point,
 ;; or for any package, command or document.
 (load "auctex.el" nil t t)
 (require 'tex-mik)
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
-(add-hook 'LaTeX-mode-hook 'visual-line-mode) ; or auto-fill-mode
-(add-hook 'LaTeX-mode-hook 'flyspell-mode)
-(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-;; compile documents to PDF by default
-(setq TeX-PDF-mode t)
+(setq-default TeX-master-file nil)
+;; LaTeX-mode for tex file
+;; (add-hook 'plain-TeX-mode-hook 'LaTeX-mode)
+(add-to-list 'auto-mode-alist '("\\.tex$" . LaTeX-mode))
+;; company-auctex
+(require 'company-auctex)
+(require 'tex-buf)
+;; (require 'auctex-latexmk)
+;; (auctex-latexmk-setup)
+(defun LaTeX-save-and-compile ()
+  "Save and compile the tex project using latexmk.
+
+If compilation fails, split the current window and open error-buffer
+then jump to the error line, if errors corrected, close the error-buffer
+window and close the *TeX help* buffer.
+
+This is not perfect, doesn't work multi-file project"
+  (interactive)
+  (progn
+	(let ((TeX-save-query nil)
+		  (TeX-process-asynchronous nil)
+		  (master-file (TeX-master-file)))
+	  (TeX-save-document "")
+	  (TeX-clean t) ;; clean all generated files before compile
+	  (TeX-run-TeX "latexmk"
+				   (TeX-command-expand "latexmk -pdf %s" 'TeX-master-file)
+				   master-file)
+	  (if (plist-get TeX-error-report-switches (intern master-file))
+		  ;; avoid creating multiple windows to show the *TeX Help* error buffer
+		  (if (get-buffer-window (get-buffer "*TeX Help*"))
+			  (TeX-next-error)
+			(progn
+			  (split-window-vertically -10)
+			  (TeX-next-error)))
+		;; if no errors, delete *TeX Help* window and buffer
+		(if (get-buffer "*TeX Help*")
+			(progn
+			  (if (get-buffer-window (get-buffer "*TeX Help*"))
+				  (delete-window (get-buffer-window (get-buffer "*TeX Help*"))))
+			  (kill-buffer "*TeX Help*")))))))
+(add-hook 'LaTeX-mode-hook
+		  (lambda ()
+			(visual-line-mode)
+			(flyspell-mode)
+			(setq-default TeX-newline-function 'advanced-return)
+			;; make the code look like the pdf file, C-c C-o ... for commands
+			;; If it should be activated in all AUCTEX modes, use TeX-mode-hook
+			;; instead of LaTeX-mode-hook.
+			(TeX-fold-mode 1)
+			;; usepackage
+			(setq tex-tree-roots t)
+			(LaTeX-math-mode)
+			;; this line have to be here to make company work
+			(company-auctex-init)
+			;; turn off smartparens because LaTeX-electric-left-right-brace
+			;; offers more for specific LaTeX mode
+			(turn-off-smartparens-mode)
+			(setq LaTeX-electric-left-right-brace t)
+			(setq TeX-electric-sub-and-superscript t)
+			;; C-u C-c C-c latexmk (or others like View) so you can change the command line
+			(add-to-list 'TeX-command-list
+						 ;; '("latexmk" "(LaTeX-save-and-compile)"
+						 '("latexmk" "latexmk -pdf %s"
+						   TeX-run-command nil t :help "Run latexmk") t)
+			(setq TeX-command-default "latexmk")
+			(bind-keys :map LaTeX-mode-map
+					   ;; default C-c C-e rebound and cannot be rebound
+					   ("C-c C-x e" . LaTeX-environment)
+					   ("C-c C-x s" . LaTeX-section)
+					   ("C-c C-x m" . TeX-insert-macro)
+					   ("C-x C-s" . LaTeX-save-and-compile)
+					   ;; default C-c. not working and replaced by org-time-stamp
+					   ("C-c m" . LaTeX-mark-environment)
+					   ;; ("<tab>" . TeX-complete-symbol)
+					   )))
+(setq LaTeX-command-section-level t)
 ;; C-c C-c without prompt, use Clean by default, to clean aux and log files
 ;; Use "Clean All" to clean files including generated pdf file
 ;; Or use M-x Tex-clean (Clean) and prefix(Clean All)
-(setq TeX-command-force "Clean")
+;; (setq TeX-command-force "Clean")
+(setq TeX-clean-confirm nil)
 ;; Use C-c C-c to compile the tex file into pdf file automatically using LaTex,
 ;; and C-c C-v to view it using okular
 ;; NOTE: C-c C-a to combine C-c C-c and C-c C-v"
@@ -2868,10 +2988,39 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 ;; Activate nice interface between RefTeX and AUCTeX
 (setq reftex-plug-into-AUCTeX t)
+;; magic-latex-buffer
+;; (require 'magic-latex-buffer)
+;; (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
+;; latex-preview-pane
+;; (add-hook 'LaTeX-mode-hook 'latex-preview-pane-mode)
+(setq
+ ;; Function for reading \includegraphics files
+ LaTeX-includegraphics-read-file 'LaTeX-includegraphics-read-file-relative
+ ;; Strip known extensions from image file name
+ LaTeX-includegraphics-strip-extension-flag nil)
+;; (setq LaTeX-section-hook
+;; 	  '(LaTeX-section-heading
+;; 		LaTeX-section-title
+;; 		LaTeX-section-toc
+;; 		LaTeX-section-section
+;; 		LaTeX-section-label))
+
+;; outline, C-c @ prefix
+(add-hook 'outline-minor-mode-hook
+          (lambda ()
+            (require 'outline-magic)
+            (bind-keys :map outline-minor-mode-map ("<C-tab>" . outline-cycle))))
+(add-hook 'LaTeX-mode-hook 'outline-minor-mode)
 
 ;; esup -- analyze the startup time of ~/.emacs
 ;; M-x esup
-;;
+
+;; flx -- required by company-flx-mode
+
+;; company-flx
+(with-eval-after-load 'company
+  (company-flx-mode +1))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2907,6 +3056,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(highlight-changes-mode . "")
 	(ggtags-mode . "")
 	(rainbow-mode . "")
+	(buffer-face-mode . "")
+	(visual-line-mode . "")
+	(reftex-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
