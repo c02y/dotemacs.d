@@ -1,1 +1,0 @@
-(define-package "color-identifiers-mode" "20160519.1146" "Color identifiers based on their names" '((dash "2.5.0") (emacs "24")) :stars '("") :url "https://github.com/ankurdave/color-identifiers-mode" :keywords '("faces" "languages"))
