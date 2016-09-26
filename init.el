@@ -195,7 +195,12 @@
  ("C-x M-z" . (lambda () (interactive) (switch-to-buffer "*scratch*"))))
 
 ;; assembly
-(add-to-list 'auto-mode-alist '("\\.\\(asm\\|s\\|S\\)$" . nasm-mode))
+;; replace auto-mode-alist for multiple extensions
+(mapc
+ (lambda (file)
+   (add-to-list 'auto-mode-alist
+				(cons (concat (regexp-quote file) "\\'") 'org-mode)))
+ '(".asm" ".s" ".S"))
 ;; To set your own indentation level to 4:
 (add-hook 'nasm-mode-hook
 		  (lambda () (setq-default nasm-basic-offset 4)))
@@ -1747,6 +1752,7 @@ Do this after `q` in Debugger buffer."
 		))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
+(defun package--save-selected-packages (&rest opt) nil)
 ;; (defalias 'plp 'package-list-packages)
 ;;
 ;; spinner required by paradox
@@ -2129,7 +2135,12 @@ Do this after `q` in Debugger buffer."
 ;; C-c C-x C-s (org-archive-subtree)
 ;; 3. Do not include the global todo list in your agenda view.
 ;; 4. Make sure that your org files are byte-compiled.
-(add-to-list 'auto-mode-alist '("README$" . org-mode))
+;; replace auto-mode-alist for multiple extensions
+(mapc
+ (lambda (file)
+   (add-to-list 'auto-mode-alist
+				(cons (concat (regexp-quote file) "\\'") 'org-mode)))
+ '("README" ".txt"))
 ;; TODO
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
@@ -2904,6 +2915,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (require 'tex-buf)
 ;; (require 'auctex-latexmk)
 ;; (auctex-latexmk-setup)
+;; 
+;; remove fdb_latexmk file will solve the problem
+;; of the reference number instead of question mark (?)
+(setq LaTeX-clean-intermediate-suffixes
+	  (append LaTeX-clean-intermediate-suffixes
+			  (list "\\.fdb_latexmk")))
 (defun LaTeX-save-and-compile ()
   "Save and compile the tex project using latexmk.
 
@@ -2918,7 +2935,9 @@ This is not perfect, doesn't work multi-file project"
 		  (TeX-process-asynchronous nil)
 		  (master-file (TeX-master-file)))
 	  (TeX-save-document "")
-	  (TeX-clean t) ;; clean all generated files before compile
+	  ;; clean all generated files before compile
+	  ;; DO NOT do it when up-to-date, remove this line in proper time
+	  (TeX-clean t)
 	  (TeX-run-TeX "latexmk"
 				   (TeX-command-expand "latexmk -pdf %s" 'TeX-master-file)
 				   master-file)
@@ -2933,7 +2952,7 @@ This is not perfect, doesn't work multi-file project"
 		(if (get-buffer "*TeX Help*")
 			(progn
 			  (if (get-buffer-window (get-buffer "*TeX Help*"))
-				  (delete-window (get-buffer-window (get-buffer "*TeX Help*"))))
+				  (delete-windows-on "*TeX Help*"))
 			  (kill-buffer "*TeX Help*")))))))
 (add-hook 'LaTeX-mode-hook
 		  (lambda ()
@@ -2953,7 +2972,9 @@ This is not perfect, doesn't work multi-file project"
 			;; offers more for specific LaTeX mode
 			(turn-off-smartparens-mode)
 			(setq LaTeX-electric-left-right-brace t)
-			(setq TeX-electric-sub-and-superscript t)
+			;; the following line will inset braces after _ or ^
+			;; unnecessarily most of time
+			;; (setq TeX-electric-sub-and-superscript t)
 			;; C-u C-c C-c latexmk (or others like View) so you can change the command line
 			(add-to-list 'TeX-command-list
 						 ;; '("latexmk" "(LaTeX-save-and-compile)"
@@ -3081,6 +3102,3 @@ want to use in the modeline *in lieu of* the original.")
 			 (when (eq mode major-mode)
 			   (setq mode-name mode-str)))))
 (add-hook 'after-change-major-mode-hook 'clean-mode-line)
-
-(setq custom-file "~/.emacs.d/package-selected-packages.el")
-(load custom-file)
