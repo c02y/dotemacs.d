@@ -944,29 +944,39 @@ With argument, backward ARG lines."
  ("C-k" . delete-line)
  ("C-S-k" . delete-line-backward))
 
-(defun toggle-fill-paragraph ()
-  ;; Based on http://xahlee.org/emacs/modernization_fill-paragraph.html
-  "Fill or unfill the current paragraph, depending upon the current line length.
-When there is a text selection, act on the region.
-See `fill-paragraph' and `fill-region'."
+(defun xah-fill-or-unfill ()
+  "Reformat current paragraph or region to `fill-column', like `fill-paragraph' or “unfill”.
+When there is a text selection, act on the the selection, else, act on a text block separated by blank lines.
+URL `http://ergoemacs.org/emacs/modernization_fill-paragraph.html'
+Version 2016-07-13"
   (interactive)
-  ;; We set a property 'currently-filled-p on this command's symbol
-  ;; (i.e. on 'toggle-fill-paragraph), thus avoiding the need to
-  ;; create a variable for remembering the current fill state.
-  (save-excursion
-	(let* ((deactivate-mark nil)
-		   (line-length (- (line-end-position) (line-beginning-position)))
-		   (currently-filled (if (eq last-command this-command)
-								 (get this-command 'currently-filled-p)
-							   (< line-length fill-column)))
-		   (fill-column (if currently-filled
-							most-positive-fixnum
-						  fill-column)))
-	  (if (region-active-p)
-		  (fill-region (region-beginning) (region-end))
-		(fill-paragraph))
-	  (put this-command 'currently-filled-p (not currently-filled)))))
-(bind-key* "M-q" 'toggle-fill-paragraph)
+  ;; This command symbol has a property “'compact-p”, the possible values are t and nil. This property is used to easily determine whether to compact or uncompact, when this command is called again
+  (let ( (-compact-p
+          (if (eq last-command this-command)
+              (get this-command 'compact-p)
+            (> (- (line-end-position) (line-beginning-position)) fill-column)))
+         (deactivate-mark nil)
+         (-blanks-regex "\n[ \t]*\n")
+         -p1 -p2
+         )
+    (if (use-region-p)
+        (progn (setq -p1 (region-beginning))
+               (setq -p2 (region-end)))
+      (save-excursion
+        (if (re-search-backward -blanks-regex nil "NOERROR")
+            (progn (re-search-forward -blanks-regex)
+                   (setq -p1 (point)))
+          (setq -p1 (point)))
+        (if (re-search-forward -blanks-regex nil "NOERROR")
+            (progn (re-search-backward -blanks-regex)
+                   (setq -p2 (point)))
+          (setq -p2 (point)))))
+    (if -compact-p
+        (fill-region -p1 -p2)
+      (let ((fill-column most-positive-fixnum ))
+        (fill-region -p1 -p2)))
+    (put this-command 'compact-p (not -compact-p))))
+(global-set-key (kbd "M-q") 'xah-fill-or-unfill)
 
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (defun cleanup-buffer ()
@@ -2906,7 +2916,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (require 'tex-mik)
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
-(setq-default TeX-master-file nil)
+;; when you open a file, ask for the master file but not changing any file
+;; this will make the LaTeX-save-and-compile deal with multi-files project
+(setq-default TeX-master 'shared)
 ;; LaTeX-mode for tex file
 ;; (add-hook 'plain-TeX-mode-hook 'LaTeX-mode)
 (add-to-list 'auto-mode-alist '("\\.tex$" . LaTeX-mode))
@@ -2926,11 +2938,14 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 
 If compilation fails, split the current window and open error-buffer
 then jump to the error line, if errors corrected, close the error-buffer
-window and close the *TeX help* buffer.
-
-This is not perfect, doesn't work multi-file project"
+window and close the *TeX help* buffer."
   (interactive)
   (progn
+	;; ;; turn off smartparens because LaTeX-electric-left-right-brace
+	;; ;; offers more for specific LaTeX mode
+	;; ;; Since SP is always triggered later by sth., so put these two lines here
+	;; (turn-off-smartparens-mode)
+	;; (setq LaTeX-electric-left-right-brace t)
 	(let ((TeX-save-query nil)
 		  (TeX-process-asynchronous nil)
 		  (master-file (TeX-master-file)))
@@ -2956,6 +2971,7 @@ This is not perfect, doesn't work multi-file project"
 			  (kill-buffer "*TeX Help*")))))))
 (add-hook 'LaTeX-mode-hook
 		  (lambda ()
+			(setq LaTeX-item-indent 0)
 			(visual-line-mode)
 			(flyspell-mode)
 			(setq-default TeX-newline-function 'advanced-return)
@@ -2968,9 +2984,9 @@ This is not perfect, doesn't work multi-file project"
 			(LaTeX-math-mode)
 			;; this line have to be here to make company work
 			(company-auctex-init)
-			;; turn off smartparens because LaTeX-electric-left-right-brace
-			;; offers more for specific LaTeX mode
-			(turn-off-smartparens-mode)
+			;; disable smartparens-mode completely and use
+			;; LaTeX-electric-left-right-brace instead
+			(push 'latex-mode sp-ignore-modes-list)
 			(setq LaTeX-electric-left-right-brace t)
 			;; the following line will inset braces after _ or ^
 			;; unnecessarily most of time
@@ -2990,6 +3006,7 @@ This is not perfect, doesn't work multi-file project"
 					   ;; default C-c. not working and replaced by org-time-stamp
 					   ("C-c m" . LaTeX-mark-environment)
 					   ;; ("<tab>" . TeX-complete-symbol)
+					   ("M-<return>" . LaTeX-insert-item)
 					   )))
 (setq LaTeX-command-section-level t)
 ;; C-c C-c without prompt, use Clean by default, to clean aux and log files
