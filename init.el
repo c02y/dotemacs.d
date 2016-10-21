@@ -2980,7 +2980,7 @@ window and close the *TeX help* buffer."
 	  ;; DO NOT do it when up-to-date, remove this line in proper time
 	  (TeX-clean t)
 	  (TeX-run-TeX "latexmk"
-				   (TeX-command-expand "latexmk -pdf %s" 'TeX-master-file)
+				   (TeX-command-expand "latexmk -pdflatex='pdflatex -file-line-error -synctex=1' -pdf %s" 'TeX-master-file)
 				   master-file)
 	  (if (plist-get TeX-error-report-switches (intern master-file))
 		  ;; avoid creating multiple windows to show the *TeX Help* error buffer
@@ -3017,12 +3017,23 @@ window and close the *TeX help* buffer."
 			;; the following line will inset braces after _ or ^
 			;; unnecessarily most of time
 			;; (setq TeX-electric-sub-and-superscript t)
+			;; NOTE: C-c C-a to combine C-c C-c and C-c C-v
 			;; C-u C-c C-c latexmk (or others like View) so you can change the command line
+			;; jump: the following makes viewing the pdf right at the line of the tex file
 			(add-to-list 'TeX-command-list
-						 ;; '("latexmk" "(LaTeX-save-and-compile)"
-						 '("latexmk" "latexmk -pdf %s"
+						 '("latexmk" "latexmk -pdflatex='pdflatex -file-line-error -synctex=1' -pdf %s"
 						   TeX-run-command nil t :help "Run latexmk") t)
 			(setq TeX-command-default "latexmk")
+			(push '("%(masterdir)" (lambda nil (file-truename (TeX-master-directory))))
+				  TeX-expand-list)
+			(push '("Okular" "okular --unique %o#src:%n%(masterdir)%b")
+				  TeX-view-program-list)
+			(push '(output-pdf "Okular") TeX-view-program-selection)
+			(TeX-source-correlate-mode)
+			(server-force-delete)  ;; WARNING: Kills any existing edit server
+			(setq TeX-source-correlate-method 'synctex
+				  TeX-source-correlate-start-server t)
+			;; 
 			(bind-keys :map LaTeX-mode-map
 					   ;; default C-c C-e rebound and cannot be rebound
 					   ("C-c C-x e" . LaTeX-environment)
@@ -3040,13 +3051,6 @@ window and close the *TeX help* buffer."
 ;; Or use M-x Tex-clean (Clean) and prefix(Clean All)
 ;; (setq TeX-command-force "Clean")
 (setq TeX-clean-confirm nil)
-;; Use C-c C-c to compile the tex file into pdf file automatically using LaTex,
-;; and C-c C-v to view it using okular
-;; NOTE: C-c C-a to combine C-c C-c and C-c C-v"
-(setq TeX-view-program-selection
-	  '((output-pdf "PDF Viewer")))
-(setq TeX-view-program-list
-	  '(("PDF Viewer" "okular -p %(outpage) %o")))
 ;; RefTex -- built-in
 ;; Turn on RefTeX in AUCTeX
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
