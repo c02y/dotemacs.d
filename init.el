@@ -1413,14 +1413,40 @@ Version 2015-12-08"
 (bind-key "t" 'toggle-window-split ctl-x-4-map)
 
 ;; ediff split horizontal, default is vertically
+;; NOTE that you can v/V to scroll the two windows synchronously
 (eval-after-load "ediff"
   '(progn
 	 (setq ediff-split-window-function
-		   'split-window-horizontally) ;; use | to change the style
+		   'split-window-horizontally)		;; use | to change the style
 	 (setq ediff-window-setup-function
 		   'ediff-setup-windows-plain)
 	 ;; delete these buffers (if they are not modified) after q
 	 (setq ediff-keep-variants nil)))
+;; use new frame (fullscreen) for ediff session and close the frame after exiting
+(defvar pre-ediff-window-configuration nil
+  "window configuration to use")
+(defvar new-ediff-frame-to-use nil
+  "new frame for ediff to use")
+(defun save-my-window-configuration ()
+  (interactive)
+  (setq pre-ediff-window-configuration (current-window-configuration))
+  (select-frame-set-input-focus (setq new-ediff-frame-to-use (new-frame)))
+  (toggle-frame-fullscreen))
+(add-hook 'ediff-before-setup-hook 'save-my-window-configuration)
+(defun restore-my-window-configuration ()
+  (interactive)
+  (when (framep new-ediff-frame-to-use)
+	(delete-frame new-ediff-frame-to-use)
+	(setq new-ediff-frame-to-use nil))
+  (when (window-configuration-p pre-ediff-window-configuration)
+	(set-window-configuration pre-ediff-window-configuration)))
+(add-hook 'ediff-after-quit-hook-internal 'restore-my-window-configuration)
+;; quit the ediff without asking, unsaved buffer will remain
+;; unmodified buffer will be killed
+(defun disable-y-or-n-p (orig-fun &rest args)
+  (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+    (apply orig-fun args)))
+(advice-add 'ediff-quit :around #'disable-y-or-n-p)
 
 ;; You can use C-x o 'other-window, but the following is better
 ;; move your point to another window in the specific direction
