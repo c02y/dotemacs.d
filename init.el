@@ -2578,10 +2578,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	 (set-face-attribute 'flycheck-error nil :foreground "red")
 	 (set-face-attribute 'flycheck-warning nil :foreground "yellow" :underline nil)
 	 (set-face-attribute 'flycheck-info nil :foreground "ForestGreen" :underline nil)))
+(setq flycheck-check-syntax-automatically '(save))
 ;; flycheck-pos-tip
 (with-eval-after-load 'flycheck
   (flycheck-pos-tip-mode))
-
 
 ;; magit
 ;;
