@@ -98,15 +98,15 @@
 ;; C-M-n/p Move forward/backward over a parenthetical group
 ;; C-M-u/d Move up/down in parenthesis structure
 ;; M-$ -> i -> y to insert the string into personal dictionary
-;;           the personal dictionary asides in ~/.hunspell_en_US
-;;           file has already been linked to .emacs.d/
+;;			 the personal dictionary asides in ~/.hunspell_en_US
+;;			 file has already been linked to .emacs.d/
 ;; in the comment, if you want to insert another comment line, use M-j
 ;; M-m 'back-to-indentation move point to first non-whitespace character
 ;; M-x find-library will lead you to the right .el file
 
 ;; Windows style line endings (DOS support)
 ;; C-x RET f undecided-dos RET	   --> \r\n (windows)
-;; C-x RET f undecided-unix RET	   --> \n  (unix/Linux)
+;; C-x RET f undecided-unix RET		   --> \n  (unix/Linux)
 ;; M-x tabify/untabify convert from spaces to tabs and vice verse
 ;; NOTE: call untabify/tabify with prefix argument, it will convert for the entire buffer
 
@@ -215,27 +215,23 @@
 (defun compile-again (ARG)
   "Run the same compile as the last time.
 
-First split the current source code window in a given size if
-no existed window contains *compilation* buffer.
-
 With a prefix argument or no last time, this acts like M-x compile,
 and you can reconfigure the compile args."
   (interactive "p")
-  (if (not (get-buffer-window "*compilation*"))
-	  (split-window-vertically -10))
+  ;; the following two lines create bug: split a new window every time
+  ;; (if (not (get-buffer-window "*compilation*"))
+  ;;	  (split-window-vertically -10))
   (if (and (eq ARG 1) compilation-last-buffer)
 	  (recompile)
-	(call-interactively 'compile)))
+	(call-interactively 'smart-compile)))
 (bind-key* "C-x C-m" 'compile-again)
-;; 1.
-;; (defun compilation-exit-autoclose (STATUS code msg)
-;;   "Close the compilation window if there was no error at all."
-;;   (when (and (eq STATUS 'exit) (zerop code))
-;; 	(bury-buffer)
-;; 	(delete-window (get-buffer-window (get-buffer "*compilation*" t))))
-;;   (cons msg code))
-;; (setq compilation-exit-message-function 'compilation-exit-autoclose)
-;; 2.
+;; create a new small frame to show the compilation info
+;; will be auto closed if no error
+(setq special-display-buffer-names
+	  `(("*compilation*" . ((name . "*compilation*")
+							,@default-frame-alist
+							(left . (- 1))
+							(top . 0)))))
 (setq compilation-finish-functions
 	  (lambda (buf str)
 		(if (null (string-match ".*exited abnormally.*" str))
@@ -282,15 +278,15 @@ and you can reconfigure the compile args."
 (setq c-backspace-function 'backward-delete-char)
 ;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
 ;; Do not use when using tramp, it will stuck tramp a little bit
-(global-set-key (kbd "C-S-p")
-				'(lambda ()
-				   (interactive)
-				   (if (bound-and-true-p which-function-mode)
-					   (which-function-mode -1)
-					 (which-function-mode 1))
-				   (if (bound-and-true-p projectile-global-mode)
-					   (projectile-global-mode -1)
-					 (projectile-global-mode 1))))
+(bind-keys* ("C-S-p" .
+			 (lambda ()
+			   (interactive)
+			   (if (bound-and-true-p which-function-mode)
+				   (which-function-mode -1)
+				 (which-function-mode 1))
+			   (if (bound-and-true-p projectile-global-mode)
+				   (projectile-global-mode -1)
+				 (projectile-global-mode 1)))))
 
 ;; line space between lines, default to 0
 ;; (setq line-spacing 2)
@@ -340,12 +336,12 @@ and you can reconfigure the compile args."
 ;; save file need root permission, C-x C-q to edit the root file first
 ;; Note that this C-x C-s will fail if the buffer is not a file, in this case,
 ;; use C-x C-w instead
-(global-set-key (kbd "C-x C-s")
-				'(lambda ()
-				   (interactive)
-				   (progn
-					 (if (file-writable-p buffer-file-name) (save-buffer)
-					   (write-file (concat "/sudo:root@localhost:" buffer-file-name))))))
+(bind-keys* ("C-x C-s" .
+			 (lambda ()
+			   (interactive)
+			   (progn
+				 (if (file-writable-p buffer-file-name) (save-buffer)
+				   (write-file (concat "/sudo:root@localhost:" buffer-file-name)))))))
 
 ;; displays the argument list for current func, work for all languages
 (eldoc-mode)
@@ -420,8 +416,8 @@ and you can reconfigure the compile args."
   ;; the combination colors of highlighted line and comments
   ;; (custom-set-faces
   ;;  '(font-lock-comment-face
-  ;; 	 ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
-  ;; 	 ))
+  ;;	 ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
+  ;;	 ))
   ;; (set-face-background 'highlight "gray30")
   )
 ;;
@@ -436,7 +432,7 @@ and you can reconfigure the compile args."
 				(horizontal-scroll-bars . nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;        all about mode line
+;;;;;;		  all about mode line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; do no just use ("%2b"), or stick-buffer function won't work
@@ -519,20 +515,20 @@ and you can reconfigure the compile args."
 (bind-key* "s-<f12>" 'flash-active-buffer)
 (make-face 'flash-active-buffer-face)
 (set-face-attribute 'flash-active-buffer-face nil
-                    :background "blue" :foreground nil)
+					:background "blue" :foreground nil)
 (defun flash-active-buffer ()
   (interactive)
   (run-at-time "150 millisec" nil
-               (lambda (remap-cookie)
-                 (face-remap-remove-relative remap-cookie))
-               (face-remap-add-relative 'default 'flash-active-buffer-face)))
+			   (lambda (remap-cookie)
+				 (face-remap-remove-relative remap-cookie))
+			   (face-remap-add-relative 'default 'flash-active-buffer-face)))
 ;; another way to highlight the active window
 (defun highlight-active-window ()
   "Highlight active window with a different background color."
   (walk-windows (lambda (w)
-                  (unless (eq w (selected-window))
-                    (with-current-buffer (window-buffer w)
-                      (buffer-face-set '(:background "#111"))))))
+				  (unless (eq w (selected-window))
+					(with-current-buffer (window-buffer w)
+					  (buffer-face-set '(:background "#111"))))))
   (buffer-face-set 'default))
 (add-hook 'buffer-list-update-hook 'highlight-active-window)
 
@@ -790,19 +786,19 @@ With negative N, comment out original line and use the absolute value."
   (interactive "*p")
   (let ((use-region (use-region-p)))
 	(save-excursion
-	  (let ((text (if use-region        ;Get region if active, otherwise line
+	  (let ((text (if use-region		;Get region if active, otherwise line
 					  (buffer-substring (region-beginning) (region-end))
 					(prog1 (thing-at-point 'line)
 					  (end-of-line)
 					  (if (< 0 (forward-line 1)) ;Go to beginning of next line,
 										;or make a new one
 						  (newline))))))
-		(dotimes (i (abs (or n 1)))		;Insert N times, or once if not
+		(dotimes (i (abs (or n 1)))			;Insert N times, or once if not
 										;specified
 		  (insert text))))
 	(if use-region nil		   ;Only if we're working with a line (not a region)
 	  (let ((pos (- (point) (line-beginning-position)))) ;Save column
-		(if (> 0 n) 					;Comment out original with negative arg
+		(if (> 0 n)						;Comment out original with negative arg
 			(comment-region (line-beginning-position) (line-end-position)))
 		(forward-line 1)
 		(forward-char pos)))))
@@ -818,11 +814,11 @@ With negative N, comment out original line and use the absolute value."
   "Copy the path of current buffer file to the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
-                      default-directory
-                    (buffer-file-name))))
-    (when filename
-      (kill-new filename)
-      (message "'%s' path copied!" filename))))
+					  default-directory
+					(buffer-file-name))))
+	(when filename
+	  (kill-new filename)
+	  (message "'%s' path copied!" filename))))
 
 (defun insert-date-or-time (ARG)
   "Without prefix, print `2016-08-11'
@@ -866,7 +862,7 @@ If current line is a single space, remove that space.
 --URL http://ergoemacs.org/emacs/emacs_shrink_whitespace.html version 2015-11-04"
   (interactive)
   (let ((pos (point))
-		line-has-char-p			   ; current line contains non-white space chars
+		line-has-char-p				   ; current line contains non-white space chars
 		has-space-tab-neighbor-p
 		whitespace-begin whitespace-end
 		space-or-tab-begin space-or-tab-end)
@@ -952,31 +948,31 @@ Version 2016-07-13"
   (interactive)
   ;; This command symbol has a property “'compact-p”, the possible values are t and nil. This property is used to easily determine whether to compact or uncompact, when this command is called again
   (let ( (-compact-p
-          (if (eq last-command this-command)
-              (get this-command 'compact-p)
-            (> (- (line-end-position) (line-beginning-position)) fill-column)))
-         (deactivate-mark nil)
-         (-blanks-regex "\n[ \t]*\n")
-         -p1 -p2
-         )
-    (if (use-region-p)
-        (progn (setq -p1 (region-beginning))
-               (setq -p2 (region-end)))
-      (save-excursion
-        (if (re-search-backward -blanks-regex nil "NOERROR")
-            (progn (re-search-forward -blanks-regex)
-                   (setq -p1 (point)))
-          (setq -p1 (point)))
-        (if (re-search-forward -blanks-regex nil "NOERROR")
-            (progn (re-search-backward -blanks-regex)
-                   (setq -p2 (point)))
-          (setq -p2 (point)))))
-    (if -compact-p
-        (fill-region -p1 -p2)
-      (let ((fill-column most-positive-fixnum ))
-        (fill-region -p1 -p2)))
-    (put this-command 'compact-p (not -compact-p))))
-(global-set-key (kbd "M-q") 'xah-fill-or-unfill)
+		  (if (eq last-command this-command)
+			  (get this-command 'compact-p)
+			(> (- (line-end-position) (line-beginning-position)) fill-column)))
+		 (deactivate-mark nil)
+		 (-blanks-regex "\n[ \t]*\n")
+		 -p1 -p2
+		 )
+	(if (use-region-p)
+		(progn (setq -p1 (region-beginning))
+			   (setq -p2 (region-end)))
+	  (save-excursion
+		(if (re-search-backward -blanks-regex nil "NOERROR")
+			(progn (re-search-forward -blanks-regex)
+				   (setq -p1 (point)))
+		  (setq -p1 (point)))
+		(if (re-search-forward -blanks-regex nil "NOERROR")
+			(progn (re-search-backward -blanks-regex)
+				   (setq -p2 (point)))
+		  (setq -p2 (point)))))
+	(if -compact-p
+		(fill-region -p1 -p2)
+	  (let ((fill-column most-positive-fixnum ))
+		(fill-region -p1 -p2)))
+	(put this-command 'compact-p (not -compact-p))))
+(bind-keys* ("M-q" . xah-fill-or-unfill))
 
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (defun cleanup-buffer ()
@@ -985,7 +981,7 @@ Version 2016-07-13"
 2. delete-trailing-whitespace
 "
   (interactive)
-  (origami-open-all-nodes) ;; avoid data loss
+  ;; (origami-open-all-nodes (current-buffer)) ;; avoid data loss
   (delete-trailing-whitespace))
 (bind-key* "C-c d" 'cleanup-buffer)
 (defvar all-make-modes
@@ -1269,7 +1265,11 @@ In other non-comment situations, try C-M-j to split."
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; http://ergoemacs.org/emacs/emacs_shell_vs_term_vs_ansi-term_vs_eshell.html
-(bind-key* "C-x s" 'shell)
+(bind-keys ("C-x s" .
+			(lambda ()
+			  (interactive)
+			  (split-window-below)
+			  (shell))))
 ;; shell will prompt if you try to kill the buffer, but eshell will not.  eshell
 ;; will not use the .bashrc/.fishrc, but shell will makes shell command always
 ;; start a new shell, use C-u M-x eshell to create a new eshell,
@@ -1341,13 +1341,13 @@ URL `http://ergoemacs.org/emacs/elisp_copy-paste_register_1.html'
 Version 2015-12-08"
   (interactive)
   (let (-p1 -p2)
-    (if (region-active-p)
-        (progn (setq -p1 (region-beginning))
-               (setq -p2 (region-end)))
-      (progn (setq -p1 (line-beginning-position))
-             (setq -p2 (line-end-position))))
-    (copy-to-register ?1 -p1 -p2)
-    (message "copied to register 1: 「%s」." (buffer-substring-no-properties -p1 -p2))))
+	(if (region-active-p)
+		(progn (setq -p1 (region-beginning))
+			   (setq -p2 (region-end)))
+	  (progn (setq -p1 (line-beginning-position))
+			 (setq -p2 (line-end-position))))
+	(copy-to-register ?1 -p1 -p2)
+	(message "copied to register 1: 「%s」." (buffer-substring-no-properties -p1 -p2))))
 (defun register-1-paste ()
   "Paste text from register 1.
 See also: `register-1-copy', `insert-register'.
@@ -1355,7 +1355,7 @@ URL `http://ergoemacs.org/emacs/elisp_copy-paste_register_1.html'
 Version 2015-12-08"
   (interactive)
   (when (use-region-p)
-    (delete-region (region-beginning) (region-end)))
+	(delete-region (region-beginning) (region-end)))
   (insert-register ?1 t))
 (bind-keys*
  ("C-x r !" . register-1-copy)
@@ -1445,7 +1445,7 @@ Version 2015-12-08"
 ;; unmodified buffer will be killed
 (defun disable-y-or-n-p (orig-fun &rest args)
   (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
-    (apply orig-fun args)))
+	(apply orig-fun args)))
 (advice-add 'ediff-quit :around #'disable-y-or-n-p)
 
 ;; You can use C-x o 'other-window, but the following is better
@@ -1500,9 +1500,9 @@ Emacs session."
 
 ;; Saveplace & desktop
 (if (version< emacs-version "25.0")
-    (progn
-      (require 'saveplace)
-      (setq-default save-place t))
+	(progn
+	  (require 'saveplace)
+	  (setq-default save-place t))
   (save-place-mode 1))
 ;;
 (setq desktop-save 'ask)
@@ -1859,7 +1859,7 @@ Do this after `q` in Debugger buffer."
 	  (setq he-expand-list (cdr he-expand-list)) t)))
 ;; the built-in hippie-exp config
 (setq hippie-expand-try-functions-list
-      '(
+	  '(
 		;; from yasnippet
 		yas-hippie-try-expand
 		;;
@@ -1983,7 +1983,7 @@ Do this after `q` in Debugger buffer."
 ;; (setq company-auto-complete t)
 ;; use F1 or C-h in the drop list to show the doc, Use C-s/C-M-s to search the candidates,
 ;; M-NUM to select specific one, C-w to view its source file
-(global-set-key (kbd "C-c <tab>") 'company-files)
+(bind-keys* ("C-c <tab>" . company-files))
 ;; this will show a lot of garbage, use it only necessary
 ;; (add-to-list 'company-backends 'company-ispell)
 (defalias 'ci 'company-ispell)
@@ -2002,11 +2002,11 @@ Do this after `q` in Debugger buffer."
 					  company-gtags))
 				   (car company-backends))))))
 (add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (set (make-local-variable 'company-backends)
-                 (list
-                  (cons 'company-elisp
-                        (car company-backends))))))
+		  (lambda ()
+			(set (make-local-variable 'company-backends)
+				 (list
+				  (cons 'company-elisp
+						(car company-backends))))))
 (add-hook 'python-mode-hook
 		  (lambda ()
 			(set (make-local-variable 'company-backends)
@@ -2016,31 +2016,31 @@ Do this after `q` in Debugger buffer."
 				   (car company-backends))))))
 ;; grouped default back-ends for all major mode
 ;; (with-eval-after-load 'company
-;;   (add-hook 'company-mode-hook
-;; 			(lambda ()
-;; 			  (add-to-list 'company-backends
-;; 						   '(
-;; 							 company-dabbrev-code
-;; 							 company-semantic
-;; 							 company-capf
-;; 							 ;; company-dabbrev
-;; 							 company-keywords
-;; 							 company-clang
-;; 							 company-elisp
-;; 							 company-files
-;; 							 company-gtags
-;; 							 company-etags
-;; 							 company-c-headers
-;; 							 company-yasnippet
-;; 							 company-bbdb
-;; 							 ;; company-nxml
-;; 							 ;; company-css
-;; 							 ;; company-eclim
-;; 							 ;; company-xcode
-;; 							 ;; company-ropemacs
-;; 							 ;; company-cmake
-;; 							 ;; company-oddmuse
-;; 							 )))))
+;;	 (add-hook 'company-mode-hook
+;;				(lambda ()
+;;				  (add-to-list 'company-backends
+;;							   '(
+;;								 company-dabbrev-code
+;;								 company-semantic
+;;								 company-capf
+;;								 ;; company-dabbrev
+;;								 company-keywords
+;;								 company-clang
+;;								 company-elisp
+;;								 company-files
+;;								 company-gtags
+;;								 company-etags
+;;								 company-c-headers
+;;								 company-yasnippet
+;;								 company-bbdb
+;;								 ;; company-nxml
+;;								 ;; company-css
+;;								 ;; company-eclim
+;;								 ;; company-xcode
+;;								 ;; company-ropemacs
+;;								 ;; company-cmake
+;;								 ;; company-oddmuse
+;;								 )))))
 
 ;; undo-tree
 ;; C-x u -> undo-tree-visualize
@@ -2181,11 +2181,11 @@ Do this after `q` in Debugger buffer."
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
 ;; (setq org-todo-keywords
-;; 	  '((sequence "TODO(t)" "READ(r)" "|" "DONE(d)")
-;; 		;; multiple sets for one file
-;; 		;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
-;; 		;; (sequence "|" "CANCELED(c)")
-;; 		))
+;;		  '((sequence "TODO(t)" "READ(r)" "|" "DONE(d)")
+;;			;; multiple sets for one file
+;;			;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
+;;			;; (sequence "|" "CANCELED(c)")
+;;			))
 ;; Keep track of when a certain TODO item was finished.
 ;; (setq org-log-done 'time)
 ;; record a note along with the timestamp
@@ -2194,7 +2194,7 @@ Do this after `q` in Debugger buffer."
 ;; ;; when all children are done, you can use the following setup:
 ;; (defun org-summary-todo (n-done n-not-done)
 ;;	 "Switch entry to DONE when all subentries are done, to TODO otherwise."
-;;	 (let (org-log-done org-log-states)	  ; turn off logging
+;;	 (let (org-log-done org-log-states)		  ; turn off logging
 ;;	   (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 ;; (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 ;; tags, shortcut
@@ -2340,13 +2340,13 @@ background of code to whatever theme I'm using's background"
 ;; helm
 ;; https://github.com/emacs-helm/helm/wiki
 ;; Find Files or url: ~/
-;;  That show all ~/ directory.
+;;	That show all ~/ directory.
 ;; Find Files or url: ~/des
-;;  will show all what begin with "des"
+;;	will show all what begin with "des"
 ;; Find Files or url: ~/ esk
-;;  (Notice the space after ~/) will show all what contain esk.
+;;	(Notice the space after ~/) will show all what contain esk.
 ;; Find Files or url: ~/ el$
-;;  Will show all what finish with el
+;;	Will show all what finish with el
 ;; use C-{/} to narrow/enlarge the candidates buffer
 ;; M-<prior>/<next> 'helm-scroll-other-window/-down
 ;; 'helm-info-gnu/emacs/...
@@ -2432,7 +2432,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	 (helm-keyboard-quit))))
 (bind-key "DEL" 'helm-backspace helm-map)
 (setq
- ;; helm-quick-update t  ; do not display invisible candidates
+ ;; helm-quick-update t	 ; do not display invisible candidates
  ;; helm-split-window-default-side 'other	; open helm buffer in another window
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
  helm-buffers-favorite-modes
@@ -2462,7 +2462,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
 (add-hook 'after-init-hook 'helm-descbinds-mode)
-;; Resize candidates window  according to the number of candidates
+;; Resize candidates window	 according to the number of candidates
 (helm-autoresize-mode 1)
 ;; (setq helm-autoresize-min-height 10)
 ;; (setq helm-autoresize-max-height 30)
@@ -2509,23 +2509,23 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (projectile-global-mode)
 ;; (helm-projectile-on)
 ;; (eval-after-load "projectile"
-;;   '(progn
-;; 	 (setq magit-repo-dirs
-;; 		   (mapcar
-;; 			(lambda (dir)
-;; 			  (substring dir 0 -1))
-;; 			(remove-if-not
-;; 			 (lambda (project)
-;; 			   (file-directory-p (concat project "/.git/")))
-;; 			 (projectile-relevant-known-projects))))
-;; 	 ))
+;;	 '(progn
+;;		 (setq magit-repo-dirs
+;;			   (mapcar
+;;				(lambda (dir)
+;;				  (substring dir 0 -1))
+;;				(remove-if-not
+;;				 (lambda (project)
+;;				   (file-directory-p (concat project "/.git/")))
+;;				 (projectile-relevant-known-projects))))
+;;		 ))
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
 
 ;; for large projects
 ;;(setq helm-projectile-sources-list
-;;    '(helm-source-projectile-projects
-;;      helm-source-projectile-files-list))
+;;	  '(helm-source-projectile-projects
+;;		helm-source-projectile-files-list))
 ;; cache make it quick for large project, but cache will make the `C-c c p` only
 ;; work for cached files, use `C-c p i` or prefix `C-u` to make the cache invalidated
 (setq projectile-enable-caching t)
@@ -2533,7 +2533,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; projectile can create a file or dir if not found, but helm-projectile cannot
 (setq projectile-switch-project-action 'helm-projectile-find-file)
 ;;(setq projectile-switch-project-action
-;;    'helm-projectile)
+;;	  'helm-projectile)
 ;; modify the indicator in mode line
 (setq projectile-mode-line
 	  '(:eval (format "" (projectile-project-name))))
@@ -2588,8 +2588,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; git-commit-mode required by magit
 ;; git-rebase-mode required by magit
 ;; (eval-after-load 'info
-;;   '(progn (info-initialize)
-;;            (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
+;;	 '(progn (info-initialize)
+;;			  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
 (autoload 'magit "magit: git for Emacs" t)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
@@ -2688,7 +2688,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;
 ;; rainbow-delimiters
 ;; rainbow nested parens, brackets, braces a different color at each depth
-;;  like highlight-parentheses-mode but static
+;;	like highlight-parentheses-mode but static
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
 (add-hook 'racket-repl-mode-hook #'rainbow-delimiters-mode)
 (add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
@@ -2699,10 +2699,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
 ;; ;; dark color
 ;; (setq rainbow-identifiers-choose-face-function
-;;    'rainbow-identifiers-cie-l*a*b*-choose-face
-;;    rainbow-identifiers-cie-l*a*b*-lightness 70
-;;    rainbow-identifiers-cie-l*a*b*-saturation 50
-;;    rainbow-identifiers-cie-l*a*b*-color-count 65536)
+;;	  'rainbow-identifiers-cie-l*a*b*-choose-face
+;;	  rainbow-identifiers-cie-l*a*b*-lightness 70
+;;	  rainbow-identifiers-cie-l*a*b*-saturation 50
+;;	  rainbow-identifiers-cie-l*a*b*-color-count 65536)
 ;;
 ;; color-identifiers-mode -- better than rainbow-identifiers
 (add-hook 'prog-mode-hook 'color-identifiers-mode)
@@ -2778,17 +2778,17 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'after-init-hook 'whole-line-or-region-mode)
 ;; ;; these basically do the C/M-w thing
 ;; (defadvice kill-region (before slick-cut activate compile)
-;;   "When called interactively with no active region, kill a single line instead."
-;;   (interactive
-;;    (if mark-active (list (region-beginning) (region-end))
-;;      (list (line-beginning-position)
-;;            (line-beginning-position 2)))))
+;;	 "When called interactively with no active region, kill a single line instead."
+;;	 (interactive
+;;	  (if mark-active (list (region-beginning) (region-end))
+;;		(list (line-beginning-position)
+;;			  (line-beginning-position 2)))))
 ;; (defadvice kill-ring-save (before slick-cut activate compile)
-;;   "When called interactively with no active region, copy a single line instead."
-;;   (interactive
-;;    (if mark-active (list (region-beginning) (region-end))
-;;      (list (line-beginning-position)
-;;            (line-beginning-position 2)))))
+;;	 "When called interactively with no active region, copy a single line instead."
+;;	 (interactive
+;;	  (if mark-active (list (region-beginning) (region-end))
+;;		(list (line-beginning-position)
+;;			  (line-beginning-position 2)))))
 ;; (global-set-key (kbd "M-w") 'kill-ring-save)
 
 ;; which-key to replace guide-key
@@ -2806,8 +2806,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	  which-key-show-remaining-keys t
 	  which-key-max-description-length 35)
 (setq which-key-highlighted-command-list
-	  '("helm\\|toggle\\|projectile\\|describe"		;; default link
-		("\\(^cscope\\)\\|\\(^ggtags\\)" . warning)		; orange
+	  '("helm\\|toggle\\|projectile\\|describe"			;; default link
+		("\\(^cscope\\)\\|\\(^ggtags\\)" . warning)			; orange
 		("register" . success)								; green
 		("rectangle" . error)								; red
 		("help\\|emacs\\|bookmarks" . highlight)			; gray and bg
@@ -2887,12 +2887,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (sp-pair "(" ")" :wrap "C-(")
 ;; ;; 1. use this one or 2, only can be enabled
 ;; (defun insert-c-block-parentheses (id action context)
-;;   (when (eq action 'insert)
-;;     (newline)
-;;     (newline)
-;;     (indent-according-to-mode)
-;;     (previous-line)
-;;     (indent-according-to-mode)))
+;;	 (when (eq action 'insert)
+;;	   (newline)
+;;	   (newline)
+;;	   (indent-according-to-mode)
+;;	   (previous-line)
+;;	   (indent-according-to-mode)))
 ;; (sp-local-pair '(c-mode c++-mode java-mode) "{" nil :post-handlers '(:add insert-c-block-parentheses))
 ;; 2. use this one to insert {} and then M-return to insert the effect of 1
 (sp-local-pair '(c-mode c++-mode java-mode) "{" nil :post-handlers '((insert-c-block-parentheses-without-indent "M-RET")))
@@ -2953,7 +2953,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (require 'tex-buf)
 ;; (require 'auctex-latexmk)
 ;; (auctex-latexmk-setup)
-;; 
+;;
 ;; remove fdb_latexmk file will solve the problem
 ;; of the reference number instead of question mark (?)
 (setq LaTeX-clean-intermediate-suffixes
@@ -3033,7 +3033,7 @@ window and close the *TeX help* buffer."
 			(server-force-delete)  ;; WARNING: Kills any existing edit server
 			(setq TeX-source-correlate-method 'synctex
 				  TeX-source-correlate-start-server t)
-			;; 
+			;;
 			(bind-keys :map LaTeX-mode-map
 					   ;; default C-c C-e rebound and cannot be rebound
 					   ("C-c C-x e" . LaTeX-environment)
@@ -3067,17 +3067,17 @@ window and close the *TeX help* buffer."
  ;; Strip known extensions from image file name
  LaTeX-includegraphics-strip-extension-flag nil)
 ;; (setq LaTeX-section-hook
-;; 	  '(LaTeX-section-heading
-;; 		LaTeX-section-title
-;; 		LaTeX-section-toc
-;; 		LaTeX-section-section
-;; 		LaTeX-section-label))
+;;		  '(LaTeX-section-heading
+;;			LaTeX-section-title
+;;			LaTeX-section-toc
+;;			LaTeX-section-section
+;;			LaTeX-section-label))
 
 ;; outline, C-c @ prefix
 (add-hook 'outline-minor-mode-hook
-          (lambda ()
-            (require 'outline-magic)
-            (bind-keys :map outline-minor-mode-map ("<C-tab>" . outline-cycle))))
+		  (lambda ()
+			(require 'outline-magic)
+			(bind-keys :map outline-minor-mode-map ("<C-tab>" . outline-cycle))))
 (add-hook 'LaTeX-mode-hook 'outline-minor-mode)
 
 ;; esup -- analyze the startup time of ~/.emacs
