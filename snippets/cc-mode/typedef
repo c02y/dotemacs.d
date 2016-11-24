@@ -2,4 +2,4 @@
 # name: typedef
 # key: td
 # --
-typedef ${1:type} ${2:alias}$0;
+typedef ${1:type} ${2:alias};
