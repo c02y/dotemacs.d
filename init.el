@@ -250,6 +250,13 @@ and you can reconfigure the compile args."
 (setq-default fill-column 80)
 (add-hook 'prog-mode-hook 'highlight-beyond-fill-column)
 
+;; highlight links in any mode
+(define-global-minor-mode global-goto-address-mode
+  goto-address-mode
+  (lambda ()
+	(goto-address-mode 1)))
+(global-goto-address-mode t)
+
 ;; C-x </> 'scroll-left/right if line is too long
 (put 'scroll-left 'disabled nil)
 (setq comment-style 'extra-line)
@@ -2917,16 +2924,26 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; electric-operator
 ;; check electric-operator--mode-rules-table
 ;; another system tool is GNU indent
-(require 'electric-operator)
-(add-hook 'c-mode-common-hook #'electric-operator-mode)
+(add-hook 'prog-mode-hook #'electric-operator-mode)
+(add-hook 'org-mode-hook #'electric-operator-mode)
 (electric-operator-add-rules-for-mode
  'c-mode
- (cons "<" " < ")
- (cons ">" " > "))
+ (cons "<>" "<>")
+ (cons ";" "; ")
+ (cons "++" "++")
+ )
 (electric-operator-add-rules-for-mode
  'c++-mode
- (cons "<" " < ")
- (cons ">" " > "))
+ (cons "<>" "<>")
+ (cons ";" "; ")
+ (cons "++" "++")
+ )
+(electric-operator-add-rules-for-mode
+ 'org-mode
+ (cons "," ", ")
+ (cons ";" "; ")
+ (cons "." ". ")
+ )
 
 ;; multifiles
 (require 'multifiles)
