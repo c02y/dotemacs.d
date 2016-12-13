@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# name: FILE *fp = fopen(..., ...);
+# name : FILE *fp = fopen(..., ...);
 # key: fopen
 # --
-FILE *${fp} = fopen(${"file"}, "${r}");
+FILE *${fp} = fopen(${"file"}, "${$$(yas/choose-value '("r" "r+" "w" "w+" "a" "a+"))}");
