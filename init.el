@@ -493,6 +493,41 @@ and you can reconfigure the compile args."
 (set-face-attribute 'mode-line-inactive nil :background nil)
 ;; mode-line color
 
+;; make the code inside #if 0/#else/#endif the same color as comment
+(defun c-mode-font-lock-if0 (limit)
+  (save-restriction
+	(widen)
+	(save-excursion
+	  (goto-char (point-min))
+	  (let ((depth 0) str start start-depth)
+		;; Search #if/#else/#endif using regular expression.
+		(while (re-search-forward "^\\s-*#\\s-*\\(if\\|else\\|endif\\)" limit 'move)
+		  (setq str (match-string 1))
+		  ;; Handle #if.
+		  (if (string= str "if")
+			  (progn
+				(setq depth (1+ depth))
+				;; Handle neariest 0.
+				(when (and (null start) (looking-at "\\s-+0"))
+				  (setq start (match-end 0)
+						start-depth depth)))
+			;; Handle #else, here we can decorate #if 0->#else block using 'font-lock-comment-face'.
+			(when (and start (= depth start-depth))
+			  (c-put-font-lock-face start (match-beginning 0) 'font-lock-comment-face)
+			  (setq start nil))
+			;; Handle #endif, return to upper block if possible.
+			(when (string= str "endif")
+			  (setq depth (1- depth)))))
+		;; Corner case when there are only #if 0 (May be you are coding now:))
+		(when (and start (> depth 0))
+		  (c-put-font-lock-face start (point) 'font-lock-comment-face)))))
+  nil)
+(defun my-c-mode-common-hook ()
+  (font-lock-add-keywords
+   nil
+   '((c-mode-font-lock-if0 (0 font-lock-comment-face prepend))) 'add-to-end))
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
 ;; whole structure of mode line
 (setq-default mode-line-format
 			  '(
@@ -817,8 +852,15 @@ With negative N, comment out original line and use the absolute value."
   (interactive)
   (set-buffer-file-coding-system 'unix 't))
 
-(defun cp ()
-  "Copy the path of current buffer file to the clipboard."
+(defun copy-name ()
+  "Copy the name (NOT full path) of current buffer file to the clipboard."
+  (interactive)
+  (let* ((filename (file-name-nondirectory buffer-file-name)))
+	(when filename
+	  (kill-new filename)
+	  (message "'%s' name copied!" filename))))
+(defun copy-path ()
+  "Copy the full path of current buffer file to the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
 					  default-directory
@@ -901,43 +943,48 @@ If current line is a single space, remove that space.
 			(when (equal (char-after) 10) (delete-char 1))))
 	  (progn (delete-blank-lines)))))
 (bind-key* "C-<backspace>" 'shrink-whitespaces)
-;;;
+;; Join the current line with the line beneath it.
+;; M-^ is the revert
+(bind-keys* ("C-M-q" .
+			 (lambda ()
+			   (interactive)
+			   (delete-indentation 1))))
+
 ;; delete not kill it into kill-ring
-;; http://ergoemacs.org/emacs/emacs_kill-ring.html
-(defun delete-word (ARG)
-  "Delete(not kill) characters forward until encountering the end of the syntax-subword.
-With argument, do this many times."
+;; _based on_ http://ergoemacs.org/emacs/emacs_kill-ring.html
+(defun delete-word (arg)
+  "Delete characters forward until encountering the end of a word.
+With argument, do this that many times.
+This command does not push text to `kill-ring'."
   (interactive "p")
-  ;; eolpp is about the end-of-line, because if you are at the eol and doing
-  ;; M-Backspace, if will combine the following line with the current
-  (let (eolpp) (setq eolpp 1))
-  (setq eolpp (if (eolp) 1 nil))
-  (shrink-whitespaces)
-  (delete-region (point) (progn (syntax-subword-forward-syntax ARG) (point)))
-  (if eolpp (if (not (eolp)) (open-line 1))))
-(defun delete-word-backward (ARG)
+  (delete-region
+   (point)
+   (progn
+	 (forward-word arg)
+	 (point))))
+(defun delete-word-backward (arg)
   "Delete(not kill) characters backward until encountering the beginning of the syntax-subword.
 With argument, do this that many times."
   (interactive "p")
-  (delete-word (- ARG)))
-(defun delete-line (ARG)
+  (delete-word (- arg)))
+(defun delete-line (arg)
   "Delete text from current position to end of line char.
 With argument, forward ARG lines."
   (interactive "p")
   (let (x1 x2)
 	(setq x1 (point))
-	(if (eolp) (forward-line ARG) (forward-line (- ARG 1)))
+	(if (eolp) (forward-line arg) (forward-line (- arg 1)))
 	(move-end-of-line 1)
 	(setq x2 (point))
-	(delete-region x1 x2))
-  (when (bolp) (delete-char 1)))
-(defun delete-line-backward (ARG)
+	(delete-region x1 x2)
+	(when (bolp) (delete-char 1))))
+(defun delete-line-backward (arg)
   "Delete text between the beginning of the line to the cursor position.
 With argument, backward ARG lines."
   (interactive "p")
   (let (x1 x2)
 	(setq x1 (point))
-	(if (bolp) (forward-line (- ARG)) (forward-line (- 1 ARG)))
+	(if (bolp) (forward-line (- arg)) (forward-line (- 1 arg)))
 	(move-beginning-of-line 1)
 	(setq x2 (point))
 	(delete-region x1 x2)))
@@ -953,7 +1000,8 @@ When there is a text selection, act on the the selection, else, act on a text bl
 URL `http://ergoemacs.org/emacs/modernization_fill-paragraph.html'
 Version 2016-07-13"
   (interactive)
-  ;; This command symbol has a property “'compact-p”, the possible values are t and nil. This property is used to easily determine whether to compact or uncompact, when this command is called again
+  ;; This command symbol has a property “'compact-p”, the possible values are t and nil.
+  ;; This property is used to easily determine whether to compact or uncompact, when this command is called again
   (let ( (-compact-p
 		  (if (eq last-command this-command)
 			  (get this-command 'compact-p)
@@ -1008,6 +1056,21 @@ Emacs by default won't treat the TAB as indent"
 		  (lambda ()
 			(cleanup-buffer)
 			(indent-buffer-safe)))
+;; use prefix+M-x un/tabify for the entire buffer without clean-and-indent
+(defun tabify-buffer ()
+  "Automatically select the whole buffer and tabify it, and then indent-buffer-safe"
+  (interactive)
+  (point-to-register 'o)
+  (tabify (point-min) (point-max))
+  (indent-buffer-safe)
+  (jump-to-register 'o))
+(defun untabify-buffer ()
+  "Automatically select the whole buffer and untabify it, and then indent-buffer-safe"
+  (interactive)
+  (point-to-register 'o)
+  (untabify (point-min) (point-max))
+  (indent-buffer-safe)
+  (jump-to-register 'o))
 
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
@@ -1093,7 +1156,8 @@ Emacs by default won't treat the TAB as indent"
  ("C-c b" . ibuffer))
 ;; don't let the cursor go into minibuffer prompt, donnot know the actual effect
 ;; http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
-(setq minibuffer-prompt-properties (quote (read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)))
+(setq minibuffer-prompt-properties
+	  (quote (read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)))
 (setq ibuffer-use-other-window t)
 ;; improve the profermance of the minibuffer
 (setq echo-keystrokes 0.001)
@@ -1209,7 +1273,8 @@ searches all buffers."
 (setq require-final-newline nil)
 
 (defun in-comment-p ()
-  "Testy if cursor/point in a commented line? lispy--in-comment-p is not working in org-mode, so combine lispy--in-comment-p with org-at-comment-p"
+  "Testy if cursor/point in a commented line? lispy--in-comment-p is not working in org-mode,
+so combine lispy--in-comment-p with org-at-comment-p"
   (save-excursion
 	(if (derived-mode-p 'org-mode)
 		(save-match-data (beginning-of-line) (looking-at "^[ \t]*#"))
@@ -1288,6 +1353,8 @@ In other non-comment situations, try C-M-j to split."
 ;; make shell in emacs load .bashrc/.fishrc
 ;; (setq shell-command-switch "-lc")
 ;; (ad-activate 'shell)
+;; always start a shell in a new window
+(setq display-buffer-alist '(("\\`\\*e?shell" display-buffer-pop-up-window)))
 
 ;; copy/paste between system/Emacs
 ;; 1. after copy Ctrl+c in Linux X11, you can C-y in emacs
@@ -1575,7 +1642,7 @@ Emacs session."
 (setq-default indent-tabs-mode t)
 (setq-default tab-always-indent 'complete)
 ;; sometimes tab-width (4) will make the char's position different from turning on whitespace-mode
-;; (setq-default tab-width 4)
+(setq-default tab-width 4)
 ;; for C++
 (setq c-basic-offset 4)
 ;; (setq indent-line-function 'insert-tab)
@@ -2781,22 +2848,56 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bind-key* "M-;" 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
-;; whole-line-or-region
-(add-hook 'after-init-hook 'whole-line-or-region-mode)
-;; ;; these basically do the C/M-w thing
-;; (defadvice kill-region (before slick-cut activate compile)
-;;	 "When called interactively with no active region, kill a single line instead."
-;;	 (interactive
-;;	  (if mark-active (list (region-beginning) (region-end))
-;;		(list (line-beginning-position)
-;;			  (line-beginning-position 2)))))
-;; (defadvice kill-ring-save (before slick-cut activate compile)
-;;	 "When called interactively with no active region, copy a single line instead."
-;;	 (interactive
-;;	  (if mark-active (list (region-beginning) (region-end))
-;;		(list (line-beginning-position)
-;;			  (line-beginning-position 2)))))
-;; (global-set-key (kbd "M-w") 'kill-ring-save)
+(defun cut-line-or-region ()
+  "Cut current line, or text selection.
+When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
+
+URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
+Version 2015-06-10"
+  (interactive)
+  (if current-prefix-arg
+	  (progn ; not using kill-region because we don't want to include previous kill
+		(kill-new (buffer-string))
+		(delete-region (point-min) (point-max)))
+	(progn (if (use-region-p)
+			   (kill-region (region-beginning) (region-end) t)
+			 (kill-region (line-beginning-position) (line-end-position)))))
+  (delete-char 1))
+(defun copy-line-or-region ()
+  "Copy current line, or text selection.
+When called repeatedly, append copy subsequent lines.
+When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
+
+URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
+Version 2016-06-18"
+  (interactive)
+  (let (-p1 -p2)
+	(if current-prefix-arg
+		(setq -p1 (point-min) -p2 (point-max))
+	  (if (use-region-p)
+		  (setq -p1 (region-beginning) -p2 (region-end))
+		(setq -p1 (line-beginning-position) -p2 (line-end-position))))
+	(if (eq last-command this-command)
+		(progn
+		  (progn					   ; hack. exit if there's no more next line
+			(end-of-line)
+			(forward-char)
+			(backward-char))
+		  ;; (push-mark (point) "NOMSG" "ACTIVATE")
+		  (kill-append "\n" nil)
+		  (kill-append (buffer-substring-no-properties (line-beginning-position) (line-end-position)) nil)
+		  (message "Line copy appended"))
+	  (progn
+		(kill-ring-save -p1 -p2)
+		(if current-prefix-arg
+			(message "Buffer text copied")
+		  (message "Text copied"))))
+	;; (end-of-line)
+	;; (forward-char)
+	))
+(bind-keys*
+ ("C-w" . cut-line-or-region)
+ ("M-w" . copy-line-or-region))
 
 ;; which-key to replace guide-key
 (which-key-mode)
@@ -2839,7 +2940,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 	(delete-line 1)))
 
 ;; minibuffer
-(dolist (mode '(emacs-lisp-mode-hook ielm-mode-hook eval-expression-minibuffer-setup-hook))
+(dolist (mode '(emacs-lisp-mode-hook ielm-mode-hook))
   (add-hook mode
 			'(lambda ()
 			   (eldoc-mode)
@@ -2909,10 +3010,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
   (indent-according-to-mode)
   (forward-line -1)
   (indent-according-to-mode))
-(setq sp-override-key-bindings
-	  '(
-		("M-<backspace>" . delete-word-backward)))
-(sp--update-override-key-bindings)
+(eval-after-load "smartparens"
+  '(progn
+	 (bind-keys :map smartparens-mode-map
+				("M-<backspace>" . delete-word-backward)
+				("C-M-e" . nil)
+				("C-M-a" . nil))))
 
 ;; deft
 (setq deft-directory "~/Org")
@@ -2924,19 +3027,24 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; electric-operator
 ;; check electric-operator--mode-rules-table
 ;; another system tool is GNU indent
-(add-hook 'prog-mode-hook #'electric-operator-mode)
+(require 'electric-operator)
+(add-hook 'c-mode-common-hook #'electric-operator-mode)
 (add-hook 'org-mode-hook #'electric-operator-mode)
 (electric-operator-add-rules-for-mode
- 'c-mode
- (cons "<>" "<>")
- (cons ";" "; ")
- (cons "++" "++")
+ 'c++-mode
+ (cons "<>" "<> ")
+ (cons "<" " < ")
+ (cons ">" " > ")
+ ;; (cons ";" "; ")
+ (cons "++" " ++")
  )
 (electric-operator-add-rules-for-mode
- 'c++-mode
- (cons "<>" "<>")
- (cons ";" "; ")
- (cons "++" "++")
+ 'c-mode
+ (cons "<>" "<> ")
+ (cons "<" " < ")
+ (cons ">" " > ")
+ ;; (cons ";" "; ")
+ (cons "++" " ++")
  )
 (electric-operator-add-rules-for-mode
  'org-mode
@@ -2944,7 +3052,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
  (cons ";" "; ")
  (cons "." ". ")
  )
-
 ;; multifiles
 (require 'multifiles)
 (eval-after-load "multifiles"
@@ -2997,7 +3104,8 @@ window and close the *TeX help* buffer."
 	  ;; DO NOT do it when up-to-date, remove this line in proper time
 	  (TeX-clean t)
 	  (TeX-run-TeX "latexmk"
-				   (TeX-command-expand "latexmk -pdflatex='pdflatex -file-line-error -synctex=1' -pdf %s" 'TeX-master-file)
+				   (TeX-command-expand "latexmk -pdflatex='pdflatex -file-line-error -synctex=1' -pdf %s"
+									   'TeX-master-file)
 				   master-file)
 	  (if (plist-get TeX-error-report-switches (intern master-file))
 		  ;; avoid creating multiple windows to show the *TeX Help* error buffer
