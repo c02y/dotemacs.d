@@ -212,6 +212,7 @@
 (setq compilation-last-buffer nil)
 ;; save all modified buffers without asking before compilation
 (setq compilation-ask-about-save nil)
+
 (defun compile-again (ARG)
   "Run the same compile as the last time.
 
@@ -232,6 +233,7 @@ and you can reconfigure the compile args."
 							,@default-frame-alist
 							(left . (- 1))
 							(top . 0)))))
+
 (setq compilation-finish-functions
 	  (lambda (buf str)
 		(if (null (string-match ".*exited abnormally.*" str))
@@ -864,7 +866,9 @@ With negative N, comment out original line and use the absolute value."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
 					  default-directory
-					(buffer-file-name))))
+					;; abbreviate-file-name will replace /home/user with ~
+					;; also works with directory
+					(abbreviate-file-name buffer-file-name))))
 	(when filename
 	  (kill-new filename)
 	  (message "'%s' path copied!" filename))))
@@ -967,7 +971,7 @@ This command does not push text to `kill-ring'."
 With argument, do this that many times."
   (interactive "p")
   (delete-word (- arg)))
-(defun delete-line (arg)
+(defun delete-line-to-end (arg)
   "Delete text from current position to end of line char.
 With argument, forward ARG lines."
   (interactive "p")
@@ -991,7 +995,7 @@ With argument, backward ARG lines."
 (bind-keys*
  ("M-d" . delete-word)
  ("<M-backspace>" . delete-word-backward)
- ("C-k" . delete-line)
+ ("C-k" . delete-line-to-end)
  ("C-S-k" . delete-line-backward))
 
 (defun xah-fill-or-unfill ()
@@ -1570,7 +1574,7 @@ Emacs session."
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
 (add-hook 'c-mode-common-hook
 		  (lambda()
-			(local-set-key	(kbd "C-c o") 'ff-find-other-file)))
+			(local-set-key (kbd "C-c o") 'ff-find-other-file)))
 
 ;; Saveplace & desktop
 (if (version< emacs-version "25.0")
@@ -1776,7 +1780,7 @@ Do this after `q` in Debugger buffer."
 		  (kill-buffer buffer)
 		  (delete-other-windows))) ;; fix the remaining two windows issue
 	  (message "Killed %i buffer(s)." count))))
-(defalias 'kg 'kill-all-gud-buffers)
+(defalias 'gdb-exit 'kill-all-gud-buffers)
 
 ;; cedet -- built-in
 ;; more detail: http://alexott.net/en/writings/emacs-devenv/EmacsCedet.html
@@ -1956,15 +1960,18 @@ Do this after `q` in Debugger buffer."
 ;; 2. mark C-x r t string
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
 (autoload 'multiple-cursors "multiple-cursors" t)
-;; When you have an active region that spans multiple lines, the following will
-;; add a cursor to each line
-(bind-key* "C-S-c C-S-c" 'mc/edit-lines)
-;; When you want to add multiple cursors not based on continuous lines, but
-;; based on keywords in the buffer, first mark the word, then add more cursors:
 (bind-keys*
- ("C->" . mc/mark-next-like-this)
  ("C-<" . mc/mark-previous-like-this)
- ("C-c C-<" . mc/mark-all-like-this))
+ ("C->" . mc/mark-next-like-this)
+ ;; when the next like this is outside the current window, use M/C-v
+ ;; to scroll the screen or C-' to mc-hide-unmatched-lines,
+ ;; then use the following commands to unmark
+ ("C-c C-," . mc/unmark-previous-like-this)
+ ("C-c C-." . mc/unmark-next-like-this)
+ ("C-c C->" . mc/mark-all-like-this)
+ ;; When you have an active region that spans multiple lines, the following will
+ ;; add a cursor to each line
+ ("C-S-c C-S-c" . mc/edit-lines))
 
 ;; ace-jump-mode
 (autoload
@@ -2081,12 +2088,15 @@ Do this after `q` in Debugger buffer."
 				 (list
 				  (cons 'company-elisp
 						(car company-backends))))))
+(add-hook 'python-mode-hook 'anaconda-mode)
+(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (add-hook 'python-mode-hook
 		  (lambda ()
 			(set (make-local-variable 'company-backends)
 				 (list
 				  (cons
-				   'company-ropemacs
+				   ;; 'company-ropemacs
+				   'company-anaconda
 				   (car company-backends))))))
 ;; grouped default back-ends for all major mode
 ;; (with-eval-after-load 'company
@@ -2530,6 +2540,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bind-keys*
  ("C-h g" . helm-projectile-ag)
  ("C-h G" . helm-do-ag))
+(bind-keys :map helm-ag-map
+		   ("C-x C-e" . helm-ag-edit))
 (setq helm-ag-fuzzy-match t
 	  helm-ag-insert-at-point 'symbol)
 (bind-key "RET" 'helm-ag--run-other-window-action helm-ag-map)
@@ -2798,7 +2810,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 				text-mode-hook))
   (add-hook mode
 			'(lambda ()
-			   (drag-stuff-mode))))
+			   (drag-stuff-mode)
+			   (local-set-key (kbd "M-<up>") 'drag-stuff-up)
+			   (local-set-key (kbd "M-<down>") 'drag-stuff-down))))
 ;; disable drag-stuff-mode in org-mode because of the M-... in it
 ;; don't use remove-hook, it doesn't work here
 (add-hook 'org-mode-hook
@@ -2848,6 +2862,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bind-key* "M-;" 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
+(defun current-line-empty-p ()
+  (save-excursion
+	(beginning-of-line)
+	(looking-at "[[:space:]]*$")))
 (defun cut-line-or-region ()
   "Cut current line, or text selection.
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
@@ -2861,8 +2879,11 @@ Version 2015-06-10"
 		(delete-region (point-min) (point-max)))
 	(progn (if (use-region-p)
 			   (kill-region (region-beginning) (region-end) t)
-			 (kill-region (line-beginning-position) (line-end-position)))))
-  (delete-char 1))
+			 (if (current-line-empty-p)
+				 (delete-blank-lines)
+			   (kill-region (line-beginning-position) (line-end-position)))))
+	;; (delete-char 1)
+	))
 (defun copy-line-or-region ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
@@ -2895,9 +2916,23 @@ Version 2016-06-18"
 	;; (end-of-line)
 	;; (forward-char)
 	))
+(defun delete-line-or-region ()
+  "delete current line, or text selection.
+When `universal-argument' is called first, delete whole buffer (respects `narrow-to-region')."
+  (interactive)
+  (if current-prefix-arg
+	  (delete-region (point-min) (point-max))
+	(progn (if (use-region-p)
+			   (delete-region (region-beginning) (region-end))
+			 (if (current-line-empty-p)
+				 (delete-blank-lines)
+			   (delete-region (line-beginning-position) (line-end-position)))))
+	))
 (bind-keys*
  ("C-w" . cut-line-or-region)
- ("M-w" . copy-line-or-region))
+ ("M-w" . copy-line-or-region)
+ ("C-S-w" . delete-line-or-region)
+ )
 
 ;; which-key to replace guide-key
 (which-key-mode)
@@ -2934,10 +2969,10 @@ Version 2016-06-18"
 				("M-RET" . Meta-return)
 				("M-n" . highlight-symbol-next))))
 (defadvice lispy-kill (around lispy-kill-advice activate)
-  "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line`"
+  "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line-to-end`"
   (if (lispy--in-comment-p)
-	  (delete-line (prefix-numeric-value current-prefix-arg))
-	(delete-line 1)))
+	  (delete-line-to-end (prefix-numeric-value current-prefix-arg))
+	(delete-line-to-end 1)))
 
 ;; minibuffer
 (dolist (mode '(emacs-lisp-mode-hook ielm-mode-hook))
@@ -3006,10 +3041,11 @@ Version 2016-06-18"
 (sp-local-pair '(c-mode c++-mode java-mode) "{" nil :post-handlers '((insert-c-block-parentheses-without-indent "M-RET")))
 (defun insert-c-block-parentheses-without-indent (&rest _ignored)
   "Open a new brace or bracket expression, with relevant newlines and indent. "
-  (newline)
-  (indent-according-to-mode)
-  (forward-line -1)
-  (indent-according-to-mode))
+  (end-of-line)
+  (open-line 1)
+  (previous-line)
+  (end-of-line)
+  (newline-and-indent))
 (eval-after-load "smartparens"
   '(progn
 	 (bind-keys :map smartparens-mode-map
@@ -3030,6 +3066,7 @@ Version 2016-06-18"
 (require 'electric-operator)
 (add-hook 'c-mode-common-hook #'electric-operator-mode)
 (add-hook 'org-mode-hook #'electric-operator-mode)
+(add-hook 'python-mode-hook #'electric-operator-mode)
 (electric-operator-add-rules-for-mode
  'c++-mode
  (cons "<>" "<> ")
@@ -3052,6 +3089,7 @@ Version 2016-06-18"
  (cons ";" "; ")
  (cons "." ". ")
  )
+
 ;; multifiles
 (require 'multifiles)
 (eval-after-load "multifiles"
