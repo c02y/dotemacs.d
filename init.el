@@ -904,49 +904,50 @@ buffer-local variable `show-trailing-whitespace'."
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation, combine two lines
 ;; M-Backspace delete to the previous word 'backword-kill-word
 ;; M-\ delete kill _all_ spaces at point 'delete-horizontal-space
-(defun shrink-whitespaces ()
+;; Remove whitespaces around cursor to just one or none. If current line does
+;; have visible characters: shrink whitespace around cursor to just one space.
+;; If current line does not have visible chars, then shrink all neighboring
+;; blank lines to just one. Repeat the function will remove the remaining one
+;; space or blank line. If current line is a single space, remove that space.
+;; `shrink-whitespaces` combine `delete-blank-lines`, `just-one-space`,
+;; `fixup-whitespace`, `delete-horizontal-space`, and `cycle-spacing`(in emacs
+;; 24.4) into one.
+(defun xah-shrink-whitespaces ()
   "Remove whitespaces around cursor to just one or none.
-If current line does have visible characters: shrink whitespace around cursor to just one space.
-If current line does not have visible chars, then shrink all neighboring blank lines to just one.
-Repeat the function will remove the remaining one space or blank line.
-If current line is a single space, remove that space.
-`shrink-whitespaces` combine `delete-blank-lines`, `just-one-space`, `fixup-whitespace`,
-`delete-horizontal-space`, and `cycle-spacing`(in emacs 24.4) into one.
---URL http://ergoemacs.org/emacs/emacs_shrink_whitespace.html version 2015-11-04"
+Call this command again to shrink more. 3 calls will remove all whitespaces.
+URL `http://ergoemacs.org/emacs/emacs_shrink_whitespace.html'
+Version 2016-12-18"
   (interactive)
-  (let ((pos (point))
-		line-has-char-p				   ; current line contains non-white space chars
-		has-space-tab-neighbor-p
-		whitespace-begin whitespace-end
-		space-or-tab-begin space-or-tab-end)
-	(save-excursion
-	  (setq has-space-tab-neighbor-p (if (or (looking-at " \\|\t") (looking-back " \\|\t")) t nil))
-	  (beginning-of-line)
-	  (setq line-has-char-p (search-forward-regexp "[[:graph:]]" (line-end-position) t))
-	  (goto-char pos)
-	  (skip-chars-backward "\t ")
-	  (setq space-or-tab-begin (point))
-	  (skip-chars-backward "\t \n")
-	  (setq whitespace-begin (point))
-	  (goto-char pos)
-	  (skip-chars-forward "\t ")
-	  (setq space-or-tab-end (point))
-	  (skip-chars-forward "\t \n")
-	  (setq whitespace-end (point)))
-	(if line-has-char-p
-		(if has-space-tab-neighbor-p
-			(let (deleted-text)
-			  ;; remove all whitespaces in the range
-			  (setq deleted-text
-					(delete-and-extract-region space-or-tab-begin space-or-tab-end))
-			  ;; insert a whitespace only if we have removed something different than a simple whitespace
-			  (when (not (string= deleted-text " "))
-				(insert " ")))
-		  (progn
-			(when (equal (char-before) 10) (delete-char -1))
-			(when (equal (char-after) 10) (delete-char 1))))
-	  (progn (delete-blank-lines)))))
-(bind-key* "C-<backspace>" 'shrink-whitespaces)
+  (let ((-p0 (point))
+        -line-has-char-p ; current line contains non-white space chars
+        -has-space-tab-neighbor-p
+        -space-or-tab-begin -space-or-tab-end
+        )
+    (save-excursion
+      (setq -has-space-tab-neighbor-p
+            (or (looking-at " \\|\t") (looking-back " \\|\t" 1)))
+      (beginning-of-line)
+      (setq -line-has-char-p (re-search-forward "[[:graph:]]" (line-end-position) t))
+      (goto-char -p0)
+      (skip-chars-backward "\t ")
+      (setq -space-or-tab-begin (point))
+      (goto-char -p0)
+      (skip-chars-forward "\t ")
+      (setq -space-or-tab-end (point)))
+    (if -line-has-char-p
+        (if -has-space-tab-neighbor-p
+            (let (-deleted-text)
+              ;; remove all whitespaces in the range
+              (setq -deleted-text
+                    (delete-and-extract-region -space-or-tab-begin -space-or-tab-end))
+              ;; insert a whitespace only if we have removed something different than a simple whitespace
+              (when (not (string= -deleted-text " "))
+                (insert " ")))
+          (progn
+            (when (equal (char-before) 10) (delete-char -1))
+            (when (equal (char-after) 10) (delete-char 1))))
+      (progn (delete-blank-lines)))))
+(bind-key* "C-<backspace>" 'xah-shrink-whitespacess)
 ;; Join the current line with the line beneath it.
 ;; M-^ is the revert
 (bind-keys* ("C-M-q" .
@@ -1897,6 +1898,8 @@ Do this after `q` in Debugger buffer."
 ;; stop yasnippet auto-indent
 ;; (setq yas/indent-line nil)
 (bind-key "C-c y" 'yas-reload-all)
+(add-hook 'python-mode-hook
+		  '(lambda () (set (make-local-variable 'yas-indent-line) 'fixed)))
 
 ;; ecb, use M-x ecb-minor-mode, or Tools->Start Code Browser you'll be suprised
 ;; If you want to load the ECB first after starting it by ecb-activate
@@ -2377,6 +2380,8 @@ background of code to whatever theme I'm using's background"
 		(format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
 				my-pre-bg my-pre-fg))))))
 (add-hook 'org-export-before-processing-hook 'my/org-inline-css-hook)
+;; export org to html with checkbox like ☑ (ballot)
+(setq org-html-checkbox-type 'unicode)
 ;; If you never use "plain" footnotes like [1] or p[1], you can adjust two variables
 ;; to avoid org-mode wrongly interpreting square brackets as footnote
 ;; Use styles at http://orgmode.org/manual/Footnotes.html such as [fn:1]
@@ -2394,6 +2399,11 @@ background of code to whatever theme I'm using's background"
 (setq org-html-postamble nil)
 ;; ? before the star at the beginning of headline for all speed commands
 (setq org-use-speed-commands t)
+;; org-sticky-header and org-table-sticky-header
+(add-hook 'org-mode-hook
+		  (lambda ()
+			(org-sticky-header-mode)
+			(org-table-sticky-header-mode)))
 
 ;; icicles
 ;; icicles & helm differences:
@@ -2929,10 +2939,9 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 			   (delete-region (line-beginning-position) (line-end-position)))))
 	))
 (bind-keys*
- ("C-w" . cut-line-or-region)
+ ("C-w" . delete-line-or-region)
  ("M-w" . copy-line-or-region)
- ("C-S-w" . delete-line-or-region)
- )
+ ("C-S-w" . cut-line-or-region))
 
 ;; which-key to replace guide-key
 (which-key-mode)
@@ -3038,12 +3047,18 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 ;;	   (indent-according-to-mode)))
 ;; (sp-local-pair '(c-mode c++-mode java-mode) "{" nil :post-handlers '(:add insert-c-block-parentheses))
 ;; 2. use this one to insert {} and then M-return to insert the effect of 1
-(sp-local-pair '(c-mode c++-mode java-mode) "{" nil :post-handlers '((insert-c-block-parentheses-without-indent "M-RET")))
+(sp-local-pair '(c-mode c++-mode java-mode python-mode) "{" nil :post-handlers '((insert-c-block-parentheses-without-indent "M-RET")))
 (defun insert-c-block-parentheses-without-indent (&rest _ignored)
   "Open a new brace or bracket expression, with relevant newlines and indent. "
   (end-of-line)
   (open-line 1)
-  (previous-line)
+  (next-line)
+  (delete-blank-lines)
+  (delete-blank-lines)
+  (previous-line 1)
+  (end-of-line)
+  (open-line 1)
+  (previous-line 1)
   (end-of-line)
   (newline-and-indent))
 (eval-after-load "smartparens"
