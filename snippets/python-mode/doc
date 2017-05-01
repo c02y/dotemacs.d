@@ -1,6 +1,7 @@
 # -*- mode: snippet -*-
-# name: doc
-# key: d
+# name: docstring
+# key: ds
 # --
-"""$0
+"""
+$0
 """
