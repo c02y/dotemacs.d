@@ -3267,6 +3267,12 @@ window and close the *TeX help* buffer."
 (with-eval-after-load 'company
   (company-flx-mode +1))
 
+;; highlight-indent-guides
+(add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+(setq highlight-indent-guides-method 'character)
+;; Indent character samples: | ┆ ┊ ⁞
+(setq highlight-indent-guides-character ?\┆)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
