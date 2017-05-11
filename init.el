@@ -1881,23 +1881,13 @@ Do this after `q` in Debugger buffer."
 ;;;;;; plugin installed by M-x package-install
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; dropdown-list required by yasnippet (optional)
 ;; yasnippet
-;; C-c & C-v('yas-visit-snippet-file) to edit a snippet in current mode
-;; C-c & C-n('yas-new-snippet) to create a new one for current mode
-;; C-c C-c('yas-load-snippet-buffer) to reload it
-(require 'yasnippet)
-(require 'dropdown-list)
-(setq yas-prompt-functions '(yas-dropdown-prompt
-							 yas-ido-prompt
-							 yas-completing-prompt
-							 yas-x-prompt
-							 yas-no-prompt))
 (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
 (yas-global-mode 1)
 ;; stop yasnippet auto-indent
 ;; (setq yas/indent-line nil)
-(bind-key "C-c y" 'yas-reload-all)
+(bind-keys :map yas-minor-mode-map
+		   ("C-c & C-y" . yas-reload-all))
 (add-hook 'python-mode-hook
 		  '(lambda () (set (make-local-variable 'yas-indent-line) 'fixed)))
 
@@ -2091,16 +2081,21 @@ Do this after `q` in Debugger buffer."
 				 (list
 				  (cons 'company-elisp
 						(car company-backends))))))
-(add-hook 'python-mode-hook 'anaconda-mode)
-(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (add-hook 'python-mode-hook
 		  (lambda ()
+			(setq python-shell-interpreter "/usr/bin/python3.4")
 			(set (make-local-variable 'company-backends)
-				 (list
-				  (cons
-				   ;; 'company-ropemacs
-				   'company-anaconda
-				   (car company-backends))))))
+				 (append company-backends
+						 '((
+							company-anaconda
+							company-ropemacs
+							;; company-dabbrev
+							;; company-dabbrev-code
+							;; company-semantic
+							;; company-yasnippet
+							))))
+			(anaconda-mode)
+			(anaconda-eldoc-mode)))
 ;; grouped default back-ends for all major mode
 ;; (with-eval-after-load 'company
 ;;	 (add-hook 'company-mode-hook
