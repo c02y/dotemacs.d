@@ -233,16 +233,16 @@ and you can reconfigure the compile args."
 							,@default-frame-alist
 							(left . (- 1))
 							(top . 0)))))
-
+(setq compilation-auto-jump-to-first-error t)
 (setq compilation-finish-functions
 	  (lambda (buf str)
 		(if (null (string-match ".*exited abnormally.*" str))
-			;;no errors, make the compilation window go away in a few seconds
-			(progn
-			  (run-at-time
-			   "1 sec" nil 'delete-windows-on
-			   (get-buffer-create "*compilation*"))
-			  (message "No Compilation Errors!")))))
+			(message "No Compilation Errors!")
+		  ;; no errors, make the compilation window go away in a few seconds
+		  (progn
+			(run-at-time
+			 "1 sec" nil 'delete-windows-on
+			 "*compilation*")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
