@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: text type
+# key: tt
+# --
+\text${1:$$(yas-choose-value '("it" "tt" "bf"))}{$2}$0

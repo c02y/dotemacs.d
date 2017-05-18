@@ -2,4 +2,11 @@
 # name: label
 # key: lab
 # --
-\label{$0}
+\label{${1:$$(yas-choose-value '("eq:"
+								 "fig:"
+								 "sfig:"
+								 "tab:"
+								 "sec:"
+								 "ssec:"
+								 "subssec:"
+								 "cha:"))}}$0

@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: math fonts
+# key: mf
+# --
+${1:$$(yas-choose-value '("\\\\mathrm"
+						  "\\\\mathbb"
+						  "\\\\mathcal"
+						  "\\\\mathit"
+						  "\\\\boldsymbol"))}{$2} $0
