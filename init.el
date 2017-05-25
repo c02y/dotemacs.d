@@ -3026,16 +3026,6 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 ;; disable C-c C-w for subword-mode, this is defined in cc-mode.el
 (unbind-key "C-c C-w" c-mode-base-map)
 
-;; ;; ranger
-;; (setq ranger-cleanup-on-disable nil)
-;; (setq ranger-cleanup-eagerly t)
-;; (setq ranger-width-parents 0.12)
-;; ;; (setq ranger-max-parent-width 0.12)
-(setq ranger-parent-depth 2)
-(bind-keys*
- ("C-x C-r" . ranger)
- ("C-c h" . ranger-show-history))
-
 ;; go-mode, go-eldoc
 (add-hook 'go-mode-hook 'go-eldoc-setup)
 (add-hook 'before-save-hook #'gofmt-before-save)
