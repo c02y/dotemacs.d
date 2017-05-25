@@ -846,7 +846,7 @@ With negative N, comment out original line and use the absolute value."
 			(comment-region (line-beginning-position) (line-end-position)))
 		(forward-line 1)
 		(forward-char pos)))))
-(bind-key* "C-c C-d" 'duplicate-line-or-region)
+(bind-key* "C-c d" 'duplicate-line-or-region)
 
 ;; convert DOS to UNIX
 (defun dos2unix ()
@@ -862,13 +862,22 @@ With negative N, comment out original line and use the absolute value."
 	  (kill-new filename)
 	  (message "'%s' name copied!" filename))))
 (defun copy-path ()
-  "Copy the full path of current buffer file to the clipboard."
+  "Copy the path (using ~) of current buffer file to the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
 					  default-directory
 					;; abbreviate-file-name will replace /home/user with ~
 					;; also works with directory
 					(abbreviate-file-name buffer-file-name))))
+	(when filename
+	  (kill-new filename)
+	  (message "'%s' path copied!" filename))))
+(defun copy-path-full ()
+  "Copy the full path of current buffer file to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+					  default-directory
+					(buffer-file-name))))
 	(when filename
 	  (kill-new filename)
 	  (message "'%s' path copied!" filename))))
@@ -919,34 +928,34 @@ URL `http://ergoemacs.org/emacs/emacs_shrink_whitespace.html'
 Version 2016-12-18"
   (interactive)
   (let ((-p0 (point))
-        -line-has-char-p ; current line contains non-white space chars
-        -has-space-tab-neighbor-p
-        -space-or-tab-begin -space-or-tab-end
-        )
-    (save-excursion
-      (setq -has-space-tab-neighbor-p
-            (or (looking-at " \\|\t") (looking-back " \\|\t" 1)))
-      (beginning-of-line)
-      (setq -line-has-char-p (re-search-forward "[[:graph:]]" (line-end-position) t))
-      (goto-char -p0)
-      (skip-chars-backward "\t ")
-      (setq -space-or-tab-begin (point))
-      (goto-char -p0)
-      (skip-chars-forward "\t ")
-      (setq -space-or-tab-end (point)))
-    (if -line-has-char-p
-        (if -has-space-tab-neighbor-p
-            (let (-deleted-text)
-              ;; remove all whitespaces in the range
-              (setq -deleted-text
-                    (delete-and-extract-region -space-or-tab-begin -space-or-tab-end))
-              ;; insert a whitespace only if we have removed something different than a simple whitespace
-              (when (not (string= -deleted-text " "))
-                (insert " ")))
-          (progn
-            (when (equal (char-before) 10) (delete-char -1))
-            (when (equal (char-after) 10) (delete-char 1))))
-      (progn (delete-blank-lines)))))
+		-line-has-char-p ; current line contains non-white space chars
+		-has-space-tab-neighbor-p
+		-space-or-tab-begin -space-or-tab-end
+		)
+	(save-excursion
+	  (setq -has-space-tab-neighbor-p
+			(or (looking-at " \\|\t") (looking-back " \\|\t" 1)))
+	  (beginning-of-line)
+	  (setq -line-has-char-p (re-search-forward "[[:graph:]]" (line-end-position) t))
+	  (goto-char -p0)
+	  (skip-chars-backward "\t ")
+	  (setq -space-or-tab-begin (point))
+	  (goto-char -p0)
+	  (skip-chars-forward "\t ")
+	  (setq -space-or-tab-end (point)))
+	(if -line-has-char-p
+		(if -has-space-tab-neighbor-p
+			(let (-deleted-text)
+			  ;; remove all whitespaces in the range
+			  (setq -deleted-text
+					(delete-and-extract-region -space-or-tab-begin -space-or-tab-end))
+			  ;; insert a whitespace only if we have removed something different than a simple whitespace
+			  (when (not (string= -deleted-text " "))
+				(insert " ")))
+		  (progn
+			(when (equal (char-before) 10) (delete-char -1))
+			(when (equal (char-after) 10) (delete-char 1))))
+	  (progn (delete-blank-lines)))))
 (bind-key* "C-<backspace>" 'xah-shrink-whitespacess)
 ;; Join the current line with the line beneath it.
 ;; M-^ is the revert
@@ -1043,7 +1052,7 @@ Version 2016-07-13"
   (interactive)
   ;; (origami-open-all-nodes (current-buffer)) ;; avoid data loss
   (delete-trailing-whitespace))
-(bind-key* "C-c d" 'cleanup-buffer)
+(bind-key* "C-c C-d" 'cleanup-buffer)
 (defvar all-make-modes
   '(makefile-makepp-mode makefile-bsdmake-mode makefile-imake-mode
 						 makefile-automake-mode makefile-mode makefile-gmake-mode)
@@ -1333,6 +1342,30 @@ In other non-comment situations, try C-M-j to split."
 ;; When C-x n n/s to narrwow the marked region, don't ask whether for future
 ;; session or not C-x n w to go back to normal
 (put 'narrow-to-region 'disabled nil)
+;; Use the following function to replace all the C-x n* functions
+(defun narrow-or-widen-dwim (p)
+  " If the buffer is narrowed, it widens. Otherwise, it narrows intelligently.
+Intelligently means: region, org-src-block, org-subtree, or defun, whichever applies first.
+Narrowing to org-src-block actually calls `org-edit-src-code'.
+With prefix P, don't widen, just narrow even if buffer is already narrowed. "
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p))
+		 (widen))
+		((region-active-p)
+		 (narrow-to-region (region-beginning) (region-end)))
+		((and (boundp 'org-src-mode) org-src-mode (not p)) ; <-- Added
+		 (org-edit-src-exit))
+		((derived-mode-p 'org-mode)
+		 (cond ((org-in-src-block-p)
+				(org-edit-src-code))
+			   ((org-at-block-p)
+				(org-narrow-to-block))
+			   (t (org-narrow-to-subtree))))
+		(t (narrow-to-defun))))
+;; This line actually replaces Emacs' entire narrowing keymap
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+;;
 ;; disable Insert key for plugged keyboard
 (unbind-key "<insert>" global-map)
 ;; disable C-z(suspend-frame) , and you can use C-z for others
@@ -1874,6 +1907,9 @@ Do this after `q` in Debugger buffer."
 (defalias 'plp 'paradox-list-packages)
 (setq paradox-github-token t)
 (setq paradox-execute-asynchronously t)
+;; default color in the mode line with the theme is too bright to read
+(eval-after-load "paradox"
+  '(set-face-attribute 'paradox-mode-line-face nil :foreground "blue"))
 ;; Update the packages automatically
 ;;(when (not package-archive-contents) (package-refresh-contents))
 
@@ -1966,25 +2002,14 @@ Do this after `q` in Debugger buffer."
  ;; add a cursor to each line
  ("C-S-c C-S-c" . mc/edit-lines))
 
-;; ace-jump-mode
-(autoload
-  'ace-jump-mode
-  "ace-jump-mode"
-  "Emacs quick move minor mode" t)
-;; insensitive-->t
-(setq ace-jump-mode-case-fold nil)
-;; enable a more powerful jump back function from ace jump mode
-(autoload
-  'ace-jump-mode-pop-mark
-  "ace-jump-mode"
-  "Ace jump back:-)" t)
-(eval-after-load "ace-jump-mode" '(ace-jump-mode-enable-mark-sync))
-;; Use C-x SPC or C-u C-SPC to jump back
+;; avy to replace ace-jump-mode
 (bind-keys*
- ("C-c SPC" . ace-jump-mode-pop-mark)
- ("C-c j" . ace-jump-mode)
- ("C-c J" . ace-jump-char-mode)
- ("C-c l" . ace-jump-line-mode))
+ ("M-g M-g" . avy-goto-word-or-subword-1)
+ ("M-g s" . avy-goto-char-timer)
+ ("M-g M-c" . avy-goto-char-in-line)
+ ("M-g l" . avy-goto-line)
+ ("M-g z" . avy-resume)
+ ("M-g SPC" . avy-pop-mark))
 
 ;;
 ;; dash required by ace-jump-buffer
@@ -3097,15 +3122,10 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
  'org-mode
  (cons "," ", ")
  (cons ";" "; ")
+ (cons "?" "? ")
  (cons "." ". ")
+ (cons "./" "./")
  )
-
-;; multifiles
-(require 'multifiles)
-(eval-after-load "multifiles"
-  '(progn
-	 (multifiles-minor-mode 1)
-	 (bind-key* "C-x n c" 'mf/mirror-region-in-multifile)))
 
 ;; LaTeX -- AucTex
 ;; C-c ? (or M-x TeX-doc) gives documentation for the symbol at point,
@@ -3199,9 +3219,19 @@ window and close the *TeX help* buffer."
 			(setq TeX-command-default "latexmk")
 			(push '("%(masterdir)" (lambda nil (file-truename (TeX-master-directory))))
 				  TeX-expand-list)
-			(push '("Okular" "okular --unique %o#src:%n%(masterdir)%b")
-				  TeX-view-program-list)
+			;; Enable only one from all the 3 options to view pdf
+			;; Options1: Okular, the jumping to page may not work in old Okular
+			(push '("Okular" "okular --unique %o#src:%n%(masterdir)%b") TeX-view-program-list)
 			(push '(output-pdf "Okular") TeX-view-program-selection)
+			;; Options2: Evince
+			;; NOTE: it seems this options is builtin by default by AUCTEX
+			;; if you want to use this one, disable all of the three
+			;; (setq TeX-view-program-list '(("Evince" "evince --page-label=%(outpage) %o")))
+			;; (setq TeX-view-program-selection '((output-pdf "Evince")))
+			;; Options3: builtin pdf viewer, TODO: bug
+			;; (setq TeX-view-program-list '(("Emacs" "emacsclient %o")))
+			;; (setq TeX-view-program-selection '((output-pdf "Emacs")))
+			;;
 			(TeX-source-correlate-mode)
 			(server-force-delete)  ;; WARNING: Kills any existing edit server
 			(setq TeX-source-correlate-method 'synctex
@@ -3232,8 +3262,6 @@ window and close the *TeX help* buffer."
 ;; magic-latex-buffer
 ;; (require 'magic-latex-buffer)
 ;; (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
-;; latex-preview-pane
-;; (add-hook 'LaTeX-mode-hook 'latex-preview-pane-mode)
 (setq
  ;; Function for reading \includegraphics files
  LaTeX-includegraphics-read-file 'LaTeX-includegraphics-read-file-relative
@@ -3267,6 +3295,16 @@ window and close the *TeX help* buffer."
 (setq highlight-indent-guides-method 'character)
 ;; Indent character samples: | ┆ ┊ ⁞
 (setq highlight-indent-guides-character ?\┆)
+
+;; dumb-jump
+(bind-keys*
+ ("C-h C-g" . dumb-jump-go-other-window)
+ ("C-h C-g" . dumb-jump-back))
+
+;; vdiff
+(require 'vdiff)
+(bind-keys :map vdiff-mode-map
+		   ("C-c" . vdiff-mode-prefix-map))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
