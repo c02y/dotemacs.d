@@ -621,6 +621,7 @@ and you can reconfigure the compile args."
 
 ;; flush blank lines
 (defun flush-blank-lines (start end)
+  "Mark a block and delete all blank/empty lines inside it."
   (interactive "r")
   (flush-lines "^\\s-*$" start end nil))
 
@@ -1668,6 +1669,47 @@ Emacs session."
 					("british" ; British English
 					 "[A-Za-z]" "[^A-Za-z]" "[']" t
 					 ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
+;;
+;; correct the wrong word with C-x i, next time auto-correct it
+;; source: http://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html
+(define-key ctl-x-map "i"
+  #'endless/ispell-word-then-abbrev)
+(defun endless/simple-get-word ()
+  (car-safe (save-excursion (ispell-get-word nil))))
+(defun endless/ispell-word-then-abbrev (p)
+  "Call `ispell-word', then create an abbrev for it.
+With prefix P, create local abbrev. Otherwise it will
+be global.
+If there's nothing wrong with the word at point, keep
+looking for a typo until the beginning of buffer. You can
+skip typos you don't want to fix with `SPC', and you can
+abort completely with `C-g'."
+  (interactive "P")
+  (let (bef aft)
+	(save-excursion
+	  (while (if (setq bef (endless/simple-get-word))
+				 ;; Word was corrected or used quit.
+				 (if (ispell-word nil 'quiet)
+					 nil ; End the loop.
+				   ;; Also end if we reach `bob'.
+				   (not (bobp)))
+			   ;; If there's no word at point, keep looking
+			   ;; until `bob'.
+			   (not (bobp)))
+		(backward-word)
+		(backward-char))
+	  (setq aft (endless/simple-get-word)))
+	(if (and aft bef (not (equal aft bef)))
+		(let ((aft (downcase aft))
+			  (bef (downcase bef)))
+		  (define-abbrev
+			(if p local-abbrev-table global-abbrev-table)
+			bef aft)
+		  (message "\"%s\" now expands to \"%s\" %sally"
+				   bef aft (if p "loc" "glob")))
+	  (user-error "No typo at or before point"))))
+(setq save-abbrevs 'silently)
+(setq-default abbrev-mode t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Tab & indent
@@ -1693,8 +1735,14 @@ Emacs session."
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
 			(setq tab-width 4)))
+;; Dismiss the guess python-indent-offset default to 4 warning message
+;; DO NOT put this inside python-mode-hook, when create new python file, emacs
+;; will still show the guess warning message
+;; Setting python-indent-offset directly is not working
+(setq python-indent-guess-indent-offset nil)
 (add-hook 'python-mode-hook
 		  (lambda ()
+			(set (make-local-variable 'comment-inline-offset) 2) ; PEP8 two spaces
 			(setq indent-tabs-mode nil)
 			(setq tab-width 4)))
 ;;
@@ -2294,9 +2342,9 @@ Do this after `q` in Debugger buffer."
 ;;			;; (sequence "|" "CANCELED(c)")
 ;;			))
 ;; Keep track of when a certain TODO item was finished.
-;; (setq org-log-done 'time)
+(setq org-log-done 'time)
 ;; record a note along with the timestamp
-(setq org-log-done 'note)
+;; (setq org-log-done 'note)
 ;; ;; If you would like a TODO entry to automatically change to DONE
 ;; ;; when all children are done, you can use the following setup:
 ;; (defun org-summary-todo (n-done n-not-done)
@@ -2423,8 +2471,77 @@ background of code to whatever theme I'm using's background"
 (add-hook 'org-mode-hook
 		  (lambda ()
 			(org-sticky-header-mode)
-			(org-table-sticky-header-mode)))
-
+			(org-table-sticky-header-mode)
+			(org-numbers-overlay-mode)))
+;;
+;; Add number/index before the headings/subheadings instead just asterisks
+;; Original: https://github.com/larkery/emacs/blob/master/site-lisp/org-numbers-overlay.el
+;; Check the updates: current, 7099a1a
+(define-minor-mode org-numbers-overlay-mode
+  "Add overlays to org headings which number them"
+  nil " *1." nil
+  (let ((hooks '(after-save-hook
+				 org-insert-heading-hook))
+		(funcs '(org-promote
+				 ;; org-cycle-level
+				 org-promote-subtree
+				 org-demote
+				 org-demote-subtree
+				 org-move-subtree-up
+				 org-move-subtree-down
+				 org-move-item-down
+				 org-move-item-up
+				 org-cut-subtree
+				 org-insert-todo-heading
+				 org-insert-todo-subheading
+				 org-meta-return
+				 org-set-property)))
+	(if org-numbers-overlay-mode
+		(progn
+		  (org-numbers-overlay-update)
+		  (dolist (fn funcs)
+			(advice-add fn :after #'org-numbers-overlay-update))
+		  (dolist (hook hooks)
+			(add-hook hook #'org-numbers-overlay-update)))
+	  (progn
+		(dolist (fn funcs)
+		  (advice-add fn :after #'org-numbers-overlay-update))
+		(dolist (hook hooks)
+		  (remove-hook hook #'org-numbers-overlay-update))
+		(remove-overlays (point-min) (point-max) 'type 'org-number)))))
+(defun org-numbers-overlay-update (&rest args)
+  (when org-numbers-overlay-mode
+	(let ((continue t)
+		  (levels (make-vector 10 0))
+		  (any-unnumbered (member "UNNUMBERED" (org-buffer-property-keys))))
+	  (save-excursion
+		(widen)
+		(goto-char (point-min))
+		(or (outline-on-heading-p)
+			(outline-next-heading))
+		(overlay-recenter (point-max))
+		(remove-overlays (point-min) (point-max) 'type 'org-number)
+		(while continue
+		  (let* ((detail (org-heading-components))
+				 (level (- (car detail) 1)))
+			(when (or (not any-unnumbered)
+					  (org-entry-get (point) "UNNUMBERED" 'selective))
+			  (let* ((lcounter (1+ (aref levels level)))
+					 text)
+				(aset levels level lcounter)
+				(loop for i from (1+ level) to 9
+					  do (aset levels i 0))
+				(loop for i across levels
+					  until (zerop i)
+					  do (setf text (if text
+										(format "%s.%d" text i)
+									  (format " %d" i))))
+				(let  ((o (make-overlay (point) (+ (point) (car detail)) nil t t)))
+				  (overlay-put o 'type 'org-number)
+				  (overlay-put o 'evaporate t)
+				  (overlay-put o 'after-string text)))))
+		  (setq continue (outline-next-heading))
+		  )))))
 ;; icicles
 ;; icicles & helm differences:
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2014-04/msg00500.html
@@ -2484,8 +2601,9 @@ background of code to whatever theme I'm using's background"
  ("C-h C-SPC" . helm-all-mark-rings)
  ;; helm-apropos describes commands, functions, variables and faces - all in one command!
  ("C-h h" . helm-apropos)
- ("C-h C-c" . helm-colors)
+ ("C-h C-h" . helm-apropos)
  ("<f1> h" . helm-apropos)
+ ("C-h C-c" . helm-colors)
  ;; in dired(you have to go to the dir first), helm-find is like find in terminal,
  ;; helm-locate is like locate in terminal, to use local database with prefix argument C-u
  ;;
@@ -2562,6 +2680,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
  helm-M-x-fuzzy-match t
  helm-imenu-fuzzy-match t
  helm-lisp-fuzzy-completion t
+ helm-apropos-fuzzy-match t
  )
 ;; Save current position to mark ring when jumping to a different place
 (add-hook 'helm-goto-line-before-hook 'helm-save-current-pos-to-mark-ring)
@@ -3319,7 +3438,6 @@ window and close the *TeX help* buffer."
 	(auto-fill-function . "") ;; not auto-fill-mode
 	(rebox-mode . "")
 	(indent-guide-mode . "")
-	(guide-key-mode . "")
 	(whole-line-or-region-mode . "")
 	(whitespace-mode . "")
 	(subword-mode . "")
@@ -3334,6 +3452,8 @@ window and close the *TeX help* buffer."
 	(buffer-face-mode . "")
 	(visual-line-mode . "")
 	(reftex-mode . "")
+	(org-table-sticky-header-mode . "")
+	(org-numbers-overlay-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
