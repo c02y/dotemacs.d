@@ -149,6 +149,12 @@
 ;; which includes many references to org-mode stuff.)
 ;; to prevent two versions of org-mode messed-up
 (package-initialize)
+
+;; Use variables such as PATH defined in fish/bash
+;; exec-path-from-shell package
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
+
 (require 'bind-key)
 
 (add-to-list 'load-path "~/.emacs.d/lisp/")
@@ -2168,7 +2174,17 @@ Do this after `q` in Debugger buffer."
 							;; company-yasnippet
 							))))
 			(anaconda-mode)
-			(anaconda-eldoc-mode)))
+			(anaconda-eldoc-mode)
+			;; (setq python-shell-interpreter "python3.6")
+			(if (executable-find "ipython")
+				(progn (setq python-shell-interpreter "ipython")
+					   (if (version< (replace-regexp-in-string "\n$" "" (shell-command-to-string "ipython --version")) "5")
+						   (setq python-shell-interpreter-args "-i")
+						 (setq python-shell-interpreter-args "--simple-prompt -i")))
+			  (progn
+				(setq python-shell-interpreter-args "-i")
+				(setq python-shell-interpreter "python"))))
+		  )
 ;; grouped default back-ends for all major mode
 ;; (with-eval-after-load 'company
 ;;	 (add-hook 'company-mode-hook
