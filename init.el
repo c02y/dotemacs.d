@@ -247,8 +247,13 @@ and you can reconfigure the compile args."
 		  ;; no errors, make the compilation window go away in a few seconds
 		  (progn
 			(run-at-time
-			 "1 sec" nil 'delete-windows-on
+			 "0 sec" nil 'delete-windows-on
 			 "*compilation*")))))
+
+;; 2015-07-04 Emacs Bug: Pasting into Emacs Freezes Emacs
+;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16737#17
+;; http://ergoemacs.org/misc/emacs_bug_cant_paste_2015.html
+(setq x-selection-timeout 100)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -355,8 +360,11 @@ and you can reconfigure the compile args."
 			 (lambda ()
 			   (interactive)
 			   (progn
-				 (if (file-writable-p buffer-file-name) (save-buffer)
-				   (write-file (concat "/sudo:root@localhost:" buffer-file-name)))))))
+				 ;; check if the buffer is a file or like *scratch*
+				 (if (buffer-file-name)
+					 (if (file-writable-p buffer-file-name) (save-buffer)
+					   (write-file (concat "/sudo:root@localhost:" buffer-file-name)))
+				   (save-buffer))))))
 
 ;; displays the argument list for current func, work for all languages
 (eldoc-mode)
@@ -1093,6 +1101,25 @@ Emacs by default won't treat the TAB as indent"
   (indent-buffer-safe)
   (jump-to-register 'o))
 
+(defun rename-this-buffer-and-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond ((get-buffer new-name)
+               (error "A buffer named '%s' already exists!" new-name))
+              (t
+               (rename-file filename new-name 1)
+               (rename-buffer new-name)
+               (set-visited-file-name new-name)
+               (set-buffer-modified-p nil)
+               (message "File '%s' successfully renamed to '%s'" name
+						(file-name-nondirectory new-name))))))))
+(bind-keys* ("C-x C-w" . rename-this-buffer-and-file))
+
 ;; indent marked files in dirs
 ;; C-u C-x d dir --> -lsR --> * / --> * t (then unmark the files no needed)
 ;; --> M-x indent-marked-files
@@ -1770,6 +1797,9 @@ abort completely with `C-g'."
 (add-hook 'makefile-mode-hook
 		  (lambda ()
 			(setq tab-width 8)))
+(add-hook 'fish-mode-hook
+		  (lambda ()
+			(setq indent-tabs-mode nil)))
 
 ;; ;;;;;;;Documentation/CodingStyle
 ;; ;;Using spaces for alignment, but tabs for indentation
@@ -1951,6 +1981,7 @@ Do this after `q` in Debugger buffer."
 		("melpa-stable" . "https://stable.melpa.org/packages/")
 		("marmalade" . "https://marmalade-repo.org/packages/")
 		("ELPA" . "http://tromey.com/elpa/")
+		("user42" . "http://download.tuxfamily.org/user42/elpa/packages/")
 		))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
@@ -2324,11 +2355,16 @@ Do this after `q` in Debugger buffer."
 (require 'ob-tangle)
 (require 'org)
 (setq org-completion-use-ido t)
+;; NOTE: C-c C-v n/p org-babel-next/previous-src-block to navigate src blocks
 (bind-keys :map org-mode-map
 		   ("C-c a" . org-agenda)
 		   ("C-c c" . org-capture)
 		   ("<C-return>" . org-insert-heading-after-current)
+		   ("C-k". delete-line-to-end)
 		   ("RET" . advanced-return)
+		   ;; use global defined C-a/e not `org-end/beginning-of-line`
+		   ("C-e". nil)
+		   ("C-a". nil)
 		   ;; show/unshow the descriptive and literal links
 		   ("C-c C-x l" . org-toggle-link-display))
 ;; If you would like to embed a TODO within text without treating it as
@@ -2612,6 +2648,7 @@ background of code to whatever theme I'm using's background"
  ("C-/" . helm-semantic-or-imenu)
  ("C-c x" . helm-resume)
  ("C-s" . helm-occur)
+
  ;; view the content of the both the local and global mark rings in a friendly interface,
  ;; use C-h SPC to jump back to where you were, like the 'ggtags-view-tag-history
  ("C-h C-SPC" . helm-all-mark-rings)
@@ -2660,6 +2697,7 @@ background of code to whatever theme I'm using's background"
  ;; recentf-save-file
  ;; (concat user-emacs-directory "recentf")
  recentf-max-saved-items 100
+ helm-moccur-auto-update-on-resume 'noask
  ;; recentf-max-menu-items 15
  )
 ;; Use C-S-s to search other-window, when this is used in more than 3 windows,
@@ -3227,6 +3265,9 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 (add-hook 'c-mode-common-hook #'electric-operator-mode)
 (add-hook 'org-mode-hook #'electric-operator-mode)
 (add-hook 'python-mode-hook #'electric-operator-mode)
+(add-hook 'inferior-python-mode-hook #'electric-operator-mode)
+(add-hook 'LaTeX-mode-hook #'electric-operator-mode)
+(add-hook 'plantuml-mode-hook #'electric-operator-mode)
 (electric-operator-add-rules-for-mode
  'c++-mode
  (cons "<>" "<> ")
@@ -3249,7 +3290,48 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
  (cons ";" "; ")
  (cons "?" "? ")
  (cons "." ". ")
- (cons "./" "./")
+ (cons "/" nil)	;; or change nil to "/"
+ )
+(electric-operator-add-rules-for-mode
+ 'inferior-python-mode
+ (cons "=" " = ")
+ (cons "," ", ")
+ )
+(electric-operator-add-rules-for-mode
+ 'plantuml-mode
+ (cons ":" " : ")
+ ;;
+ (cons "<->" " <-> ")
+ (cons "<->o" " <->o ")
+ (cons "->" " -> ")
+ (cons "->>" " ->> ")
+ (cons "->x" " ->x ")
+ (cons "->o" " ->o ")
+ ;;
+ ;; (cons "<-" " <- ")
+ ;; (cons "x<-" " x<- ")
+ ;; (cons "o<-" " o<- ")
+ ;;
+ (cons "-->>" " -->> ")
+ (cons "-->>" " -->> ")
+ ;; (cons "<<--" " <<-- ")
+ ;; (cons "<<--" " <<-- ")
+ ;;
+ ;; (cons "\-" " \- ")
+ ;; (cons "-\" " -\ ")
+ ;; (cons "\\--" " \\-- ")
+ (cons "--//" " --// ")
+ (cons "-/" " -/ ")
+ (cons "/-" " /- ")
+ (cons "//--" " //-- ")
+ ;; (cons "--\\" " --\\ ")
+ ;;
+ (cons "-->" " --> ")
+ (cons "-->o" " -->o ")
+ (cons "-->x" " -->x ")
+ ;; (cons "<--" " <-- ")
+ ;; (cons "x<--" " x<-- ")
+ ;; (cons "o<--" " o<-- ")
  )
 
 ;; LaTeX -- AucTex
@@ -3430,6 +3512,79 @@ window and close the *TeX help* buffer."
 (require 'vdiff)
 (bind-keys :map vdiff-mode-map
 		   ("C-c" . vdiff-mode-prefix-map))
+
+;; plantuml-mode for plantuml http://plantuml.com
+;; current version: 1.2017.14
+;; check http://ju.outofmemory.cn/entry/161799 for more info
+(require 'plantuml-mode)
+(setenv "GRAPHVIZ_DOT" "/usr/bin/dot")
+(setq plantuml-jar-path "~/.emacs.d/lisp/plantuml.jar")
+(setq org-plantuml-jar-path "~/.emacs.d/lisp/plantuml.jar")
+(add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode))
+(setq plantuml-output-type "png")
+(add-to-list
+ 'org-src-lang-modes '("plantuml" . plantuml))
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((plantuml . t)
+   ))
+;; don't ask when exporting
+(defun my-org-confirm-babel-evaluate (lang body)
+  (not (string= lang "plantuml")))
+(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+;; ;; or use the following to not ask for all eval, not just plantuml
+;; (setq org-confirm-babel-evaluate nil)
+;; put plantuml source block inside
+;; #+BEGIN_SRC plantuml :file filename.png
+;; ...
+;; #+END_SRC
+;; By default, filename is png file, but if you want it to be svg
+;; Enable the following function and change filename without extension(svg)
+;; (defun org-babel-result-to-file (result &optional description)
+;;   "If result file is svg type, convert RESULT into html file and
+;; plugin the html text in the exported file."
+;;   (when (stringp result)
+;; 	(if (string= "svg" (file-name-extension result))
+;; 		(progn
+;; 		  (with-temp-buffer
+;; 			(if (file-exists-p (concat result ".html"))
+;; 				(delete-file (concat result ".html")))
+;; 			(rename-file result (concat result ".html"))
+;; 			(insert-file-contents (concat result ".html"))
+;; 			(message (concat result ".html"))
+;; 			(format "#+BEGIN_HTML
+;; <div style=\"text-align: center;\">
+;; %s
+;; </div>
+;; #+END_HTML"
+;; 					(buffer-string)
+;; 					)))
+;; 	  (progn
+;; 		(format "[[file:%s]%s]"
+;; 				(if (and default-directory
+;; 						 buffer-file-name
+;; 						 (not (string= (expand-file-name default-directory)
+;; 									   (expand-file-name
+;; 										(file-name-directory buffer-file-name)))))
+;; 					(expand-file-name result default-directory)
+;; 				  result)
+;; 				(if description (concat "[" description "]") ""))))))
+;;
+;; call a function with prefix argument by default
+(define-key plantuml-mode-map (kbd "C-c C-c")
+  (lambda () (interactive)
+	(setq current-prefix-arg '(4))		; C-u
+	(call-interactively 'plantuml-preview)
+	))
+;; (bind-keys :map plantuml-mode-hook
+;;		   ("C-c C-v" . plantuml-preview-region)
+;;		   ;; ("C-c C-c" . (lambda () (interactive)
+;;		   ;;				  (setq current-prefix-arg '(4))		; C-u
+;;		   ;;				  (call-interactively 'plantuml-preview)
+;;		   ;;				  )
+;;		   ;;	)
+;;		   )
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
