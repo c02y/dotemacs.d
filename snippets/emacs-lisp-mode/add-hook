@@ -4,4 +4,4 @@
 # key: add-hook
 # key: ah
 # --
-(add-hook '${1:}-mode-hook '${2:FUNCTION})$0
+(add-hook '${1:}-mode-hook '${0:FUNCTION})

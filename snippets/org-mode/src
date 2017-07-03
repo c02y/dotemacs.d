@@ -2,6 +2,6 @@
 # name: src
 # key: src
 # --
-#+begin_src ${1:language}
+#+BEGIN_SRC ${1:$$(yas-choose-value '("C" "C++" "emacs-lisp" "lisp" "latex" "python" "sh" "sqlite" "css" "haskell" "js" "plantuml" "ruby" "sql" "clojure"))}
 $0
-#+end_src
+#+END_SRC

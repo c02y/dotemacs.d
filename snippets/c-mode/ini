@@ -2,5 +2,4 @@
 # name: #include <....h>
 # key: ini
 # --
-#include <$1.h>
-$0
+#include <$1.h>$0

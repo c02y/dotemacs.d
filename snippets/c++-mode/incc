@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: #include "...."
-# key: incc
-# --
-#include "$1"
-$0

@@ -3,4 +3,3 @@
 # key: inc
 # --
 #include "$1"
-$0

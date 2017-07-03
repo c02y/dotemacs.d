@@ -2,5 +2,4 @@
 # name: #include <sys/....h>
 # key: ins
 # --
-#include <sys/$1.h>
-$0
+#include <sys/$1.h>$0

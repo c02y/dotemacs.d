@@ -2,5 +2,4 @@
 # name: #include <asm/....h>
 # key: ina
 # --
-#include <asm/$1.h>
-$0
+#include <asm/$1.h>$0

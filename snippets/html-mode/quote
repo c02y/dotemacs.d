@@ -1,5 +1,7 @@
 # contributor: Jimmy Wu <frozenthrone88@gmail.com>
-# name: <q>...</q>
-# key: q
+# name: <blockquote>...</blockquote>
+# key: quote
 # --
-<q>$1</q>
+<blockquote>
+  $1
+</blockquote>

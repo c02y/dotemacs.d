@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: #include <....>
-# key: inci
-# --
-#include <$1>
-$0
