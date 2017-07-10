@@ -197,7 +197,7 @@
  ("C-c C-e" . (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
  ("C-c C-u" . (lambda () (interactive) (find-file "/run/media/chz/UDISK/WORK-HOME")))
  ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
- ;; C-h e to switch to *Message* buffer
+ ;; C-h e to switch to *Message* Buffer
  ("C-x M-z" . (lambda () (interactive) (switch-to-buffer "*scratch*"))))
 
 ;; assembly
@@ -876,7 +876,7 @@ With negative N, comment out original line and use the absolute value."
 	(when filename
 	  (kill-new filename)
 	  (message "'%s' name copied!" filename))))
-(defun copy-path ()
+(defun copy-path-short ()
   "Copy the path (using ~) of current buffer file to the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
@@ -887,7 +887,7 @@ With negative N, comment out original line and use the absolute value."
 	(when filename
 	  (kill-new filename)
 	  (message "'%s' path copied!" filename))))
-(defun copy-path-full ()
+(defun copy-path ()
   "Copy the full path of current buffer file to the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
@@ -2685,6 +2685,9 @@ background of code to whatever theme I'm using's background"
  ;; helm-find-files will prompt y/n if the file doesn't exist, find-file won't
  ("C-x C-f" . helm-find-files)
  ("C-x f" . find-file-read-only))
+;; case insensitive when using helm
+(setq helm-file-name-case-fold-search t)
+(setq helm-case-fold-search t)
 ;; create it without prompt when C-x C-f a file that doesn't exist
 (setq helm-ff-newfile-prompt-p nil)
 (with-eval-after-load 'helm-semantic
@@ -3065,29 +3068,23 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bind-key* "M-;" 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
+;; C-u C-w/M-w/C-S-w to delete/copy/cut whole buffer without moving point
 (defun current-line-empty-p ()
   (save-excursion
 	(beginning-of-line)
 	(looking-at "[[:space:]]*$")))
-(defun cut-line-or-region ()
-  "Cut current line, or text selection.
-When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
-
-URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
-Version 2015-06-10"
+(defun delete-line-or-region-or-buffer ()
+  "Delete current line, or text selection.
+When `universal-argument' is called first, delete whole buffer (respects `narrow-to-region')."
   (interactive)
   (if current-prefix-arg
-	  (progn ; not using kill-region because we don't want to include previous kill
-		(kill-new (buffer-string))
-		(delete-region (point-min) (point-max)))
+	  (delete-region (point-min) (point-max))
 	(progn (if (use-region-p)
-			   (kill-region (region-beginning) (region-end) t)
+			   (delete-region (region-beginning) (region-end))
 			 (if (current-line-empty-p)
 				 (delete-blank-lines)
-			   (kill-region (line-beginning-position) (line-end-position)))))
-	;; (delete-char 1)
-	))
-(defun copy-line-or-region ()
+			   (delete-region (line-beginning-position) (line-end-position)))))))
+(defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
 When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
@@ -3119,22 +3116,28 @@ Version 2016-06-18"
 	;; (end-of-line)
 	;; (forward-char)
 	))
-(defun delete-line-or-region ()
-  "delete current line, or text selection.
-When `universal-argument' is called first, delete whole buffer (respects `narrow-to-region')."
+(defun cut-line-or-region-or-buffer ()
+  "Cut current line, or text selection.
+When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
+
+URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
+Version 2015-06-10"
   (interactive)
   (if current-prefix-arg
-	  (delete-region (point-min) (point-max))
+	  (progn ; not using kill-region because we don't want to include previous kill
+		(kill-new (buffer-string))
+		(delete-region (point-min) (point-max)))
 	(progn (if (use-region-p)
-			   (delete-region (region-beginning) (region-end))
+			   (kill-region (region-beginning) (region-end) t)
 			 (if (current-line-empty-p)
 				 (delete-blank-lines)
-			   (delete-region (line-beginning-position) (line-end-position)))))
+			   (kill-region (line-beginning-position) (line-end-position)))))
+	;; (delete-char 1)
 	))
 (bind-keys*
- ("C-w" . delete-line-or-region)
- ("M-w" . copy-line-or-region)
- ("C-S-w" . cut-line-or-region))
+ ("C-w" . delete-line-or-region-or-buffer)
+ ("M-w" . copy-line-or-region-or-buffer)
+ ("C-S-w" . cut-line-or-region-or-buffer))
 
 ;; which-key to replace guide-key
 (which-key-mode)
