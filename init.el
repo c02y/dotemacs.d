@@ -160,6 +160,10 @@
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
 (defalias 'man 'woman)
+;; colors for man page
+(require 'man)
+(set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
+(set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t)
 ;; use man for a function inside Emacs
 (dolist (hook
 		 '(
@@ -168,10 +172,11 @@
 		   c-mode-common-hook))
   (add-hook hook
 			(lambda ()
-			  (local-set-key (kbd "C-h d")
-							 (lambda ()
-							   (interactive)
-							   (manual-entry (current-word)))))))
+			  (local-set-key
+			   (kbd "C-h d")
+			   (lambda ()
+				 (interactive)
+				 (manual-entry (current-word)))))))
 
 (setq byte-compile-warnings nil)
 (defalias 'eit 'emacs-init-time)
@@ -1979,7 +1984,7 @@ Do this after `q` in Debugger buffer."
 		("gnu" . "http://elpa.gnu.org/packages/")
 		("melpa" . "https://melpa.org/packages/")
 		("melpa-stable" . "https://stable.melpa.org/packages/")
-		("marmalade" . "https://marmalade-repo.org/packages/")
+		;; ("marmalade" . "https://marmalade-repo.org/packages/")
 		("ELPA" . "http://tromey.com/elpa/")
 		("user42" . "http://download.tuxfamily.org/user42/elpa/packages/")
 		))
@@ -2248,13 +2253,19 @@ Do this after `q` in Debugger buffer."
 ;; C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
 ;; replace the standard undo system
-(global-undo-tree-mode)
-(unbind-key "C-_" global-map)
-(unbind-key "M-_" global-map)
-(bind-keys*
- ("C-z" . undo-tree-undo)
- ("C-S-z" . undo-tree-redo)
- ("C-x u" . undo-tree-visualize))
+;; (global-undo-tree-mode)
+;; global-undo-tree-mode not working, use this temporarily
+(dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
+  (add-hook hook 'undo-tree-mode))
+(eval-after-load 'undo-tree
+  '(progn
+	 (bind-keys :map undo-tree-map
+				("C-_" . nil)
+				("M-_" . nil)
+				("C-z" . undo-tree-undo)
+				("C-S-z" . undo-tree-redo)
+				("C-x u" . undo-tree-visualize)
+				)))
 
 ;; findr
 (autoload 'findr-search "findr" "Find text in files." t)
@@ -2813,6 +2824,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;		 ))
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
+
+;; helm-flx
+;; helm-flx
+(helm-flx-mode +1)
+(setq helm-flx-for-helm-find-files t ;; t by default
+      helm-flx-for-helm-locate t) ;; nil by default
 
 ;; for large projects
 ;;(setq helm-projectile-sources-list
@@ -3599,7 +3616,7 @@ window and close the *TeX help* buffer."
   '(
 	(helm-mode . "")
 	(eldoc-mode . "")
-	(undo-tree-mode . "")
+	(undo-tree-mode . " UT")
 	(yas-minor-mode . "")
 	(company-mode . "")
 	(highlight-symbol-mode . "")
