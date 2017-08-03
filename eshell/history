@@ -1,4 +1,0 @@
-ptp
-ptpython
-rm -rf ~/.emacs.d/.emacs.desktop.lock
-rm -rf ~/.emacs.d/.emacs.desktop 
