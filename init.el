@@ -432,12 +432,13 @@ and you can reconfigure the compile args."
 				  '((top . 0) (left . 0)
 					(width . 95) (height . 48)
 					;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
-					(font . "Input Mono Compressed-14")))
+					;; (font . "Input Mono Compressed-14")))
+					(font . "PragmataPro-14")))
 		  (setq default-frame-alist
 				'((top . 0) (left . 0)
 				  (width . 85) (height . 37)
-				  (font . "Input Mono Compressed-13.5")
-				  ;; (font . "PragmataPro-13")
+				  ;; (font . "Input Mono Compressed-13.5")
+				  (font . "PragmataPro-13")
 				  ;; (:family "Menlo-Italic")
 				  )))))
   ;; the following two settings are specifically for afternoon-theme
@@ -1432,6 +1433,26 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;; (ad-activate 'shell)
 ;; always start a shell in a new window
 (setq display-buffer-alist '(("\\`\\*e?shell" display-buffer-pop-up-window)))
+;; eshell
+(defun eshell-here ()
+  "Opens up a new shell and list the files in it in new window according to the directory associated with the current buffer's file. "
+  (interactive)
+  (let* ((parent (if (buffer-file-name)
+					 (file-name-directory (buffer-file-name))
+				   default-directory))
+		 (height (/ (window-total-height) 3))
+		 (name (car (last (split-string parent "/" t)))))
+	(split-window-vertically (- height))
+	(other-window 1)
+	(eshell "new")
+	(rename-buffer (concat "*eshell: " name "*"))
+	(insert (concat "ls"))
+	(eshell-send-input)))
+(bind-keys* ("C-!" . eshell-here))
+(defun eshell/x ()
+  "x in eshell prompt to exit eshell and close the eshell window."
+  (delete-window)
+  (eshell/exit))
 
 ;; copy/paste between system/Emacs
 ;; 1. after copy Ctrl+c in Linux X11, you can C-y in emacs
@@ -2219,8 +2240,27 @@ Do this after `q` in Debugger buffer."
 						 (setq python-shell-interpreter-args "--simple-prompt -i")))
 			  (progn
 				(setq python-shell-interpreter-args "-i")
-				(setq python-shell-interpreter "python"))))
-		  )
+				(setq python-shell-interpreter "python")))
+			(defadvice run-python (after run-python-buffer activate)
+			  "Switch to *Python* buffer after C-c C-p in a python buffer."
+			  (switch-to-buffer-other-window "*Python*"))
+			))
+(defun my-python-tab-command (&optional _)
+  "If the region is active, shift to the right; otherwise, indent current line.
+Indent the line/region according to the context which is smarter than default Tab/S-Tab"
+  (interactive)
+  (if (not (region-active-p))
+	  (indent-for-tab-command)
+	(let ((lo (min (region-beginning) (region-end)))
+		  (hi (max (region-beginning) (region-end))))
+	  (goto-char lo)
+	  (beginning-of-line)
+	  (set-mark (point))
+	  (goto-char hi)
+	  (end-of-line)
+	  (python-indent-shift-right (mark) (point)))))
+(eval-after-load "python"
+  '(define-key python-mode-map [remap indent-for-tab-command] 'my-python-tab-command))
 ;; grouped default back-ends for all major mode
 ;; (with-eval-after-load 'company
 ;;	 (add-hook 'company-mode-hook
@@ -2756,7 +2796,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (require 'helm-ag)
 (bind-keys*
  ("C-h g" . helm-projectile-ag)
- ("C-h G" . helm-do-ag))
+ ("C-h G" . helm-do-ag)
+ ("M-:" . helm-eval-expression-with-eldoc))
 (bind-keys :map helm-ag-map
 		   ("C-x C-e" . helm-ag-edit))
 (setq helm-ag-fuzzy-match t
@@ -2936,15 +2977,14 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 			   (emmet-mode))))
 ;; web-mode
 ;; http://web-mode.org/
-(require 'web-mode)
-(dolist (hook '(;; css-mode-hook
+(dolist (hook '(css-mode-hook
 				html-mode-hook))
   (add-hook hook (lambda () (web-mode))))
 (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
-(bind-key "C-S-SPC" 'web-mode-mark-and-expand web-mode-map)
 (setq web-mode-enable-current-element-highlight t)
-;; rainbow-mode
-(add-hook 'css-mode-hook 'rainbow-mode)
+(add-to-list 'auto-mode-alist '("\\.\\(phtml\\|tpl\\|php\\|[agj]sp\\|erb\\|mustache\\|djhtml\\)$" . web-mode))
+(setq web-mode-enable-block-face t)
+(setq web-mode-enable-part-face t)
 
 ;; lua-mode, default 3 spaces indent, lua-indent-level in lua-mode.el
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
@@ -3315,6 +3355,7 @@ Version 2015-06-10"
 (electric-operator-add-rules-for-mode
  'inferior-python-mode
  (cons "=" " = ")
+ (cons "==" ",== ")
  (cons "," ", ")
  )
 (electric-operator-add-rules-for-mode
@@ -3605,6 +3646,14 @@ window and close the *TeX help* buffer."
 ;;		   ;;	)
 ;;		   )
 
+;; hl-tags-mode in lisp
+(require 'hl-tags-mode)
+(eval-after-load "hl-tags-mode"
+  '(progn
+	 (add-hook 'sgml-mode-hook (lambda () (hl-tags-mode 1)))
+	 (add-hook 'nxml-mode-hook (lambda () (hl-tags-mode 1)))
+	 (set-face-attribute 'hl-tags-face nil :background "DeepSkyBlue4")
+	 ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
