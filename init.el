@@ -1453,6 +1453,15 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
   "x in eshell prompt to exit eshell and close the eshell window."
   (delete-window)
   (eshell/exit))
+;;
+;; avoid the problem that, execute a command after C-l, it will scroll to the
+;; bottom of the screen, it may also solve the problem of ipython for Python
+(add-hook 'eshell-mode-hook
+          (defun chunyang-eshell-mode-setup ()
+            (remove-hook 'eshell-output-filter-functions
+                         'eshell-postoutput-scroll-to-bottom)))
+;; C-l order from (middle top bottom) to (top middle bottom)
+(setq recenter-positions '(top middle bottom))
 
 ;; copy/paste between system/Emacs
 ;; 1. after copy Ctrl+c in Linux X11, you can C-y in emacs
@@ -2012,6 +2021,8 @@ Do this after `q` in Debugger buffer."
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
 (defun package--save-selected-packages (&rest opt) nil)
+;; fix "Failed to verify signature archive-contents.sig: ..." when loading list
+(setq package-check-signature nil)
 ;; (defalias 'plp 'package-list-packages)
 ;;
 ;; spinner required by paradox
@@ -2023,6 +2034,35 @@ Do this after `q` in Debugger buffer."
   '(set-face-attribute 'paradox-mode-line-face nil :foreground "blue"))
 ;; Update the packages automatically
 ;;(when (not package-archive-contents) (package-refresh-contents))
+(defun package-menu-upgrade-this-package ()
+  "Mark current package for upgrading (i.e. also mark obsolete version for deletion.)"
+  (interactive)
+  (when-let ((upgrades (package-menu--find-upgrades))
+			 (description (tabulated-list-get-id))
+			 (name (package-desc-name description))
+			 (upgradable (cdr (assq name upgrades))))
+	;; Package is upgradable
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (not (eobp))
+		(let* ((current-description (tabulated-list-get-id))
+			   (current-name (package-desc-name current-description)))
+		  (when (equal current-name name)
+			(cond ((equal description current-description)
+				   (package-menu-mark-install)
+				   (forward-line -1))
+				  (t (package-menu-mark-delete)))))
+		(forward-line 1)))))
+;; NOTE: there are multiple filter commands in hydra-paradox-filter/body which
+;; 		   is bound to f, including c to clear the filter and back to the list
+(defun package-menu-list-marks ()
+  "Find packages marked for action in *Packages*."
+  (interactive)
+  (occur "^[A-Z]"))
+;; Cannot use bind-keys for package-menu-mode-map, weird, it will change t and m
+;; to functions instead t character when searching/typing
+(define-key package-menu-mode-map (kbd "t") #'package-menu-upgrade-this-package)
+(define-key package-menu-mode-map "m" #'package-menu-list-marks)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; plugin installed by M-x package-install
@@ -2241,6 +2281,9 @@ Do this after `q` in Debugger buffer."
 			  (progn
 				(setq python-shell-interpreter-args "-i")
 				(setq python-shell-interpreter "python")))
+			;; solve the issue that line reaches the bottom of *iPython*, point
+			;; will will in the wrong place
+			(setq comint-scroll-to-bottom-on-input t)
 			(defadvice run-python (after run-python-buffer activate)
 			  "Switch to *Python* buffer after C-c C-p in a python buffer."
 			  (switch-to-buffer-other-window "*Python*"))
@@ -2402,6 +2445,9 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; since these will also cause org.el to be loaded.
 ;; To be safe, load org files after you have set your variables.
 (require 'org-install)
+;; use mouse to do a lot of things, expand headings, follow links,
+;; toggle check-boxes, click timestamps, etc, check org-mouse.el file
+(require 'org-mouse)
 ;;(require 'org-habit)
 (require 'ob-tangle)
 (require 'org)
