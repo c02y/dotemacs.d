@@ -571,8 +571,11 @@ and you can reconfigure the compile args."
 
 (global-hl-line-mode 1)
 (set-face-attribute hl-line-face nil :underline t)
-(set-default 'cursor-type '(bar . 3))
-(setq-default cursor-in-non-selected-windows 1)
+;; make cursor the width of the character it is under i.e. full width of a TAB
+(setq x-stretch-cursor t)
+;; make cursor fixed
+;; (set-default 'cursor-type '(bar . 3))
+;; (setq-default cursor-in-non-selected-windows 1)
 
 ;; highlight the active window
 ;; flash the active window
@@ -1203,8 +1206,9 @@ Emacs by default won't treat the TAB as indent"
 (defun switch-to-minibuffer-window ()
   "switch to minibuffer window (if active)"
   (interactive)
-  (when (active-minibuffer-window)
-	(select-window (active-minibuffer-window))))
+  (if (active-minibuffer-window)
+	  (select-window (active-minibuffer-window))
+	(error "Minibuffer is not active")))
 (bind-keys*
  ("<f7>" . switch-to-minibuffer-window)
  ("C-c b" . ibuffer))
@@ -1462,6 +1466,22 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
                          'eshell-postoutput-scroll-to-bottom)))
 ;; C-l order from (middle top bottom) to (top middle bottom)
 (setq recenter-positions '(top middle bottom))
+
+;; https://github.com/atomontage/xterm-color
+;; comint install
+(require 'xterm-color)
+(progn (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
+       (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions)))
+;; comint uninstall
+(progn (remove-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
+       (add-to-list 'comint-output-filter-functions 'ansi-color-process-output))
+(add-hook 'eshell-mode-hook
+          (lambda ()
+            (setq xterm-color-preserve-properties t)))
+;; eshell-preoutput-filter-functions needs to require eshell
+(require 'eshell)
+(add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+(setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
 
 ;; copy/paste between system/Emacs
 ;; 1. after copy Ctrl+c in Linux X11, you can C-y in emacs
@@ -2059,10 +2079,9 @@ Do this after `q` in Debugger buffer."
   "Find packages marked for action in *Packages*."
   (interactive)
   (occur "^[A-Z]"))
-;; Cannot use bind-keys for package-menu-mode-map, weird, it will change t and m
-;; to functions instead t character when searching/typing
-(define-key package-menu-mode-map (kbd "t") #'package-menu-upgrade-this-package)
-(define-key package-menu-mode-map "m" #'package-menu-list-marks)
+(bind-keys :map package-menu-mode-map
+		   ("t" . package-menu-upgrade-this-package)
+		   ("m" . package-menu-list-marks))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; plugin installed by M-x package-install
@@ -2530,6 +2549,7 @@ Indent the line/region according to the context which is smarter than default Ta
 			(setq truncate-lines nil)
 			;; DO NOT end a org file with a newline, default is t(with newline)
 			(setq require-final-newline nil)
+			;; this line not work if set org-indent-mode or org-startup-indented
 			(setq org-hide-leading-stars nil)))
 ;; don not put this into hook
 (setq org-startup-indented t)
@@ -2843,7 +2863,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bind-keys*
  ("C-h g" . helm-projectile-ag)
  ("C-h G" . helm-do-ag)
- ("M-:" . helm-eval-expression-with-eldoc))
+ ;; the original M-: is still eval-expression
+ ("C-M-:" . helm-eval-expression-with-eldoc))
 (bind-keys :map helm-ag-map
 		   ("C-x C-e" . helm-ag-edit))
 (setq helm-ag-fuzzy-match t
@@ -3393,10 +3414,12 @@ Version 2015-06-10"
 (electric-operator-add-rules-for-mode
  'org-mode
  (cons "," ", ")
- (cons ";" "; ")
  (cons "?" "? ")
+ (cons ";" "; ")
  (cons "." ". ")
- (cons "/" nil)	;; or change nil to "/"
+ (cons "./" "./")
+ (cons "/." "/.")
+ (cons "/" nil) ;; or change nil to "/"
  )
 (electric-operator-add-rules-for-mode
  'inferior-python-mode
@@ -3530,6 +3553,11 @@ window and close the *TeX help* buffer."
 			(add-to-list 'TeX-command-list
 						 '("latexmk" "latexmk -pdflatex='pdflatex -file-line-error -synctex=1' -pdf %s"
 						   TeX-run-command nil t :help "Run latexmk") t)
+			;; for tex file contains Chinese font
+			(add-to-list 'TeX-command-list
+						 '("XeLaTeX" "latexmk -pdflatex='xelatex -interaction nonstopmode -shell-escape' -pdf %s"
+						   TeX-run-command nil t :help "Run xelatex") t)
+			;; (setq TeX-command-default "XeLaTeX")
 			(setq TeX-command-default "latexmk")
 			(push '("%(masterdir)" (lambda nil (file-truename (TeX-master-directory))))
 				  TeX-expand-list)
@@ -3691,6 +3719,11 @@ window and close the *TeX help* buffer."
 ;;		   ;;				  )
 ;;		   ;;	)
 ;;		   )
+
+;; flycheck-plantuml
+(with-eval-after-load 'flycheck
+  (require 'flycheck-plantuml)
+  (flycheck-plantuml-setup))
 
 ;; hl-tags-mode in lisp
 (require 'hl-tags-mode)
