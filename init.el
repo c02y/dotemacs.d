@@ -56,7 +56,7 @@
 ;; (kbd "<prior/next>") ; PageUp/Down
 ;; (kbd "<backtab") ;; S-TAB or C-iso-tab
 ;; (kbd "<S-return>")
-;; (kbd "S-C-<left>")
+;; (kbd "C-S-<left>")
 ;; (kbd "C-x <up>")
 ;; (kbd "C-{")
 ;; (kbd "C-<tab>") -- C-S-tab
@@ -86,10 +86,10 @@
 ;; C-x C-r to 'recentf-open-files
 ;; C-k to 'kill-line to the end of the line
 ;; M-k to 'kill-line to the beginning of the line
-;; S-C-<left> to 'shrink-window-horizontally
-;; S-C-<right> to 'enlarge-window-horizontally
-;; S-C-<down> to 'shrink-window
-;; S-C-<up> to 'enlarge-window
+;; C-S-<left> to 'shrink-window-horizontally
+;; C-S-<right> to 'enlarge-window-horizontally
+;; C-S-<down> to 'shrink-window
+;; C-S-<up> to 'enlarge-window
 ;; C-x c to 'emacs-lisp-byte-compile-and-load
 ;; C-c d to 'delete-trailing-whitespace
 ;; C-x C-j to 'dired-jump
@@ -295,7 +295,7 @@ and you can reconfigure the compile args."
 (require 'nlinum)
 (bind-keys*
  ("C-S-m" . menu-bar-mode)
- ("C-S-l" . nlinum-mode))
+ ("C-x M-l" . global-nlinum-mode))
 ;; scroll text up/down by one line, not cursor
 (global-set-key (kbd "C-M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "C-M-p") (kbd "C-u 1 M-v"))
@@ -304,7 +304,7 @@ and you can reconfigure the compile args."
 (setq c-backspace-function 'backward-delete-char)
 ;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
 ;; Do not use when using tramp, it will stuck tramp a little bit
-(bind-keys* ("C-S-p" .
+(bind-keys* ("C-x M-p" .
 			 (lambda ()
 			   (interactive)
 			   (if (bound-and-true-p which-function-mode)
@@ -643,8 +643,8 @@ and you can reconfigure the compile args."
   (flush-lines "^\\s-*$" start end nil))
 
 (bind-keys*
- ("C-S-a" . beginning-of-visual-line)
- ("C-S-e" .
+ ("C-x M-a" . beginning-of-visual-line)
+ ("C-x M-e" .
   (lambda ()
 	(interactive)
 	(end-of-visual-line)
@@ -718,89 +718,75 @@ If the mark is not active, try to build a region using `symbol-at-point'."
   (unless (looking-back "\\b")
 	(backward-word)))
 ;; TODO: make the following function accept arg-num
-(defun toggle-letter-case ()
+(defun xah-toggle-letter-case ()
   "Toggle the letter case of current word or text selection.
-Toggles between: “all lower”, “Init Caps”, “ALL CAPS”.
+Always cycle in this order: Init Caps, ALL CAPS, all lower.
 
-Based on the comment of http://ergoemacs.org/emacs/modernization_upcase-word.html"
+URL `http://ergoemacs.org/emacs/modernization_upcase-word.html'
+Version 2017-04-19"
   (interactive)
-  (let (p1 p2 (deactivate-mark nil) (case-fold-search nil))
-	(if (region-active-p)
-		(setq p1 (region-beginning) p2 (region-end))
-	  (let ((bds (bounds-of-thing-at-point 'word)))
-		(setq p1 (car bds) p2 (cdr bds))))
-	(when (and p1 p2)
-	  (when (not (eq last-command this-command))
-		(save-excursion
-		  (goto-char p1)
-		  (cond
-		   ((looking-at "[[:lower:]][[:lower:]]") (put this-command 'state "all lower"))
-		   ((looking-at "[[:upper:]][[:upper:]]") (put this-command 'state "all caps"))
-		   ((looking-at "[[:upper:]][[:lower:]]") (put this-command 'state "init caps"))
-		   ((looking-at "[[:lower:]]") (put this-command 'state "all lower"))
-		   ((looking-at "[[:upper:]]") (put this-command 'state "all caps"))
-		   (t (put this-command 'state "all lower")))))
-	  (cond
-	   ((string= "all lower" (get this-command 'state))
-		(upcase-initials-region p1 p2) (put this-command 'state "init caps"))
-	   ((string= "init caps" (get this-command 'state))
-		(upcase-region p1 p2) (put this-command 'state "all caps"))
-	   ((string= "all caps" (get this-command 'state))
-		(downcase-region p1 p2) (put this-command 'state "all lower"))))))
-(bind-key* "C-x M-c" 'toggle-letter-case)
+  (let (
+        (deactivate-mark nil)
+        $p1 $p2)
+    (if (use-region-p)
+        (setq $p1 (region-beginning)
+              $p2 (region-end))
+      (save-excursion
+        (skip-chars-backward "[:alnum:]-_")
+        (setq $p1 (point))
+        (skip-chars-forward "[:alnum:]-_")
+        (setq $p2 (point))))
+    (when (not (eq last-command this-command))
+      (put this-command 'state 0))
+    (cond
+     ((equal 0 (get this-command 'state))
+      (upcase-initials-region $p1 $p2)
+      (put this-command 'state 1))
+     ((equal 1  (get this-command 'state))
+      (upcase-region $p1 $p2)
+      (put this-command 'state 2))
+     ((equal 2 (get this-command 'state))
+      (downcase-region $p1 $p2)
+      (put this-command 'state 0)))))
+(bind-key* "C-x M-c" 'xah-toggle-letter-case)
 ;; automatically convert the comma/dot once downcase/upcase next character
 (defun endless/convert-punctuation (rg rp)
   "Look for regexp RG around point, and replace with RP.
 Only applies to text-mode."
   (let ((f "\\(%s\\)\\(%s\\)")
-		(space "?:[[:blank:]\n\r]*"))
-	;; We obviously don't want to do this in prog-mode.
-	(if (and (derived-mode-p 'text-mode)
-			 (or (looking-at (format f space rg))
-				 (looking-back (format f rg space))))
-		(replace-match rp nil nil nil 1))))
+        (space "?:[[:blank:]\n\r]*"))
+    ;; We obviously don't want to do this in prog-mode.
+    (if (and (derived-mode-p 'text-mode)
+             (or (looking-at (format f space rg))
+                 (looking-back (format f rg space))))
+        (replace-match rp nil nil nil 1))))
 (defun endless/capitalize ()
   "Capitalize region or word.
 Also converts commas to full stops, and kills
 extraneous space at beginning of line."
   (interactive)
-  ;; convert from head of the word
-  (unless (looking-back "\\s-")
-	(backward-word))
   (endless/convert-punctuation "," ".")
   (if (use-region-p)
-	  (call-interactively 'capitalize-region)
-	;; A single space at the start of a line:
-	(when (looking-at "^\\s-\\b")
-	  ;; get rid of it!
-	  (delete-char 1))
-	;; (call-interactively 'subword-capitalize)
-	(call-interactively 'capitalize-word))
-  (unless (eolp) (forward-char 1)))
+      (call-interactively 'capitalize-region)
+    ;; A single space at the start of a line:
+    (when (looking-at "^\\s-\\b")
+      ;; get rid of it!
+      (delete-char 1))
+    (call-interactively 'subword-capitalize)))
 (defun endless/downcase ()
   "Downcase region or word.
 Also converts full stops to commas."
   (interactive)
-  ;; convert from head of the word
-  (unless (looking-back "\\s-")
-	(backward-word))
   (endless/convert-punctuation "\\." ",")
   (if (use-region-p)
-	  (call-interactively 'downcase-region)
-	;; (call-interactively 'subword-downcase)
-	(call-interactively 'downcase-word))
-  (unless (eolp) (forward-char 1)))
+      (call-interactively 'downcase-region)
+    (call-interactively 'subword-downcase)))
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
-  ;; convert from head of the word
-  (unless (looking-back "\\s-")
-	(backward-word))
   (if (use-region-p)
-	  (call-interactively 'upcase-region)
-	;; (call-interactively 'subword-upcase)
-	(call-interactively 'upcase-word))
-  (unless (eolp) (forward-char 1)))
+      (call-interactively 'upcase-region)
+    (call-interactively 'subword-upcase)))
 (bind-keys*
  ("M-c" . endless/capitalize)
  ("M-l" . endless/downcase)
@@ -1064,7 +1050,7 @@ With argument, backward ARG lines."
  ("M-d" . delete-word)
  ("<M-backspace>" . delete-word-backward)
  ("C-k" . delete-line-to-end)
- ("C-S-k" . delete-line-backward))
+ ("C-c k" . delete-line-backward))
 
 (defun xah-fill-or-unfill ()
   "Reformat current paragraph or region to `fill-column', like `fill-paragraph' or “unfill”.
@@ -1203,7 +1189,7 @@ Emacs by default won't treat the TAB as indent"
 	(save-buffer)
 	(kill-buffer nil)))
 ;; C-x k to kill a buffer specified
-(bind-key* "C-S-q" 'kill-this-buffer)
+(bind-key* "C-x C-q" 'kill-this-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; minibuffer & buffers & dired
@@ -1564,34 +1550,27 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; resize the opened windows
 (bind-keys*
- ("S-C-<left>" . shrink-window-horizontally)
- ("S-C-<right>" . enlarge-window-horizontally)
- ("S-C-<down>" . shrink-window)
- ("S-C-<up>" . enlarge-window))
+ ("C-S-<left>" . shrink-window-horizontally)
+ ("C-S-<right>" . enlarge-window-horizontally)
+ ("C-S-<down>" . shrink-window)
+ ("C-S-<up>" . enlarge-window))
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
 ;; you can C-x 1 to close other windows and C-c <left> to restore
 ;; (winner-mode 1)
 ;; use the following functions is better
-(defun toggle-maximize-buffer ()
-  "Maximize buffer"
-  (interactive)
+(defun toggle-maximize-buffer (&optional ARG)
+  "Maximize buffer, called with C-u, maximize the other buffer.
+NOTE: when there are more than 2 windows in the frame, there is problem of 'maximize the other'"
+  (interactive "P")
   (if (= 1 (length (window-list)))
 	  (jump-to-register '_)
 	(progn
 	  (window-configuration-to-register '_)
-	  (delete-other-windows))))
-(defun toggle-maximize-other-buffer ()
-  "Maximize other buffer"
-  (interactive)
-  (if (= 1 (length (window-list)))
-	  (jump-to-register '_)
-	(progn
-	  (window-configuration-to-register '_)
-	  (delete-window))))
-(bind-keys*
- ("C-x z" . toggle-maximize-buffer)
- ("C-x C-z" . toggle-maximize-other-buffer))
+	  (if (equal ARG '(4))
+		  (delete-window)
+		(delete-other-windows)))))
+(bind-key* "C-x z" 'toggle-maximize-buffer)
 
 ;; register copy/paste
 ;; C-x r SPC/j save/jump position
@@ -1750,7 +1729,7 @@ Emacs session."
 				(cl-delete file killed-buffers-list :test #'equal))
 		  (find-file file)))
 	(error "No recently-killed files to reopen")))
-(bind-key* "C-S-t" 'reopen-killed-buffer-fancy)
+(bind-key* "C-x t" 'reopen-killed-buffer-fancy)
 
 ;; set M-x align to C-c a, or use align-regexp
 (bind-key "C-c a" 'align)
@@ -2175,7 +2154,6 @@ Do this after `q` in Debugger buffer."
 ;; hippie-expand-etx
 (autoload 'hippie-exp-ext "hippie-exp-ext" t)
 (bind-keys*
- ("C-@" . hippie-expand-dabbrev-limited-chars)
  ;; (global-set-key (kbd "M-/") 'hippie-expand-file-name) ;; from hippie-exp-ext
  ("M-/" . hippie-expand))
 (defun try-expand-by-dict (old)
@@ -2225,13 +2203,13 @@ Do this after `q` in Debugger buffer."
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
 (autoload 'multiple-cursors "multiple-cursors" t)
 (bind-keys*
- ("C-<" . mc/mark-previous-like-this)
- ("C->" . mc/mark-next-like-this)
+ ("C-c C-," . mc/mark-previous-like-this)
+ ("C-c C-." . mc/mark-next-like-this)
  ;; when the next like this is outside the current window, use M/C-v
  ;; to scroll the screen or C-' to mc-hide-unmatched-lines,
  ;; then use the following commands to unmark
- ("C-c C-," . mc/unmark-previous-like-this)
- ("C-c C-." . mc/unmark-next-like-this)
+ ("C-c M-," . mc/unmark-previous-like-this)
+ ("C-c M-." . mc/unmark-next-like-this)
  ("C-c C->" . mc/mark-all-like-this)
  ;; When you have an active region that spans multiple lines, the following will
  ;; add a cursor to each line
@@ -2260,7 +2238,7 @@ Do this after `q` in Debugger buffer."
 ;;
 ;; expand-region
 (autoload 'expand-region "expand-region" t)
-(bind-key* "C-S-SPC" 'er/expand-region)
+(bind-key* "C-c C-SPC" 'er/expand-region)
 ;; mark word->sentence->paragraph->buffer
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
@@ -2431,7 +2409,7 @@ Indent the line/region according to the context which is smarter than default Ta
 				("C-_" . nil)
 				("M-_" . nil)
 				("C-z" . undo-tree-undo)
-				("C-S-z" . undo-tree-redo)
+				("C-x C-z" . undo-tree-redo)
 				("C-x u" . undo-tree-visualize)
 				)))
 
@@ -2888,14 +2866,14 @@ background of code to whatever theme I'm using's background"
  helm-moccur-auto-update-on-resume 'noask
  ;; recentf-max-menu-items 15
  )
-;; Use C-S-s to search other-window, when this is used in more than 3 windows,
-;; it would be confused by 'other-window
 (defun helm-other-occur ()
+  "Search other-window
+NOTE: when this is used in more than 3 windows, it would be confused by 'other-window"
   (interactive)
   (save-selected-window
 	(other-window 1)
 	(helm-occur)))
-(bind-key* "C-S-s" 'helm-other-occur)
+(bind-key* "C-x M-s" 'helm-other-occur)
 (defun helm-backspace ()
   "Forward to `backward-delete-char'.
 On error (read-only), quit without selecting(showing 'Text is read only' in minibuffer)."
@@ -3260,7 +3238,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bind-key* "M-;" 'comment-dwim-2)
 (setq comment-dwim-2--inline-comment-behavior 'reindent-comment)
 
-;; C-u C-w/M-w/C-S-w to delete/copy/cut whole buffer without moving point
+;; C-u C-w/M-w/C-x w to delete/copy/cut whole buffer without moving point
 (defun current-line-empty-p ()
   (save-excursion
 	(beginning-of-line)
@@ -3280,7 +3258,6 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
 When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
-
 URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
 Version 2016-06-18"
   (interactive)
@@ -3311,7 +3288,6 @@ Version 2016-06-18"
 (defun cut-line-or-region-or-buffer ()
   "Cut current line, or text selection.
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
-
 URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
 Version 2015-06-10"
   (interactive)
@@ -3327,9 +3303,9 @@ Version 2015-06-10"
 	;; (delete-char 1)
 	))
 (bind-keys*
- ("C-w" . delete-line-or-region-or-buffer)
+ ("C-x w" . delete-line-or-region-or-buffer)
  ("M-w" . copy-line-or-region-or-buffer)
- ("C-S-w" . cut-line-or-region-or-buffer))
+ ("C-w" . cut-line-or-region-or-buffer))
 
 ;; which-key to replace guide-key
 (which-key-mode)
