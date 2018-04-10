@@ -1,3 +1,8 @@
+;; NOTE: once you move this whole Emacs configuration into a new machine
+;; you have to install auctex package in package-list-packages manually, or
+;; it will print "error: Unable to activate package ‘company-auctex’.
+;; Required package ‘auctex-11.87’ is unavailable " error message
+;;
 ;; LaTeX -- AucTex
 ;; C-c ? (or M-x TeX-doc) gives documentation for the symbol at point,
 ;; or for any package, command or document.
