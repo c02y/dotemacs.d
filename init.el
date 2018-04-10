@@ -1011,7 +1011,9 @@ Version 2016-12-18"
 			(when (equal (char-before) 10) (delete-char -1))
 			(when (equal (char-after) 10) (delete-char 1))))
 	  (progn (delete-blank-lines)))))
-(bind-key* "C-<backspace>" 'xah-shrink-whitespacess)
+;; C-backspace is different in GUI and terminal mode and
+;; unable to disable it(key or function) in terminal mode, so use something else
+(bind-key* "C-x DEL" 'xah-shrink-whitespaces)
 ;; Join the current line with the line beneath it.
 ;; M-^ is the revert
 (bind-keys* ("C-M-q" .
@@ -1511,7 +1513,7 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 	(rename-buffer (concat "*eshell: " name "*"))
 	(insert (concat "ls"))
 	(eshell-send-input)))
-(bind-keys* ("C-!" . eshell-here))
+(bind-keys* ("C-x !" . eshell-here))
 (defun eshell/x ()
   "x in eshell prompt to exit eshell and close the eshell window."
   (delete-window)
@@ -3540,6 +3542,9 @@ Version 2015-06-10"
   (company-flx-mode +1))
 
 ;; highlight-indent-guides
+;; the following line will fix error message:
+;; Error: highlight-indent-guides cannot auto set faces: `default' face is not set properly
+(setq highlight-indent-guides-auto-enabled nil)
 (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
 (setq highlight-indent-guides-method 'character)
 ;; Indent character samples: | ┆ ┊ ⁞
