@@ -401,13 +401,17 @@ and you can reconfigure the compile args."
 ;;
 ;; moe-theme, a very colorful and powerful theme
 ;; for more setting at https://github.com/kuanyui/moe-theme.el
-(require 'moe-theme)
-;; Resize titles
-(setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
-(setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
-;; disable default mode-line buffer-id highlight
-(setq moe-theme-highlight-buffer-id nil)
-(moe-dark)
+;; Put all theme configuration into the display-graphic-p block
+(if (display-graphic-p)
+	(progn
+	  (require 'moe-theme)
+	  ;; Resize titles
+	  (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
+	  (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
+	  ;; disable default mode-line buffer-id highlight
+	  (setq moe-theme-highlight-buffer-id nil)
+	  (moe-dark)))
+
 ;;
 ;; font and size of startup
 ;;
