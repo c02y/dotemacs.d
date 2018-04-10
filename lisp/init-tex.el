@@ -14,8 +14,8 @@
 ;; company-auctex
 (require 'company-auctex)
 (require 'tex-buf)
-;; (require 'auctex-latexmk)
-;; (auctex-latexmk-setup)
+(require 'auctex-latexmk)
+(auctex-latexmk-setup)
 ;;
 ;; remove fdb_latexmk file will solve the problem
 ;; of the reference number instead of question mark (?)
