@@ -429,12 +429,19 @@ and you can reconfigure the compile args."
 			  `((top . 0) (left . 0)
 				(width . ,width-chars)
 				(height . ,height-lines)))
+
+		;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
 		(if (> (x-display-pixel-width) 1500)
-			;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
-			;; (add-to-list 'default-frame-alist '(font . "PragmataPro-14"))
-			(add-to-list 'default-frame-alist '(font . "Input Mono Compressed-14"))
-		  (add-to-list 'default-frame-alist '(font . "Input Mono Compressed-13")))
-		))
+			(cond
+			 ((find-font (font-spec :name "Input Mono Compressed"))
+			  (set-frame-font "Input Mono Compresses-14"))
+			 ((find-font (font-spec :name "PragmataPro"))
+			  (set-frame-font "PragmataPro-14"))))
+		(cond
+		 ((find-font (font-spec :name "Input Mono Compressed"))
+		  (set-frame-font "Input Mono Compressed-13"))
+		 ((find-font (font-spec :name "PragmataPro"))
+		  (set-frame-font "PragmataPro-13")))))
   ;; the following two settings are specifically for afternoon-theme
   ;; the combination colors of highlighted line and comments
   ;; (custom-set-faces
