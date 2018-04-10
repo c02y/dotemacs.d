@@ -1746,6 +1746,13 @@ Emacs session."
 
 ;; set M-x align to C-c a, or use align-regexp
 (bind-key "C-c a" 'align)
+;; align-regexp with space instead tab
+(defadvice align-regexp (around align-regexp-with-spaces activate)
+  (let ((old-indent-tabs-mode indent-tabs-mode))
+	(setq indent-tabs-mode nil)
+	ad-do-it
+	(setq indent-tabs-mode old-indent-tabs-mode)))
+(defalias 'ar #'align-regexp)
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
