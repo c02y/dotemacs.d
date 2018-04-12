@@ -293,6 +293,7 @@ and you can reconfigure the compile args."
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
 (require 'nlinum)
+(global-nlinum-mode)
 (bind-keys*
  ("C-S-m" . menu-bar-mode)
  ("C-x M-l" . global-nlinum-mode))
@@ -441,9 +442,9 @@ and you can reconfigure the compile args."
 			 ((find-font (font-spec :name "Input Mono Compressed"))
 			  (set-frame-font "Input Mono Compressed-14")))
 		  (cond
-		   (((find-font (font-spec :name "PragmataPro"))
-			 (set-frame-font "PragmataPro-13"))
-			(find-font (font-spec :name "Input Mono Compressed"))
+		   ((find-font (font-spec :name "PragmataPro"))
+			(set-frame-font "PragmataPro-13"))
+		   ((find-font (font-spec :name "Input Mono Compressed"))
 			(set-frame-font "Input Mono Compressed-13"))))
 		;; the following two settings are specifically for afternoon-theme
 		;; the combination colors of highlighted line and comments
@@ -2222,13 +2223,15 @@ Do this after `q` in Debugger buffer."
 ;; watch the emacs-rocks-13-multiple-cursors.mov video
 (autoload 'multiple-cursors "multiple-cursors" t)
 (bind-keys*
- ("C-c C-," . mc/mark-previous-like-this)
- ("C-c C-." . mc/mark-next-like-this)
+ ;; C-,/. are not working in Emacs without X
+ ("C-c M-," . mc/mark-previous-like-this)
+ ("C-c M-." . mc/mark-next-like-this)
  ;; when the next like this is outside the current window, use M/C-v
  ;; to scroll the screen or C-' to mc-hide-unmatched-lines,
  ;; then use the following commands to unmark
- ("C-c M-," . mc/unmark-previous-like-this)
- ("C-c M-." . mc/unmark-next-like-this)
+ ;; M-</> is not able to be bound, so use M-S-,/., they are the same
+ ("C-c M-S-," . mc/unmark-previous-like-this)
+ ("C-c M-S-." . mc/unmark-next-like-this)
  ("C-c C->" . mc/mark-all-like-this)
  ;; When you have an active region that spans multiple lines, the following will
  ;; add a cursor to each line
@@ -3465,7 +3468,7 @@ Version 2015-06-10"
  (cons "<>" "<> ")
  (cons "<" " < ")
  (cons ">" " > ")
- ;; (cons ";" "; ")
+ (cons ";" "; ")
  (cons "++" "++")
  )
 (electric-operator-add-rules-for-mode
@@ -3473,7 +3476,7 @@ Version 2015-06-10"
  (cons "<>" "<> ")
  (cons "<" " < ")
  (cons ">" " > ")
- ;; (cons ";" "; ")
+ (cons ";" "; ")
  (cons "++" "++")
  )
 (electric-operator-add-rules-for-mode
