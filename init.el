@@ -2229,9 +2229,8 @@ Do this after `q` in Debugger buffer."
  ;; when the next like this is outside the current window, use M/C-v
  ;; to scroll the screen or C-' to mc-hide-unmatched-lines,
  ;; then use the following commands to unmark
- ;; M-</> is not able to be bound, so use M-S-,/., they are the same
- ("C-c M-S-," . mc/unmark-previous-like-this)
- ("C-c M-S-." . mc/unmark-next-like-this)
+ ("C-c M-<" . mc/unmark-previous-like-this)
+ ("C-c M->" . mc/unmark-next-like-this)
  ("C-c C->" . mc/mark-all-like-this)
  ;; When you have an active region that spans multiple lines, the following will
  ;; add a cursor to each line
