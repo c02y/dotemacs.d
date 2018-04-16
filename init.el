@@ -428,24 +428,26 @@ and you can reconfigure the compile args."
   (interactive)
   (if window-system
 	  (progn
-		(setq width-chars (/ (/ (x-display-pixel-width) (frame-char-width)) 2))
-		(setq height-lines (- (/ (x-display-pixel-height) (frame-char-height)) 3))
-		(setq default-frame-alist
-			  `((top . 0) (left . 0)
-				(width . ,width-chars)
-				(height . ,height-lines)))
+		;; Setting font size will affect frame size, so set font size first
+		;; But it still slightly affect the frame size even using this order
 		;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
 		(if (> (x-display-pixel-width) 1500)
 			(cond
 			 ((find-font (font-spec :name "PragmataPro"))
-			  (set-frame-font "PragmataPro-14"))
+			  (set-frame-font "PragmataPro-13"))
 			 ((find-font (font-spec :name "Input Mono Compressed"))
-			  (set-frame-font "Input Mono Compressed-14")))
+			  (set-frame-font "Input Mono Compressed-13")))
 		  (cond
 		   ((find-font (font-spec :name "PragmataPro"))
-			(set-frame-font "PragmataPro-13"))
+			(set-frame-font "PragmataPro-12"))
 		   ((find-font (font-spec :name "Input Mono Compressed"))
-			(set-frame-font "Input Mono Compressed-13"))))
+			(set-frame-font "Input Mono Compressed-12"))))
+		(setq width-chars (/ (/ (x-display-pixel-width) (frame-char-width)) 2))
+		(setq height-lines (- (/ (x-display-pixel-height) (frame-char-height)) 4))
+		(setq default-frame-alist
+			  `((top . 0) (left . 0)
+				(width . ,width-chars)
+				(height . ,height-lines)))
 		;; the following two settings are specifically for afternoon-theme
 		;; the combination colors of highlighted line and comments
 		;; (custom-set-faces
@@ -454,7 +456,7 @@ and you can reconfigure the compile args."
 		;;	 ))
 		;; (set-face-background 'highlight "gray30")
 		)))
-;;
+
 (set-frame-size-according-to-resolution)
 ;;
 ;; disable scroll-bar-mode in newly created frame
