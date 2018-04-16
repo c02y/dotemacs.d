@@ -2420,10 +2420,7 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; C-x u -> undo-tree-visualize
 ;; more infomation please check the doc
 ;; replace the standard undo system
-;; (global-undo-tree-mode)
-;; global-undo-tree-mode not working, use this temporarily
-(dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
-  (add-hook hook 'undo-tree-mode))
+(global-undo-tree-mode)
 (eval-after-load 'undo-tree
   '(progn
 	 (bind-keys :map undo-tree-map
@@ -2829,7 +2826,7 @@ background of code to whatever theme I'm using's background"
  ("M-x" . helm-M-x)
  ;; M-y cycles the kill ring
  ("C-x y" . helm-show-kill-ring)
- ("C-/" . helm-semantic-or-imenu)
+ ("C-x /" . helm-semantic-or-imenu)
  ("C-c x" . helm-resume)
  ("C-s" . helm-occur)
 
