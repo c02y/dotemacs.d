@@ -1204,7 +1204,7 @@ Emacs by default won't treat the TAB as indent"
 	(save-buffer)
 	(kill-buffer nil)))
 ;; C-x k to kill a buffer specified
-(bind-key* "C-x C-q" 'kill-this-buffer)
+(bind-key* "C-c q" 'kill-this-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;; minibuffer & buffers & dired
