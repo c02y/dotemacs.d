@@ -293,7 +293,7 @@ and you can reconfigure the compile args."
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
 (require 'nlinum)
-(global-nlinum-mode)
+;; (global-nlinum-mode)
 (bind-keys*
  ("C-S-m" . menu-bar-mode)
  ("C-x M-l" . global-nlinum-mode))
@@ -434,9 +434,9 @@ and you can reconfigure the compile args."
 		(if (> (x-display-pixel-width) 1500)
 			(cond
 			 ((find-font (font-spec :name "PragmataPro"))
-			  (set-frame-font "PragmataPro-13"))
+			  (set-frame-font "PragmataPro-13.5"))
 			 ((find-font (font-spec :name "Input Mono Compressed"))
-			  (set-frame-font "Input Mono Compressed-13")))
+			  (set-frame-font "Input Mono Compressed-13.5")))
 		  (cond
 		   ((find-font (font-spec :name "PragmataPro"))
 			(set-frame-font "PragmataPro-12"))
@@ -451,7 +451,7 @@ and you can reconfigure the compile args."
 		;; the following two settings are specifically for afternoon-theme
 		;; the combination colors of highlighted line and comments
 		;; (custom-set-faces
-		;;  '(font-lock-comment-face
+		;;	'(font-lock-comment-face
 		;;	 ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
 		;;	 ))
 		;; (set-face-background 'highlight "gray30")
@@ -739,40 +739,40 @@ URL `http://ergoemacs.org/emacs/modernization_upcase-word.html'
 Version 2017-04-19"
   (interactive)
   (let (
-        (deactivate-mark nil)
-        $p1 $p2)
-    (if (use-region-p)
-        (setq $p1 (region-beginning)
-              $p2 (region-end))
-      (save-excursion
-        (skip-chars-backward "[:alnum:]-_")
-        (setq $p1 (point))
-        (skip-chars-forward "[:alnum:]-_")
-        (setq $p2 (point))))
-    (when (not (eq last-command this-command))
-      (put this-command 'state 0))
-    (cond
-     ((equal 0 (get this-command 'state))
-      (upcase-initials-region $p1 $p2)
-      (put this-command 'state 1))
-     ((equal 1  (get this-command 'state))
-      (upcase-region $p1 $p2)
-      (put this-command 'state 2))
-     ((equal 2 (get this-command 'state))
-      (downcase-region $p1 $p2)
-      (put this-command 'state 0)))))
+		(deactivate-mark nil)
+		$p1 $p2)
+	(if (use-region-p)
+		(setq $p1 (region-beginning)
+			  $p2 (region-end))
+	  (save-excursion
+		(skip-chars-backward "[:alnum:]-_")
+		(setq $p1 (point))
+		(skip-chars-forward "[:alnum:]-_")
+		(setq $p2 (point))))
+	(when (not (eq last-command this-command))
+	  (put this-command 'state 0))
+	(cond
+	 ((equal 0 (get this-command 'state))
+	  (upcase-initials-region $p1 $p2)
+	  (put this-command 'state 1))
+	 ((equal 1	(get this-command 'state))
+	  (upcase-region $p1 $p2)
+	  (put this-command 'state 2))
+	 ((equal 2 (get this-command 'state))
+	  (downcase-region $p1 $p2)
+	  (put this-command 'state 0)))))
 (bind-key* "C-x M-c" 'xah-toggle-letter-case)
 ;; automatically convert the comma/dot once downcase/upcase next character
 (defun endless/convert-punctuation (rg rp)
   "Look for regexp RG around point, and replace with RP.
 Only applies to text-mode."
   (let ((f "\\(%s\\)\\(%s\\)")
-        (space "?:[[:blank:]\n\r]*"))
-    ;; We obviously don't want to do this in prog-mode.
-    (if (and (derived-mode-p 'text-mode)
-             (or (looking-at (format f space rg))
-                 (looking-back (format f rg space))))
-        (replace-match rp nil nil nil 1))))
+		(space "?:[[:blank:]\n\r]*"))
+	;; We obviously don't want to do this in prog-mode.
+	(if (and (derived-mode-p 'org-mode)
+			 (or (looking-at (format f space rg))
+				 (looking-back (format f rg space))))
+		(replace-match rp nil nil nil 1))))
 (defun endless/capitalize ()
   "Capitalize region or word.
 Also converts commas to full stops, and kills
@@ -780,26 +780,26 @@ extraneous space at beginning of line."
   (interactive)
   (endless/convert-punctuation "," ".")
   (if (use-region-p)
-      (call-interactively 'capitalize-region)
-    ;; A single space at the start of a line:
-    (when (looking-at "^\\s-\\b")
-      ;; get rid of it!
-      (delete-char 1))
-    (call-interactively 'subword-capitalize)))
+	  (call-interactively 'capitalize-region)
+	;; A single space at the start of a line:
+	(when (looking-at "^\\s-\\b")
+	  ;; get rid of it!
+	  (delete-char 1))
+	(call-interactively 'subword-capitalize)))
 (defun endless/downcase ()
   "Downcase region or word.
 Also converts full stops to commas."
   (interactive)
   (endless/convert-punctuation "\\." ",")
   (if (use-region-p)
-      (call-interactively 'downcase-region)
-    (call-interactively 'subword-downcase)))
+	  (call-interactively 'downcase-region)
+	(call-interactively 'subword-downcase)))
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
   (if (use-region-p)
-      (call-interactively 'upcase-region)
-    (call-interactively 'subword-upcase)))
+	  (call-interactively 'upcase-region)
+	(call-interactively 'subword-upcase)))
 (bind-keys*
  ("M-c" . endless/capitalize)
  ("M-l" . endless/downcase)
@@ -906,14 +906,14 @@ With negative N, comment out original line and use the absolute value."
   "Copy the html of according to the current buffer, this is useful when exporting org file to html."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
-  					  default-directory
-  					(buffer-file-name))))
-  	(if filename
-  		(progn
-  		  (kill-new filename)
-  		  (message "'%s' path copied!" filename))
+					  default-directory
+					(buffer-file-name))))
+	(if filename
+		(progn
+		  (kill-new filename)
+		  (message "'%s' path copied!" filename))
 	  ;; print error message and exit/return the function
-  	  (user-error "Current buffer is not a file in disk!" "exit")))
+	  (user-error "Current buffer is not a file in disk!" "exit")))
   (let ((html-file (concat (file-name-sans-extension (buffer-file-name)) ".html")))
 	(if (file-exists-p html-file)
 		(progn
@@ -924,14 +924,14 @@ With negative N, comment out original line and use the absolute value."
   "Copy the pdf of according to the current buffer, this is useful when exporting org file to html."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
-  					  default-directory
-  					(buffer-file-name))))
-  	(if filename
-  		(progn
-  		  (kill-new filename)
-  		  (message "'%s' path copied!" filename))
+					  default-directory
+					(buffer-file-name))))
+	(if filename
+		(progn
+		  (kill-new filename)
+		  (message "'%s' path copied!" filename))
 	  ;; print error message and exit/return the function
-  	  (user-error "Current buffer is not a file in disk!" "exit")))
+	  (user-error "Current buffer is not a file in disk!" "exit")))
   (let ((pdf-file (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
 	(if (file-exists-p pdf-file)
 		(progn
@@ -1177,18 +1177,18 @@ Emacs by default won't treat the TAB as indent"
   "Renames current buffer and file it is visiting."
   (interactive)
   (let ((name (buffer-name))
-        (filename (buffer-file-name)))
-    (if (not (and filename (file-exists-p filename)))
-        (error "Buffer '%s' is not visiting a file!" name)
-      (let ((new-name (read-file-name "New name: " filename)))
-        (cond ((get-buffer new-name)
-               (error "A buffer named '%s' already exists!" new-name))
-              (t
-               (rename-file filename new-name 1)
-               (rename-buffer new-name)
-               (set-visited-file-name new-name)
-               (set-buffer-modified-p nil)
-               (message "File '%s' successfully renamed to '%s'" name
+		(filename (buffer-file-name)))
+	(if (not (and filename (file-exists-p filename)))
+		(error "Buffer '%s' is not visiting a file!" name)
+	  (let ((new-name (read-file-name "New name: " filename)))
+		(cond ((get-buffer new-name)
+			   (error "A buffer named '%s' already exists!" new-name))
+			  (t
+			   (rename-file filename new-name 1)
+			   (rename-buffer new-name)
+			   (set-visited-file-name new-name)
+			   (set-buffer-modified-p nil)
+			   (message "File '%s' successfully renamed to '%s'" name
 						(file-name-nondirectory new-name))))))))
 (bind-keys* ("C-x C-w" . rename-this-buffer-and-file))
 
@@ -1524,9 +1524,9 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;; avoid the problem that, execute a command after C-l, it will scroll to the
 ;; bottom of the screen, it may also solve the problem of ipython for Python
 (add-hook 'eshell-mode-hook
-          (defun chunyang-eshell-mode-setup ()
-            (remove-hook 'eshell-output-filter-functions
-                         'eshell-postoutput-scroll-to-bottom)))
+		  (defun chunyang-eshell-mode-setup ()
+			(remove-hook 'eshell-output-filter-functions
+						 'eshell-postoutput-scroll-to-bottom)))
 ;; C-l order from (middle top bottom) to (top middle bottom)
 (setq recenter-positions '(top middle bottom))
 
@@ -1534,13 +1534,13 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;; comint install
 (require 'xterm-color)
 (progn (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
-       (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions)))
+	   (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions)))
 ;; comint uninstall
 (progn (remove-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
-       (add-to-list 'comint-output-filter-functions 'ansi-color-process-output))
+	   (add-to-list 'comint-output-filter-functions 'ansi-color-process-output))
 (add-hook 'eshell-mode-hook
-          (lambda ()
-            (setq xterm-color-preserve-properties t)))
+		  (lambda ()
+			(setq xterm-color-preserve-properties t)))
 ;; eshell-preoutput-filter-functions needs to require eshell
 (require 'eshell)
 (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
@@ -2140,7 +2140,7 @@ Do this after `q` in Debugger buffer."
 				  (t (package-menu-mark-delete)))))
 		(forward-line 1)))))
 ;; NOTE: there are multiple filter commands in hydra-paradox-filter/body which
-;; 		   is bound to f, including c to clear the filter and back to the list
+;;		   is bound to f, including c to clear the filter and back to the list
 (defun package-menu-list-marks ()
   "Find packages marked for action in *Packages*."
   (interactive)
@@ -3003,7 +3003,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; helm-flx
 (helm-flx-mode +1)
 (setq helm-flx-for-helm-find-files t ;; t by default
-      helm-flx-for-helm-locate t) ;; nil by default
+	  helm-flx-for-helm-locate t) ;; nil by default
 
 ;; for large projects
 ;;(setq helm-projectile-sources-list
@@ -3483,7 +3483,13 @@ Version 2015-06-10"
  (cons "?" "? ")
  (cons ";" "; ")
  (cons "." ". ")
- (cons "./" "./")
+ (cons ".c" ".c ")
+ (cons ".cpp" ".cpp ")
+ (cons ".org" ".org ")
+ (cons ".md" ".md ")
+ (cons ".el" ".el ")
+ (cons ".py" ".py ")
+ (cons "./" " ./")
  (cons "/." "/.")
  (cons "/" nil) ;; or change nil to "/"
  )
@@ -3595,34 +3601,34 @@ Version 2015-06-10"
 ;; By default, filename is png file, but if you want it to be svg
 ;; Enable the following function and change filename without extension(svg)
 ;; (defun org-babel-result-to-file (result &optional description)
-;;   "If result file is svg type, convert RESULT into html file and
+;;	 "If result file is svg type, convert RESULT into html file and
 ;; plugin the html text in the exported file."
-;;   (when (stringp result)
-;; 	(if (string= "svg" (file-name-extension result))
-;; 		(progn
-;; 		  (with-temp-buffer
-;; 			(if (file-exists-p (concat result ".html"))
-;; 				(delete-file (concat result ".html")))
-;; 			(rename-file result (concat result ".html"))
-;; 			(insert-file-contents (concat result ".html"))
-;; 			(message (concat result ".html"))
-;; 			(format "#+BEGIN_HTML
+;;	 (when (stringp result)
+;;	(if (string= "svg" (file-name-extension result))
+;;		(progn
+;;		  (with-temp-buffer
+;;			(if (file-exists-p (concat result ".html"))
+;;				(delete-file (concat result ".html")))
+;;			(rename-file result (concat result ".html"))
+;;			(insert-file-contents (concat result ".html"))
+;;			(message (concat result ".html"))
+;;			(format "#+BEGIN_HTML
 ;; <div style=\"text-align: center;\">
 ;; %s
 ;; </div>
 ;; #+END_HTML"
-;; 					(buffer-string)
-;; 					)))
-;; 	  (progn
-;; 		(format "[[file:%s]%s]"
-;; 				(if (and default-directory
-;; 						 buffer-file-name
-;; 						 (not (string= (expand-file-name default-directory)
-;; 									   (expand-file-name
-;; 										(file-name-directory buffer-file-name)))))
-;; 					(expand-file-name result default-directory)
-;; 				  result)
-;; 				(if description (concat "[" description "]") ""))))))
+;;					(buffer-string)
+;;					)))
+;;	  (progn
+;;		(format "[[file:%s]%s]"
+;;				(if (and default-directory
+;;						 buffer-file-name
+;;						 (not (string= (expand-file-name default-directory)
+;;									   (expand-file-name
+;;										(file-name-directory buffer-file-name)))))
+;;					(expand-file-name result default-directory)
+;;				  result)
+;;				(if description (concat "[" description "]") ""))))))
 ;;
 ;; call a function with prefix argument by default
 (define-key plantuml-mode-map (kbd "C-c C-c")
