@@ -200,7 +200,6 @@
 		   ("C-c c" . eval-buffer))
 (bind-keys*
  ("C-c C-e" . (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
- ("C-c C-u" . (lambda () (interactive) (find-file "/run/media/chz/UDISK/WORK-HOME")))
  ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
  ;; C-h e to switch to *Message* Buffer
  ("C-x M-z" . (lambda () (interactive) (switch-to-buffer "*scratch*"))))
@@ -1585,7 +1584,7 @@ NOTE: when there are more than 2 windows in the frame, there is problem of 'maxi
 	  (if (equal ARG '(4))
 		  (delete-window)
 		(delete-other-windows)))))
-(bind-key* "C-x z" 'toggle-maximize-buffer)
+(bind-key* "C-x C-z" 'toggle-maximize-buffer)
 
 ;; register copy/paste
 ;; C-x r SPC/j save/jump position
@@ -2429,7 +2428,7 @@ Indent the line/region according to the context which is smarter than default Ta
 				("C-_" . nil)
 				("M-_" . nil)
 				("C-z" . undo-tree-undo)
-				("C-x C-z" . undo-tree-redo)
+				("C-M-z" . undo-tree-redo)
 				("C-x u" . undo-tree-visualize)
 				)))
 
@@ -3396,9 +3395,6 @@ Version 2015-06-10"
 
 ;; racket
 (add-to-list 'auto-mode-alist '("\\.rkt\\'" . racket-mode))
-
-;; zeal-at-point
-(bind-key* "C-c z" 'zeal-at-point)
 
 ;; smartparens
 ;; M-x customize-group smartparens
