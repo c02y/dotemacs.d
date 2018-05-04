@@ -1573,7 +1573,7 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;; you can C-x 1 to close other windows and C-c <left> to restore
 ;; (winner-mode 1)
 ;; use the following functions is better
-(defun toggle-maximize-buffer (&optional ARG)
+(defun toggle-maximize-buffer (arg)
   "Maximize buffer, called with C-u, maximize the other buffer.
 NOTE: when there are more than 2 windows in the frame, there is problem of 'maximize the other'"
   (interactive "P")
@@ -1581,7 +1581,7 @@ NOTE: when there are more than 2 windows in the frame, there is problem of 'maxi
 	  (jump-to-register '_)
 	(progn
 	  (window-configuration-to-register '_)
-	  (if (equal ARG '(4))
+	  (if current-prefix-arg
 		  (delete-window)
 		(delete-other-windows)))))
 (bind-key* "C-x C-z" 'toggle-maximize-buffer)
@@ -2869,7 +2869,6 @@ background of code to whatever theme I'm using's background"
  ("C-x f" . find-file-read-only))
 ;; case insensitive when using helm
 (setq helm-file-name-case-fold-search t)
-(setq helm-case-fold-search t)
 ;; create it without prompt when C-x C-f a file that doesn't exist
 (setq helm-ff-newfile-prompt-p nil)
 (with-eval-after-load 'helm-semantic
