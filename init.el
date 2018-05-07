@@ -2823,6 +2823,11 @@ background of code to whatever theme I'm using's background"
 ;; make TAB to complete the existence
 (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
 (helm-mode 1)
+;; use <right> to search the whole word when using helm-occur
+(defun helm-occur-insert-symbol-regexp ()
+  (interactive)
+  (helm-set-pattern (concat "\\_<" helm-input "\\_>")))
+(define-key helm-moccur-map (kbd "<right>") 'helm-occur-insert-symbol-regexp)
 (bind-keys*
  ("M-x" . helm-M-x)
  ;; M-y cycles the kill ring
