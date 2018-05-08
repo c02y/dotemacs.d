@@ -131,6 +131,9 @@
 
 ;; encode, the last line will be the highest priority
 (set-language-environment 'UTF-8)
+;; this the current file is not utf-8, when saving it, it will prompt to select
+;; the coding system, use this following line to choose utf-8 always
+(setq coding-system-for-write 'utf-8)
 (setq-default path-coding-system 'utf-8)
 (setq file-name-coding-system 'utf-8)
 (prefer-coding-system 'cp950)
