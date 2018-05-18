@@ -3220,15 +3220,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (add-hook 'org-mode-hook
 		  (lambda() (set (make-local-variable 'drag-stuff-mode) nil)))
 
-;; transpose
-(bind-keys* :prefix-map global-map
-			:prefix "M-t"
-			("w" . transpose-words)
-			("l" . transpose-lines)
-			("s" . transpose-sexps)
-			("t" . anchored-transpose))
-(autoload 'anchored-transpose "anchored-transpose" nil t)
-
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
 ;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
