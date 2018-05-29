@@ -292,6 +292,7 @@ and you can reconfigure the compile args."
 (set-fringe-bitmap-face 'tilde nil)
 (set-fringe-mode '(8 . 0))
 (tool-bar-mode 0)
+(xterm-mouse-mode 1) ;; enable mouse in terminal Emacs
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
 (require 'nlinum)
