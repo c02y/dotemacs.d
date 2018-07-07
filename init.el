@@ -804,9 +804,9 @@ Also converts full stops to commas."
 	  (call-interactively 'upcase-region)
 	(call-interactively 'subword-upcase)))
 (bind-keys*
- ("M-c" . endless/capitalize)
- ("M-l" . endless/downcase)
- ("M-u" . endless/upcase))
+ ("M-S-c" . endless/capitalize)
+ ("M-S-l" . endless/downcase)
+ ("M-S-u" . endless/upcase))
 
 ;; use M-x list-processes then d to delete
 (defalias 'lps 'list-processes)
@@ -1485,11 +1485,11 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; http://ergoemacs.org/emacs/emacs_shell_vs_term_vs_ansi-term_vs_eshell.html
-(bind-keys ("C-x s" .
-			(lambda ()
-			  (interactive)
-			  (split-window-below)
-			  (shell))))
+;; (bind-keys ("C-x s" .
+;; 			(lambda ()
+;; 			  (interactive)
+;; 			  (split-window-below)
+;; 			  (shell))))
 ;; shell will prompt if you try to kill the buffer, but eshell will not.  eshell
 ;; will not use the .bashrc/.fishrc, but shell will makes shell command always
 ;; start a new shell, use C-u M-x eshell to create a new eshell,
@@ -1752,12 +1752,13 @@ Emacs session."
 ;; set M-x align to C-c a, or use align-regexp
 (bind-key "C-c a" 'align)
 ;; align-regexp with space instead tab
-(defadvice align-regexp (around align-regexp-with-spaces activate)
-  (let ((old-indent-tabs-mode indent-tabs-mode))
-	(setq indent-tabs-mode nil)
-	ad-do-it
-	(setq indent-tabs-mode old-indent-tabs-mode)))
 (defalias 'ar #'align-regexp)
+(defadvice align-regexp (around align-regexp-with-spaces activate)
+  (let ((indent-tabs-mode nil))
+    ad-do-it))
+(defadvice align (around align-with-spaces activate)
+  (let ((indent-tabs-mode nil))
+    ad-do-it))
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
@@ -2956,7 +2957,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 
 ;; helm-swoop
 (require 'helm-swoop)
-(bind-key "C-c s" 'helm-swoop)
+(bind-key "C-x s" 'helm-swoop)
 ;; speed(nil) or text color(t)
 (setq helm-swoop-speed-or-color t)
 ;; If this value is t, split window inside the current window
@@ -3560,8 +3561,9 @@ Version 2015-06-10"
 
 ;; dumb-jump
 (bind-keys*
- ("C-h C-g" . dumb-jump-go-other-window)
- ("C-h C-g" . dumb-jump-back))
+ ("C-c C-b g" . dumb-jump)
+ ("C-c C-b G" . dumb-jump-go-other-window)
+ ("C-c C-b u" . dumb-jump-back))
 
 ;; vdiff
 (require 'vdiff)
