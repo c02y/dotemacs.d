@@ -1749,16 +1749,34 @@ Emacs session."
 	(error "No recently-killed files to reopen")))
 (bind-key* "C-x t" 'reopen-killed-buffer-fancy)
 
-;; set M-x align to C-c a, or use align-regexp
-(bind-key "C-c a" 'align)
 ;; align-regexp with space instead tab
-(defalias 'ar #'align-regexp)
 (defadvice align-regexp (around align-regexp-with-spaces activate)
   (let ((indent-tabs-mode nil))
     ad-do-it))
+(defalias 'ar #'align-regexp)
 (defadvice align (around align-with-spaces activate)
   (let ((indent-tabs-mode nil))
     ad-do-it))
+(defun align-c-comments (beginning end)
+  "Align instances of // or /* */ within marked region."
+  (interactive "*r")
+  (let (indent-tabs-mode align-to-tab-stop)
+    (align-regexp beginning end "\\(\\s-*\\)[//|/*]")))
+(defun align-c-macros (beginning end)
+  "Align macros within marked region"
+  (interactive "*r")
+  (progn
+    (align beginning end)
+    (untabify beginning end)))
+(require 'cc-mode)                                              ;; c-mode-map
+(dolist (m (list c-mode-map c++-mode-map))
+  (bind-keys :map m
+			 :prefix-map align-prefix-map
+			 :prefix "C-c a"
+			 ("a" . align)
+			 ("r" . align-regexp)
+			 ("c" . align-c-comments)
+			 ("m" . align-c-macros)))
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
