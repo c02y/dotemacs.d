@@ -1486,10 +1486,10 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;;
 ;; http://ergoemacs.org/emacs/emacs_shell_vs_term_vs_ansi-term_vs_eshell.html
 ;; (bind-keys ("C-x s" .
-;; 			(lambda ()
-;; 			  (interactive)
-;; 			  (split-window-below)
-;; 			  (shell))))
+;;				(lambda ()
+;;				  (interactive)
+;;				  (split-window-below)
+;;				  (shell))))
 ;; shell will prompt if you try to kill the buffer, but eshell will not.  eshell
 ;; will not use the .bashrc/.fishrc, but shell will makes shell command always
 ;; start a new shell, use C-u M-x eshell to create a new eshell,
@@ -1752,23 +1752,23 @@ Emacs session."
 ;; align-regexp with space instead tab
 (defadvice align-regexp (around align-regexp-with-spaces activate)
   (let ((indent-tabs-mode nil))
-    ad-do-it))
+	ad-do-it))
 (defalias 'ar #'align-regexp)
 (defadvice align (around align-with-spaces activate)
   (let ((indent-tabs-mode nil))
-    ad-do-it))
+	ad-do-it))
 (defun align-c-comments (beginning end)
   "Align instances of // or /* */ within marked region."
   (interactive "*r")
   (let (indent-tabs-mode align-to-tab-stop)
-    (align-regexp beginning end "\\(\\s-*\\)[//|/*]")))
+	(align-regexp beginning end "\\(\\s-*\\)[//|/*]")))
 (defun align-c-macros (beginning end)
   "Align macros within marked region"
   (interactive "*r")
   (progn
-    (align beginning end)
-    (untabify beginning end)))
-(require 'cc-mode)                                              ;; c-mode-map
+	(align beginning end)
+	(untabify beginning end)))
+(require 'cc-mode)												;; c-mode-map
 (dolist (m (list c-mode-map c++-mode-map))
   (bind-keys :map m
 			 :prefix-map align-prefix-map
@@ -3000,6 +3000,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
   (interactive)
   (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-previous-line))
 (bind-keys :map helm-swoop-map
+		   ("C-x e" . helm-swoop-edit) ;; since builtin C-c C-e is already used
 		   ("C-s" . my-helm-swoop-next-line-with-string-at-point-if-needed)
 		   ("C-r" . my-helm-swoop-prev-line-with-string-at-point-if-needed))
 
@@ -3260,11 +3261,11 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 			(rebox-mode 1)))
 (add-hook 'c-mode-hook
 		  (lambda ()
-			(set (make-local-variable 'rebox-style-loop) '(243 241 111))
+			(set (make-local-variable 'rebox-style-loop) '(241 243 111))
 			(rebox-mode 1)))
 (add-hook 'c++-mode-hook
 		  (lambda ()
-			(set (make-local-variable 'rebox-style-loop) '(25 21 111))
+			(set (make-local-variable 'rebox-style-loop) '(21 23 111))
 			(rebox-mode 1)))
 (unbind-key "<S-return>" rebox-mode-map)
 (unbind-key "M-w" rebox-mode-map)
@@ -3288,9 +3289,11 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 	  (delete-region (point-min) (point-max))
 	(progn (if (use-region-p)
 			   (delete-region (region-beginning) (region-end))
-			 (if (current-line-empty-p)
-				 (delete-blank-lines)
-			   (delete-region (line-beginning-position) (line-end-position)))))))
+			 (progn
+			   (if (current-line-empty-p)
+				   (delete-blank-lines)
+				 (delete-region (line-beginning-position) (line-end-position)))
+			   (delete-char 1))))))
 (defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
@@ -3334,11 +3337,11 @@ Version 2015-06-10"
 		(delete-region (point-min) (point-max)))
 	(progn (if (use-region-p)
 			   (kill-region (region-beginning) (region-end) t)
-			 (if (current-line-empty-p)
-				 (delete-blank-lines)
-			   (kill-region (line-beginning-position) (line-end-position)))))
-	;; (delete-char 1)
-	))
+			 (progn
+			   (if (current-line-empty-p)
+				   (delete-blank-lines)
+				 (kill-region (line-beginning-position) (line-end-position)))
+			   (delete-char 1))))))
 (bind-keys*
  ("C-x w" . delete-line-or-region-or-buffer)
  ("M-w" . copy-line-or-region-or-buffer)
