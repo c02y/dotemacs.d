@@ -3292,8 +3292,9 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 			 (progn
 			   (if (current-line-empty-p)
 				   (delete-blank-lines)
-				 (delete-region (line-beginning-position) (line-end-position)))
-			   (delete-char 1))))))
+				 (progn
+				   (kill-region (line-beginning-position) (line-end-position))
+				   (delete-char 1))))))))
 (defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
@@ -3340,8 +3341,9 @@ Version 2015-06-10"
 			 (progn
 			   (if (current-line-empty-p)
 				   (delete-blank-lines)
-				 (kill-region (line-beginning-position) (line-end-position)))
-			   (delete-char 1))))))
+				 (progn
+				   (kill-region (line-beginning-position) (line-end-position))
+				   (delete-char 1))))))))
 (bind-keys*
  ("C-x w" . delete-line-or-region-or-buffer)
  ("M-w" . copy-line-or-region-or-buffer)
