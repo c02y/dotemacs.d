@@ -2240,25 +2240,27 @@ Do this after `q` in Debugger buffer."
 		try-complete-lisp-symbol
 		try-expand-by-dict))
 
-;; multiple-cursors
-;; How to add string at the beginning of multiple lines
-;; 1. mark M-x replace-regexp ^ RET string RET
-;; 2. mark C-x r t string
-;; watch the emacs-rocks-13-multiple-cursors.mov video
 (autoload 'multiple-cursors "multiple-cursors" t)
-(bind-keys*
- ;; C-,/. are not working in Emacs without X
- ("C-c M-," . mc/mark-previous-like-this)
- ("C-c M-." . mc/mark-next-like-this)
- ;; when the next like this is outside the current window, use M/C-v
- ;; to scroll the screen or C-' to mc-hide-unmatched-lines,
- ;; then use the following commands to unmark
- ("C-c M-<" . mc/unmark-previous-like-this)
- ("C-c M->" . mc/unmark-next-like-this)
- ("C-c C->" . mc/mark-all-like-this)
- ;; When you have an active region that spans multiple lines, the following will
- ;; add a cursor to each line
- ("C-S-c C-S-c" . mc/edit-lines))
+(defhydra multiple-cursors-hydra (:hint nil)
+  "
+     ^Up^            ^Down^        ^Other^
+----------------------------------------------
+[_p_]   Next        [_n_]   Next      [_l_] Edit lines
+[_P_]   Skip_P      [_N_]   Skip_N    [_a_] Mark all
+[_M-p_] Unmark_P    [_M-n_] Unmark_N  [_r_] Mark by regexp
+^ ^             ^ ^                   [_q_] Quit
+"
+  ("l" mc/edit-lines :exit t)
+  ("a" mc/mark-all-like-this :exit t)
+  ("n" mc/mark-next-like-this)
+  ("N" mc/skip-to-next-like-this)
+  ("M-n" mc/unmark-next-like-this)
+  ("p" mc/mark-previous-like-this)
+  ("P" mc/skip-to-previous-like-this)
+  ("M-p" mc/unmark-previous-like-this)
+  ("r" mc/mark-all-in-region-regexp :exit t)
+  ("q" nil))
+(defalias 'mch 'multiple-cursors-hydra/body)
 
 ;; avy to replace ace-jump-mode
 (bind-keys*
@@ -2482,46 +2484,75 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; markdown-mode+
 (autoload 'markdown-mode+ "markdown-mode+" t)
 
-;; xcscope -- requird by ascope
-
-;; ascope
-;; Usage: in Emacs, use M-x cscope-index-files or in terminal, `cscope-index -r -v` to cr
-;; Almost all the features are provided by xcscope(cscope-* commands), ascope is
-;; extension to xcscope, it allow cscope to keep the history of jumping in one
-;; *cscope* buffer and M-n/p commands
-;; In *cscope* buffer:
-;; M-n/p to navigate between the found files,
-;; n/p 'ascope-next/prev-symbol between the results(sometimes multiple positions
-;; in one file)
-;; " "(blank) 'ascope-show-entry-other-window, show the result in other buffer
-;; but keep point
-;; RET 'ascope-select-entry-other-window-delete-window, but jump into result
-;; C-c s u 'cscope-pop-mark to go back
-(add-hook 'c-mode-common-hook
-		  (lambda ()
-			;; defined in xcscope
-			(cscope-minor-mode)))
+(require 'xcscope)
+(cscope-setup)
+(setq cscope-option-use-inverted-index t)
 (defadvice cscope-bury-buffer (after cscope-bury-buffer activate)
   "Kill the *cscope* window after hitting q or Q instead of leaving it open."
   (delete-window))
+(defun cscope-create-database (top-directory)
+  "Create cscope* files in one step containing, do this before using cscope:
+1. C-c s L
+2. C-c s I
+3. C-c s a
+"
+  (interactive "DCreate cscope* database files in directory: ")
+  (progn
+    (cscope-create-list-of-files-to-index top-directory)
+    (cscope-index-files top-directory)
+    (setq cscope-initial-directory top-directory)
+    (sit-for 2)
+    (delete-windows-on "*cscope-indexing-buffer*")
+    (kill-buffer "*cscope-indexing-buffer*")
+    ))
+(bind-keys*
+ ("C-c s r" . cscope-create-database))
 
-;; ggtags
-;; ggtags supports jump/navigation
-;; cedet supports highlighting, project, smart jump, context-sensitive
-;; completion, symbol references, code generation...
-;; ggtags: https://github.com/leoliu/ggtags
-;; C-x d to the source dir, M-x ggtags-create-tags --> dir --> ctags(no)
-;; or just M-x ggtags-create-tags(ggtags-update-tags to update an existed tag)
-;; will create tags for source code or reference the ~/Recentchange/emacs
-;; M-n/p, M-* to go back, RET to exit ggtags status
-;; C-c M-h 'ggtags-view-tag-history, stores the places in files you visited
-;; C-c M-/ 'ggtags-view-search-history, stores the tag operations you performed
-(add-hook 'c-mode-common-hook
-		  (lambda ()
-			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
-			  (ggtags-mode 1))))
-;; hide project(containing GTAGS.. files) name
-(setq ggtags-mode-line-project-name nil)
+;; ;; ggtags
+;; ;; ggtags supports jump/navigation
+;; ;; cedet supports highlighting, project, smart jump, context-sensitive
+;; ;; completion, symbol references, code generation...
+;; ;; ggtags: https://github.com/leoliu/ggtags
+;; ;; C-x d to the source dir, M-x ggtags-create-tags --> dir --> ctags(no)
+;; ;; or just M-x ggtags-create-tags(ggtags-update-tags to update an existed tag)
+;; ;; will create tags for source code or reference the ~/Recentchange/emacs
+;; ;; M-n/p, M-* to go back, RET to exit ggtags status
+;; ;; C-c M-h 'ggtags-view-tag-history, stores the places in files you visited
+;; ;; C-c M-/ 'ggtags-view-search-history, stores the tag operations you performed
+;; (add-hook 'c-mode-common-hook
+;; 		  (lambda ()
+;; 			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
+;; 			  (ggtags-mode 1))))
+;; ;; hide project(containing GTAGS.. files) name
+;; (setq ggtags-mode-line-project-name nil)
+
+(setq
+ ;; helm-gtags-ignore-case t
+ helm-gtags-auto-update t
+ helm-gtags-use-input-at-cursor t
+ helm-gtags-pulse-at-cursor t
+ helm-gtags-prefix-key "\C-cg"
+ helm-gtags-suggested-key-mapping t
+ helm-gtags-auto-update t
+										;helm-gtags-cache-select-result t
+ )
+(require 'helm-gtags)
+(add-hook 'c-mode-hook 'helm-gtags-mode)
+(add-hook 'c++-mode-hook 'helm-gtags-mode)
+(add-hook 'asm-mode-hook 'helm-gtags-mode)
+(with-eval-after-load 'helm-gtags
+  (bind-keys :map helm-gtags-mode-map
+			 ("C-c g t" . helm-gtags-find-tag)
+			 ("C-c g h" . helm-gtags-find-tag-from-here)
+			 ("C-c g o" . helm-gtags-find-tag-other-window)
+			 ("C-c g r" . helm-gtags-find-rtag)
+			 ("C-c g s" . helm-gtags-find-symbol)
+			 ("C-c g f" . helm-gtags-parse-file)
+			 ("C-c g p" . helm-gtags-previous-history)
+			 ("C-c g n" . helm-gtags-next-history)
+			 ("C-c g z" . helm-gtags-resume)
+			 ("C-c g S" . helm-gtags-show-stack)
+			 ("C-c g u" . helm-gtags-pop-stack)))
 
 ;; org-mode
 (autoload 'package "package" t)
@@ -3092,6 +3123,18 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; flycheck-pos-tip
 (with-eval-after-load 'flycheck
   (flycheck-pos-tip-mode))
+(defhydra flycheck-hydra ()
+  (:pre (progn (setq hydra-lv t) (flycheck-list-errors))
+		:post (progn (setq hydra-lv nil) (quit-windows-on "*Flycheck errors*"))
+		:hint nil)
+  "Errors"
+  ("f"  flycheck-error-list-set-filter                            "Filter")
+  ("n"  flycheck-next-error                                       "Next")
+  ("p"  flycheck-previous-error                                   "Previous")
+  ("gg" flycheck-first-error                                      "First")
+  ("G"  (progn (goto-char (point-max)) (flycheck-previous-error)) "Last")
+  ("q"  nil))
+(defalias 'fh 'flycheck-hydra/body)
 
 ;; magit
 ;;
@@ -3699,6 +3742,7 @@ Version 2015-06-10"
 	(abbrev-mode . "")
 	(drag-stuff-mode . "")
 	(ggtags-mode . " Gg")
+	(helm-gtags-mode . " Hg")
 	(auto-fill-function . "") ;; not auto-fill-mode
 	(rebox-mode . "")
 	(indent-guide-mode . "")
@@ -3711,7 +3755,6 @@ Version 2015-06-10"
 	(bbyac-mode . "")
 	(magit-auto-revert-mode . "")
 	(highlight-changes-mode . "")
-	(ggtags-mode . "")
 	(rainbow-mode . "")
 	(buffer-face-mode . "")
 	(visual-line-mode . "")
