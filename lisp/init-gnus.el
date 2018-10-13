@@ -191,7 +191,6 @@
 
 	  ;; http://www.emacswiki.org/emacs/GnusSpeed
 	  gnus-use-correct-string-widths nil
-	  gc-cons-threshold 3500000			; fasten gnus
 
 	  gnus-use-cross-reference t
 	  message-confirm-send t
