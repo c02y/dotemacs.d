@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "org-web-tools" "20180601.108" "Display and capture web content with Org-mode" '((emacs "25.1") (org "9.0") (dash "2.12") (esxml "0.3.4") (s "1.10.0")) :stars '(#("66" 0 2 (font-lock-face paradox-star-face))) :commit "58c37ab50e99775cf4ed3d6884aa9c3f45d855de" :keywords '("hypermedia" "outlines" "org" "web") :authors '(("Adam Porter" . "adam@alphapapa.net")) :maintainer '("Adam Porter" . "adam@alphapapa.net") :url "http://github.com/alphapapa/org-web-tools")
