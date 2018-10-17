@@ -2131,15 +2131,7 @@ Do this after `q` in Debugger buffer."
 (defun package--save-selected-packages (&rest opt) nil)
 ;; fix "Failed to verify signature archive-contents.sig: ..." when loading list
 (setq package-check-signature nil)
-;; (defalias 'plp 'package-list-packages)
-;;
-;; spinner required by paradox
-(defalias 'plp 'paradox-list-packages)
-(setq paradox-github-token t)
-(setq paradox-execute-asynchronously t)
-;; default color in the mode line with the theme is too bright to read
-(eval-after-load "paradox"
-  '(set-face-attribute 'paradox-mode-line-face nil :foreground "blue"))
+(defalias 'plp 'package-list-packages)
 ;; Update the packages automatically
 ;;(when (not package-archive-contents) (package-refresh-contents))
 (defun package-menu-upgrade-this-package ()
@@ -2366,26 +2358,17 @@ Do this after `q` in Debugger buffer."
 				 (list
 				  (cons 'company-elisp
 						(car company-backends))))))
+
+;; Python Development Environment
+;; https://github.com/jorgenschaefer/elpy
+;; https://realpython.com/emacs-the-best-python-editor/
+;; usage of elpy: https://elpy.readthedocs.io/en/latest/ide.html
+(elpy-enable)
+;; use flycheck instead of default flymake used by elpy
+(setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+(require 'py-autopep8)
+(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
 (setq python-shell-prompt-detect-failure-warning nil)
-(add-hook 'python-mode-hook
-		  (lambda ()
-			(setq python-shell-interpreter "/usr/bin/python3.4")
-			(set (make-local-variable 'company-backends)
-				 (append company-backends
-						 '((
-							company-anaconda
-							company-ropemacs
-							;; company-dabbrev
-							;; company-dabbrev-code
-							;; company-semantic
-							;; company-yasnippet
-							))))
-			(anaconda-mode)
-			(anaconda-eldoc-mode)
-			;; solve the issue that line reaches the bottom of *iPython*, point
-			;; will will in the wrong place
-			(setq comint-scroll-to-bottom-on-input t)
-			))
 ;; use iPython inside Emacs directly once found when M-x run-python
 (if (executable-find "ipython")
 	(progn (setq python-shell-interpreter "ipython")
