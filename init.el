@@ -1,10 +1,9 @@
 ;; init.el --- Emacs configuration of Cody Chan
 ;;
-;; Copyright (c) 2012-2014 Cody Chan <cody.chan.cz@gmail.com>
+;; Copyright (c) 2012-2018 Cody Chan <cody.chan.cz@gmail.com>
 ;;
 ;; Author: Cody Chan <cody.chan.cz@gmail.com>
 ;; URL: https://github.com/c0dy/dotemacs.d
-;; Keywords: convenience
 ;;
 ;; This file is not part of GNU Emacs.
 ;; This program is free software; you can redistribute it and/or modify it under
@@ -116,12 +115,25 @@
 ;; (setq tramp-default-method "ssh")
 ;; (setq tramp-ssh-controlmaster-options "-o ControlMaster=auto -o ControlPath='tramp.%%C' -o ControlPersist=no")
 
-;;; Code:
+;; Speed up emacs startup
+(let ((file-name-handler-alist nil)) "~/.emacs.d/init.elc")
+(setq package-enable-at-startup nil)
+(defvar file-name-handler-alist-old file-name-handler-alist)
+(setq file-name-handler-alist nil
+	  gc-cons-threshold 402653184
+	  gc-cons-percentage 0.6)
+(add-hook 'after-init-hook
+		  (lambda ()
+			(setq file-name-handler-alist file-name-handler-alist-old
+				  gc-cons-threshold 16777216
+				  gc-cons-percentage 0.1)))
+
 ;; (setq debug-on-error t)
 
-;; make starup quicker
-(setq gc-cons-threshold (* 100 1024 1024))
-(let ((file-name-handler-alist nil)) "~/.emacs.d/init.elc")
+;; M-x profiler-start and do your thing and M-x profiler-report to show the
+;; performance report, the following improves the structure of the report
+(setq profiler-report-cpu-line-format '((80 left) (24 right ((19 right) (5 right)))))
+(setq profiler-report-memory-line-format '((80 left) (24 right ((19 right) (5 right)))))
 
 ;; proxy goagent
 ;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
@@ -499,14 +511,6 @@ and you can reconfigure the compile args."
 ;; replace ??? to n/a
 (setq which-func-unknown "n/a")
 (set-face-attribute 'which-func nil :background nil :foreground nil)
-;; repalce the 8 with other number to change the position
-(let ((which-func '(which-func-mode ("" which-func-format " "))))
-  (setq-default mode-line-format
-				(remove which-func mode-line-format))
-  (setq-default mode-line-misc-info
-				(remove which-func mode-line-misc-info))
-  (setq cell (last mode-line-format 8)) ;; just next to buffer name
-  (setcdr cell (cons which-func (cdr cell))))
 ;; line/column/percent/size, just "(%l,%c)[%p/%I]" if not highlight
 (setq-default mode-line-position
 			  '(("(%l_"
@@ -576,7 +580,6 @@ and you can reconfigure the compile args."
 				" " mode-line-position
 				(vc-mode vc-mode)
 				" " mode-line-modes
-				mode-line-misc-info
 				"%-"))
 
 (global-hl-line-mode 1)
@@ -2235,12 +2238,12 @@ Do this after `q` in Debugger buffer."
 (autoload 'multiple-cursors "multiple-cursors" t)
 (defhydra multiple-cursors-hydra (:hint nil)
   "
-     ^Up^            ^Down^        ^Other^
+	 ^Up^			 ^Down^		   ^Other^
 ----------------------------------------------
-[_p_]   Next        [_n_]   Next      [_l_] Edit lines
-[_P_]   Skip_P      [_N_]   Skip_N    [_a_] Mark all
-[_M-p_] Unmark_P    [_M-n_] Unmark_N  [_r_] Mark by regexp
-^ ^             ^ ^                   [_q_] Quit
+[_p_]	Next		[_n_]	Next	  [_l_] Edit lines
+[_P_]	Skip_P		[_N_]	Skip_N	  [_a_] Mark all
+[_M-p_] Unmark_P	[_M-n_] Unmark_N  [_r_] Mark by regexp
+^ ^				^ ^					  [_q_] Quit
 "
   ("l" mc/edit-lines :exit t)
   ("a" mc/mark-all-like-this :exit t)
@@ -2368,6 +2371,13 @@ Do this after `q` in Debugger buffer."
 (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
 (require 'py-autopep8)
 (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+;; The following conf will slow Emacs, disable it when using elpy
+(add-hook 'elpy-mode-hook
+		  (lambda ()
+			(highlight-indent-guides-mode -1)
+			(highlight-indentation-mode -1)
+			(semantic-stickyfunc-mode -1)))
+;;
 (setq python-shell-prompt-detect-failure-warning nil)
 ;; use iPython inside Emacs directly once found when M-x run-python
 (if (executable-find "ipython")
@@ -2481,13 +2491,13 @@ Indent the line/region according to the context which is smarter than default Ta
 "
   (interactive "DCreate cscope* database files in directory: ")
   (progn
-    (cscope-create-list-of-files-to-index top-directory)
-    (cscope-index-files top-directory)
-    (setq cscope-initial-directory top-directory)
-    (sit-for 2)
-    (delete-windows-on "*cscope-indexing-buffer*")
-    (kill-buffer "*cscope-indexing-buffer*")
-    ))
+	(cscope-create-list-of-files-to-index top-directory)
+	(cscope-index-files top-directory)
+	(setq cscope-initial-directory top-directory)
+	(sit-for 2)
+	(delete-windows-on "*cscope-indexing-buffer*")
+	(kill-buffer "*cscope-indexing-buffer*")
+	))
 (bind-keys*
  ("C-c s r" . cscope-create-database))
 
@@ -2503,9 +2513,9 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; ;; C-c M-h 'ggtags-view-tag-history, stores the places in files you visited
 ;; ;; C-c M-/ 'ggtags-view-search-history, stores the tag operations you performed
 ;; (add-hook 'c-mode-common-hook
-;; 		  (lambda ()
-;; 			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
-;; 			  (ggtags-mode 1))))
+;;			  (lambda ()
+;;				(when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
+;;				  (ggtags-mode 1))))
 ;; ;; hide project(containing GTAGS.. files) name
 ;; (setq ggtags-mode-line-project-name nil)
 
@@ -3111,12 +3121,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 		:post (progn (setq hydra-lv nil) (quit-windows-on "*Flycheck errors*"))
 		:hint nil)
   "Errors"
-  ("f"  flycheck-error-list-set-filter                            "Filter")
-  ("n"  flycheck-next-error                                       "Next")
-  ("p"  flycheck-previous-error                                   "Previous")
-  ("gg" flycheck-first-error                                      "First")
-  ("G"  (progn (goto-char (point-max)) (flycheck-previous-error)) "Last")
-  ("q"  nil))
+  ("f"	flycheck-error-list-set-filter							  "Filter")
+  ("n"	flycheck-next-error										  "Next")
+  ("p"	flycheck-previous-error									  "Previous")
+  ("gg" flycheck-first-error									  "First")
+  ("G"	(progn (goto-char (point-max)) (flycheck-previous-error)) "Last")
+  ("q"	nil))
 (defalias 'fh 'flycheck-hydra/body)
 
 ;; magit
@@ -3766,3 +3776,5 @@ want to use in the modeline *in lieu of* the original.")
 			 (when (eq mode major-mode)
 			   (setq mode-name mode-str)))))
 (add-hook 'after-change-major-mode-hook 'clean-mode-line)
+
+(provide 'init)
