@@ -213,10 +213,17 @@
 (bind-keys :map emacs-lisp-mode-map
 		   ("C-x c" . emacs-lisp-byte-compile-and-load)
 		   ("C-c c" . eval-buffer))
+(bind-keys :map emacs-lisp-mode-map
+		   ("C-x c" . emacs-lisp-byte-compile-and-load)
+		   ("C-c c" . eval-buffer)
+		   ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
+		   )
+(bind-keys :map lisp-interaction-mode-map
+		   ("C-c C-e" . (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
+		   ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
+		   ;; C-h e to switch to *Message* Buffer
+		   )
 (bind-keys*
- ("C-c C-e" . (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
- ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
- ;; C-h e to switch to *Message* Buffer
  ("C-x M-z" . (lambda () (interactive) (switch-to-buffer "*scratch*"))))
 
 ;; assembly
@@ -385,7 +392,7 @@ and you can reconfigure the compile args."
 				 ;; check if the buffer is a file or like *scratch*
 				 (if (buffer-file-name)
 					 (if (file-writable-p buffer-file-name) (save-buffer)
-					   (write-file (concat "/sudo:root@localhost:" buffer-file-name)))
+					   (write-file (concat "/sudo::" buffer-file-name)))
 				   (save-buffer))))))
 
 ;; displays the argument list for current func, work for all languages
@@ -1145,7 +1152,7 @@ Version 2017-03-12"
   (interactive)
   ;; (origami-open-all-nodes (current-buffer)) ;; avoid data loss
   (delete-trailing-whitespace))
-(bind-key* "C-c C-d" 'cleanup-buffer)
+(bind-key* "C-c M-d" 'cleanup-buffer)
 (defvar all-make-modes
   '(makefile-makepp-mode makefile-bsdmake-mode makefile-imake-mode
 						 makefile-automake-mode makefile-mode makefile-gmake-mode)
@@ -2280,7 +2287,8 @@ Do this after `q` in Debugger buffer."
 ;;
 ;; expand-region
 (autoload 'expand-region "expand-region" t)
-(bind-key* "C-c C-SPC" 'er/expand-region)
+;; (bind-key* "C-c C-SPC" 'er/expand-region)
+(bind-key* "C-c =" 'er/expand-region)
 ;; mark word->sentence->paragraph->buffer
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
@@ -3329,7 +3337,7 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 			   (if (current-line-empty-p)
 				   (delete-blank-lines)
 				 (progn
-				   (kill-region (line-beginning-position) (line-end-position))
+				   (delete-region (line-beginning-position) (line-end-position))
 				   (delete-char 1))))))))
 (defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
@@ -3382,8 +3390,16 @@ Version 2015-06-10"
 				   (delete-char 1))))))))
 (bind-keys*
  ("C-x w" . delete-line-or-region-or-buffer)
- ("M-w" . copy-line-or-region-or-buffer)
+ ;; ("M-w" . copy-line-or-region-or-buffer)
  ("C-w" . cut-line-or-region-or-buffer))
+
+;; easy-kill
+;; M-d and more keys, ? for help, C-M-@ for easy-mark
+;; Note, -/+ doesn't not mark but select, use C-SPC to mark the selection again
+;; then do delete/C-w/C-x w on the marked part
+(require 'easy-kill)
+(global-set-key [remap kill-ring-save] 'easy-kill)
+(global-set-key [remap mark-sexp] 'easy-mark)
 
 ;; which-key to replace guide-key
 (which-key-mode)
