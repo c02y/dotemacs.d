@@ -314,11 +314,9 @@ and you can reconfigure the compile args."
 (xterm-mouse-mode 1) ;; enable mouse in terminal Emacs
 (scroll-bar-mode 0)
 (menu-bar-mode 0)
-(require 'nlinum)
-;; (global-nlinum-mode)
 (bind-keys*
  ("C-S-m" . menu-bar-mode)
- ("C-x M-l" . global-nlinum-mode))
+ ("C-x M-l" . global-display-line-numbers-mode))
 ;; scroll text up/down by one line, not cursor
 (global-set-key (kbd "C-M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "C-M-p") (kbd "C-u 1 M-v"))
@@ -380,7 +378,7 @@ and you can reconfigure the compile args."
 	  (when (> (buffer-size) (* 1024 1024)) ;; 1 MB
 		(require 'vlf)
 		(vlf-mode))
-	  (linum-mode -1))))
+	  (display-line-numbers-mode -1))))
 ;; C-x C-s to use save-buffer for regular files and use sudo to prompt passwd to
 ;; save file need root permission, C-x C-q to edit the root file first
 ;; Note that this C-x C-s will fail if the buffer is not a file, in this case,
@@ -1778,15 +1776,18 @@ Emacs session."
   (progn
 	(align beginning end)
 	(untabify beginning end)))
-(require 'cc-mode)												;; c-mode-map
+(require 'cc-mode) ;; c-mode-map
+(bind-keys*
+ ("C-c a a" . align)
+ ("C-c a r" . align-regexp))
 (dolist (m (list c-mode-map c++-mode-map))
   (bind-keys :map m
-			 :prefix-map align-prefix-map
-			 :prefix "C-c a"
-			 ("a" . align)
-			 ("r" . align-regexp)
-			 ("c" . align-c-comments)
-			 ("m" . align-c-macros)))
+             :prefix-map align-prefix-map
+             :prefix "C-c a"
+             ;; ("a" . align)
+             ;; ("r" . align-regexp)
+             ("c" . align-c-comments)
+             ("m" . align-c-macros)))
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
@@ -2116,7 +2117,8 @@ Do this after `q` in Debugger buffer."
 ;; Enables project mode on all files.
 (global-ede-mode t)
 ;; Starting for inline completion when "." is pressed
-(bind-key "." 'semantic-complete-self-insert prog-mode-map)
+(bind-key "." 'semantic-complete-self-insert c-mode-map)
+(bind-key "." 'semantic-complete-self-insert c++-mode-map)
 ;;
 (add-hook 'org-mode-hook
 		  (lambda() (set
