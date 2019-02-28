@@ -1585,18 +1585,31 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;; you can C-x 1 to close other windows and C-c <left> to restore
 ;; (winner-mode 1)
 ;; use the following functions is better
-(defun toggle-maximize-buffer (arg)
-  "Maximize buffer, called with C-u, maximize the other buffer.
-NOTE: when there are more than 2 windows in the frame, there is problem of 'maximize the other'"
+(defun toggle-maximize-window (arg)
+  "Maximize window, called with C-u, maximize the other window."
   (interactive "P")
   (if (= 1 (length (window-list)))
-	  (jump-to-register '_)
+	  (if (not (get-register '_))
+		  (message "No window configuration existed!")
+		(jump-to-register '_))
 	(progn
 	  (window-configuration-to-register '_)
 	  (if current-prefix-arg
-		  (delete-window)
+		  (if (= 2 (length (window-list)))
+			  (delete-window)
+			(message "More than 2 windows existed, do nothing!"))
 		(delete-other-windows)))))
-(bind-key* "C-x C-z" 'toggle-maximize-buffer)
+(bind-key* "ESC ESC ESC" 'toggle-maximize-window)
+;; ESC ESC ESC == keyboard-escape-quit, it will do multiple actions, including
+;; deleting other windows, disable this feature and replace it with toggle-maximize-window
+;; TODO: The following advice will not handle C-u ESC ESC ESC which used in toggle-maximize-window
+;; (defadvice keyboard-escape-quit (around my-keyboard-escape-quit activate)
+;;	 (let (orig-one-window-p)
+;;	   (fset 'orig-one-window-p (symbol-function 'one-window-p))
+;;	   (fset 'one-window-p (symbol-function 'toggle-maximize-window))
+;;	   (unwind-protect
+;;		   ad-do-it
+;;		 (fset 'one-window-p (symbol-function 'orig-one-window-p)))))
 
 ;; register copy/paste
 ;; C-x r SPC/j save/jump position
@@ -1782,12 +1795,12 @@ Emacs session."
  ("C-c a r" . align-regexp))
 (dolist (m (list c-mode-map c++-mode-map))
   (bind-keys :map m
-             :prefix-map align-prefix-map
-             :prefix "C-c a"
-             ;; ("a" . align)
-             ;; ("r" . align-regexp)
-             ("c" . align-c-comments)
-             ("m" . align-c-macros)))
+			 :prefix-map align-prefix-map
+			 :prefix "C-c a"
+			 ;; ("a" . align)
+			 ;; ("r" . align-regexp)
+			 ("c" . align-c-comments)
+			 ("m" . align-c-macros)))
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
@@ -2373,20 +2386,47 @@ Do this after `q` in Debugger buffer."
 						(car company-backends))))))
 
 ;; Python Development Environment
-;; https://github.com/jorgenschaefer/elpy
-;; https://realpython.com/emacs-the-best-python-editor/
-;; usage of elpy: https://elpy.readthedocs.io/en/latest/ide.html
-(elpy-enable)
-;; use flycheck instead of default flymake used by elpy
-(setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-(require 'py-autopep8)
-(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
-;; The following conf will slow Emacs, disable it when using elpy
-(add-hook 'elpy-mode-hook
+;; elpy or anaconda-mode
+;;
+;; ;; https://github.com/jorgenschaefer/elpy
+;; ;; https://realpython.com/emacs-the-best-python-editor/
+;; ;; usage of elpy: https://elpy.readthedocs.io/en/latest/ide.html
+;; (elpy-enable)
+;; ;; use flycheck instead of default flymake used by elpy
+;; (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;; ;; (require 'py-autopep8)
+;; ;; (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+;; ;; The following conf will slow Emacs, disable it when using elpy
+;; (add-hook 'elpy-mode-hook
+;;				  (lambda ()
+;;						(highlight-indent-guides-mode -1)
+;;						(highlight-indentation-mode -1)
+;;						(semantic-stickyfunc-mode -1)))
+;; anaconda
+(add-hook 'python-mode-hook 'anaconda-mode)
+(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+(eval-after-load "company"
+  '(add-to-list 'company-backends '(company-anaconda :with company-capf)))
+;; the following modes will make Emacs extremely slow when editing Python code
+(add-hook 'anaconda-mode-hook
 		  (lambda ()
-			(highlight-indent-guides-mode -1)
-			(highlight-indentation-mode -1)
-			(semantic-stickyfunc-mode -1)))
+			;; (highlight-indent-guides-mode -1)
+			;; (highlight-indentation-mode -1)
+			(color-identifiers-mode -1)
+			(which-function-mode -1)
+			(global-semantic-stickyfunc-mode -1)))
+(with-eval-after-load 'python
+  (bind-keys :map python-mode-map
+			 :prefix-map my-python-prefix-map
+			 :prefix "C-c c"
+			 ("d" . anaconda-mode-find-definitions-other-window)
+			 ("=" . anaconda-mode-find-assignments-other-window)
+			 ("r" . anaconda-mode-find-references-other-window)
+			 ("v" . anaconda-mode-show-doc)
+			 ("u" . xref-pop-marker-stack)
+			 ("TAB" . anaconda-mode-complete)))
+(with-eval-after-load "python"
+  (define-key python-mode-map (kbd "C-c D") 'helm-pydoc))
 ;;
 (setq python-shell-prompt-detect-failure-warning nil)
 ;; use iPython inside Emacs directly once found when M-x run-python
@@ -2943,7 +2983,7 @@ background of code to whatever theme I'm using's background"
  ;; recentf-save-file
  ;; (concat user-emacs-directory "recentf")
  recentf-max-saved-items 100
- helm-moccur-auto-update-on-resume 'noask
+ helm-moccur-auto-update-on-resume 'nil
  ;; recentf-max-menu-items 15
  )
 (defun helm-other-occur ()
@@ -3059,6 +3099,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;		 ))
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
+(define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
 
 ;; helm-flx
 ;; helm-flx
