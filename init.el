@@ -511,8 +511,8 @@ and you can reconfigure the compile args."
 ;; show which function in mode-line
 (which-function-mode 1)
 ;; make which-function-mode work only for specific modes
-(eval-after-load "which-func"
-  '(setq which-func-modes '(c-mode c++-mode emacs-lisp-mode python-mode)))
+(with-eval-after-load "which-func"
+  (setq which-func-modes '(c-mode c++-mode emacs-lisp-mode python-mode)))
 ;; replace ??? to n/a
 (setq which-func-unknown "n/a")
 (set-face-attribute 'which-func nil :background nil :foreground nil)
@@ -1695,14 +1695,13 @@ Version 2015-12-08"
 
 ;; ediff split horizontal, default is vertically
 ;; NOTE that you can v/V to scroll the two windows synchronously
-(eval-after-load "ediff"
-  '(progn
-	 (setq ediff-split-window-function
-		   'split-window-horizontally)		;; use | to change the style
-	 (setq ediff-window-setup-function
-		   'ediff-setup-windows-plain)
-	 ;; delete these buffers (if they are not modified) after q
-	 (setq ediff-keep-variants nil)))
+(with-eval-after-load "ediff"
+  (setq ediff-split-window-function
+		'split-window-horizontally)		;; use | to change the style
+  (setq ediff-window-setup-function
+		'ediff-setup-windows-plain)
+  ;; delete these buffers (if they are not modified) after q
+  (setq ediff-keep-variants nil))
 ;; use new frame (fullscreen) for ediff session and close the frame after exiting
 (defvar pre-ediff-window-configuration nil
   "window configuration to use")
@@ -1858,8 +1857,8 @@ Emacs session."
   (setq flyspell-prog-text-faces
         (delq 'font-lock-string-face
               flyspell-prog-text-faces)))
-(eval-after-load "flyspell"
-  '(define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
+(with-eval-after-load "flyspell"
+  (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
   ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
   )
 (require 'flyspell-correct-helm)
@@ -2037,8 +2036,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 (add-to-list 'interpreter-mode-alist '("perl" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("perl5" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("miniperl" . cperl-mode))
-(eval-after-load "cperl-mode"
-  '(bind-key "C-{" 'insert-c-block-parentheses-without-indent cperl-mode-map))
+(with-eval-after-load "cperl-mode"
+  (bind-key "C-{" 'insert-c-block-parentheses-without-indent cperl-mode-map))
 
 ;; gdb, Debugging with GDB Many Windows layout
 ;; https://tuhdo.github.io/c-ide.html
@@ -2046,13 +2045,11 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; M-x tool-bar-mode to show the tools
 ;; M-x gdb --> gdb -i=mi bin-file
 (require 'init-gdb)
-(eval-after-load "init-gdb"
-  '(progn
-	 ;; use gdb-many-windows by default
-	 (setq gdb-many-windows t)
-	 ;; Non-nil means display source file containing the main routine at startup
-	 (setq gdb-show-main t)
-	 ))
+(with-eval-after-load "init-gdb"
+  ;; use gdb-many-windows by default
+  (setq gdb-many-windows t)
+  ;; Non-nil means display source file containing the main routine at startup
+  (setq gdb-show-main t))
 (defun va ()
   "valgrind in Emacs, execute it in shell-mode after `va ./binary`
 - Put your corsor in the error line, type enter or use your mouse to jump into the line.
@@ -2419,8 +2416,8 @@ Do this after `q` in Debugger buffer."
 ;; anaconda
 (add-hook 'python-mode-hook 'anaconda-mode)
 (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
-(eval-after-load "company"
-  '(add-to-list 'company-backends '(company-anaconda :with company-capf)))
+(with-eval-after-load "company"
+  (add-to-list 'company-backends '(company-anaconda :with company-capf)))
 ;; the following modes will make Emacs extremely slow when editing Python code
 (add-hook 'anaconda-mode-hook
 		  (lambda ()
@@ -2469,8 +2466,8 @@ Indent the line/region according to the context which is smarter than default Ta
 	  (goto-char hi)
 	  (end-of-line)
 	  (python-indent-shift-right (mark) (point)))))
-(eval-after-load "python"
-  '(define-key python-mode-map [remap indent-for-tab-command] 'my-python-tab-command))
+(with-eval-after-load "python"
+  (define-key python-mode-map [remap indent-for-tab-command] 'my-python-tab-command))
 ;; grouped default back-ends for all major mode
 ;; (with-eval-after-load 'company
 ;;	 (add-hook 'company-mode-hook
@@ -2504,15 +2501,13 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; more infomation please check the doc
 ;; replace the standard undo system
 (global-undo-tree-mode)
-(eval-after-load 'undo-tree
-  '(progn
-	 (bind-keys :map undo-tree-map
-				("C-_" . nil)
-				("M-_" . nil)
-				("C-z" . undo-tree-undo)
-				("C-M-z" . undo-tree-redo)
-				("C-x u" . undo-tree-visualize)
-				)))
+(with-eval-after-load 'undo-tree
+  (bind-keys :map undo-tree-map
+			 ("C-_" . nil)
+			 ("M-_" . nil)
+			 ("C-z" . undo-tree-undo)
+			 ("C-M-z" . undo-tree-redo)
+			 ("C-x u" . undo-tree-visualize)))
 
 ;; findr
 (autoload 'findr-search "findr" "Find text in files." t)
@@ -2886,10 +2881,8 @@ background of code to whatever theme I'm using's background"
 		  (setq continue (outline-next-heading))
 		  )))))
 (setq org-highlight-latex-and-related '(latex script entities))
-;; put this after org-mode config part, or flyspell-mode won't be enabled, even eval-after-load won't work
+;; put this after org-mode config part, or flyspell-mode won't be enabled, even with-eval-after-load won't work
 (add-hook 'org-mode-hook 'flyspell-mode)
-
-
 
 ;; icicles
 ;; icicles & helm differences:
@@ -3105,8 +3098,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (require 'helm-projectile)
 (projectile-global-mode)
 ;; (helm-projectile-on)
-;; (eval-after-load "projectile"
-;;	 '(progn
+;; (with-eval-after-load "projectile"
 ;;		 (setq magit-repo-dirs
 ;;			   (mapcar
 ;;				(lambda (dir)
@@ -3114,8 +3106,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;				(remove-if-not
 ;;				 (lambda (project)
 ;;				   (file-directory-p (concat project "/.git/")))
-;;				 (projectile-relevant-known-projects))))
-;;		 ))
+;;				 (projectile-relevant-known-projects)))))
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
 (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
@@ -3177,15 +3168,13 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; (require 'flycheck)
 (add-hook 'prog-mode-hook 'flycheck-mode)
 (setq flycheck-highlighting-mode 'lines)
-(eval-after-load 'flycheck
-  '(progn
-	 (set-face-attribute 'flycheck-error nil :foreground "red")
-	 (set-face-attribute 'flycheck-warning nil :foreground "yellow" :underline nil)
-	 (set-face-attribute 'flycheck-info nil :foreground "ForestGreen" :underline nil)))
+(with-eval-after-load 'flycheck
+  (set-face-attribute 'flycheck-error nil :foreground "red")
+  (set-face-attribute 'flycheck-warning nil :foreground "yellow" :underline nil)
+  (set-face-attribute 'flycheck-info nil :foreground "ForestGreen" :underline nil))
 (setq flycheck-check-syntax-automatically '(save))
 ;; flycheck-pos-tip
-(with-eval-after-load 'flycheck
-  (flycheck-pos-tip-mode))
+(with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
 (defhydra flycheck-hydra
   (:pre (progn (setq hydra-lv t) (flycheck-list-errors))
 		:post (progn (setq hydra-lv nil) (quit-windows-on "*Flycheck errors*"))
@@ -3203,9 +3192,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;
 ;; git-commit-mode required by magit
 ;; git-rebase-mode required by magit
-;; (eval-after-load 'info
-;;	 '(progn (info-initialize)
-;;			  (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/")))
+;; (with-eval-after-load 'info
+;;	 (info-initialize)
+;;   (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/"))
 (autoload 'magit "magit: git for Emacs" t)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
@@ -3219,7 +3208,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (set-default 'magit-stage-all-confirm nil)
 (set-default 'magit-unstage-all-confirm nil)
 ;; make git faster??
-(eval-after-load "magit" '(setq magit-git-executable "/usr/bin/git"))
+(with-eval-after-load "magit" (setq magit-git-executable "/usr/bin/git"))
 ;; make `truncate-lines` nil in magit and `auto-fill-mode` off in commit buffers
 (add-hook 'magit-status-mode-hook
 		  (lambda ()
@@ -3281,7 +3270,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 
 ;; highlight-symbol
 (autoload 'highlight-symbol "highlight-symbol" t)
-(eval-after-load "highlight-symbol" '(highlight-symbol-nav-mode))
+(with-eval-after-load "highlight-symbol" (highlight-symbol-nav-mode))
 (dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
   (add-hook hook 'highlight-symbol-mode))
 ;; enable highlighting symbol at point automatically
@@ -3491,12 +3480,11 @@ Version 2015-06-10"
 ;; lispy -- amazing mode for Elisp, Clojure, Scheme and Common Lisp
 ;; http://oremacs.com/lispy/
 (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
-(eval-after-load "lispy"
-  '(progn
-	 (bind-keys :map lispy-mode-map
-				("RET" . advanced-return)
-				("M-RET" . Meta-return)
-				("M-n" . highlight-symbol-next))))
+(with-eval-after-load "lispy"
+  (bind-keys :map lispy-mode-map
+			 ("RET" . advanced-return)
+			 ("M-RET" . Meta-return)
+			 ("M-n" . highlight-symbol-next)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line-to-end`"
   (if (lispy--in-comment-p)
@@ -3538,9 +3526,7 @@ Version 2015-06-10"
 ;; M-x sp-cheat-sheet
 (require 'smartparens-config)
 (smartparens-global-mode t)
-(eval-after-load "smartparens"
-  '(progn
-	 (sp-use-smartparens-bindings)))
+(with-eval-after-load "smartparens" (sp-use-smartparens-bindings))
 ;; hit C-(
 ;; |foobar becomes (foobar)
 (sp-pair "(" ")" :wrap "C-(")
@@ -3568,14 +3554,13 @@ Version 2015-06-10"
   (previous-line 1)
   (end-of-line)
   (newline-and-indent))
-(eval-after-load "smartparens"
-  '(progn
-	 (bind-keys :map smartparens-mode-map
-				("M-<backspace>" . delete-word-backward)
-				("C-M-e" . nil)
-				("C-M-a" . nil)
-				;; C-S-a redefined to beginning-of-visual-line
-				("C-S-a" . nil))))
+(with-eval-after-load "smartparens"
+  (bind-keys :map smartparens-mode-map
+			 ("M-<backspace>" . delete-word-backward)
+			 ("C-M-e" . nil)
+			 ("C-M-a" . nil)
+			 ;; C-S-a redefined to beginning-of-visual-line
+			 ("C-S-a" . nil)))
 
 ;; deft
 (setq deft-directory "~/Org")
@@ -3684,8 +3669,7 @@ Version 2015-06-10"
 ;; flx -- required by company-flx-mode
 
 ;; company-flx
-(with-eval-after-load 'company
-  (company-flx-mode +1))
+(with-eval-after-load 'company (company-flx-mode +1))
 
 ;; highlight-indent-guides
 ;; the following line will fix error message:
@@ -3786,12 +3770,10 @@ Version 2015-06-10"
 
 ;; hl-tags-mode in lisp
 (require 'hl-tags-mode)
-(eval-after-load "hl-tags-mode"
-  '(progn
-	 (add-hook 'sgml-mode-hook (lambda () (hl-tags-mode 1)))
-	 (add-hook 'nxml-mode-hook (lambda () (hl-tags-mode 1)))
-	 (set-face-attribute 'hl-tags-face nil :background "DeepSkyBlue4")
-	 ))
+(with-eval-after-load "hl-tags-mode"
+  (add-hook 'sgml-mode-hook (lambda () (hl-tags-mode 1)))
+  (add-hook 'nxml-mode-hook (lambda () (hl-tags-mode 1)))
+  (set-face-attribute 'hl-tags-face nil :background "DeepSkyBlue4"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; Put the following lines at the end of this file
