@@ -1826,54 +1826,68 @@ Emacs session."
 (global-cwarn-mode 1)
 
 ;; spell check
-(require 'ispell)
-(defalias 'ib 'ispell-buffer)
-;; spell check
-(require 'ispell)
-(defalias 'ib 'ispell-buffer)
-;; spell check engine
-(when (executable-find "hunspell")
-  (setq-default ispell-program-name "hunspell")
-  (setq ispell-really-hunspell t))
-(add-hook 'org-mode-hook 'flyspell-mode)
-;; C-. or C-M-i 'flyspell-auto-correct-word
-;; if you don't know how to spell the rest of a word
-(bind-keys*
- ("C-?" . ispell-complete-word)
- ;; check comments and string constants already in the file
- ("<f6>" . ispell-comments-and-strings))
-;; check in the comments and string constants as you type
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-;; click the left button to show the correct words list
+;; find aspell and hunspell automatically
+(cond
+ ;; try hunspell at first
+ ;; if hunspell does NOT exist, use aspell
+ ;; NOTE: Using hunspell may produce the "Error enabling Flyspell mode: (stringp nil)" problem
+ ;; ((executable-find "hunspell")
+ ;;  (setq ispell-program-name "hunspell")
+ ;;  (setq ispell-local-dictionary "en_US")
+ ;;  (setq ispell-local-dictionary-alist
+ ;;        ;; Please note the list `("-d" "en_US")` contains ACTUAL parameters passed to hunspell
+ ;;        ;; You could use `("-d" "en_US,en_US-med")` to check with multiple dictionaries
+ ;;        '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)
+ ;;          )))
+ ((executable-find "aspell")
+  (setq ispell-program-name "aspell")
+  ;; Please note ispell-extra-args contains ACTUAL parameters passed to aspell
+  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US"))
+  (message "hunspell not found, use aspell for spell-check!")))
+(setq ispell-personal-dictionary "~/.emacs.d/ispell_en_US")
+(require 'flyspell)
+(dolist (mode '(prog-mode-hook
+                emacs-lisp-mode-hook
+                python-mode-hook))
+  (add-hook mode
+            '(lambda ()
+               (flyspell-prog-mode))))
+;; in prog-mode, make flyspell only work in comments
+;; original value: '(font-lock-string-face font-lock-comment-face font-lock-doc-face)
+(with-eval-after-load 'flyspell-prog-mode
+  (setq flyspell-prog-text-faces
+        (delq 'font-lock-string-face
+              flyspell-prog-text-faces)))
 (eval-after-load "flyspell"
   '(define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
   ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
   )
-;; or use the M-f8 to check from the beginning and correct
-(defun flyspell-check-next-highlighted-word ()
-  "Custom function to spell check next highlighted word"
-  (interactive)
-  (flyspell-goto-next-error)
-  (ispell-word))
-(bind-key* "M-<f8>" 'flyspell-check-next-highlighted-word)
+(require 'flyspell-correct-helm)
+(bind-keys :map flyspell-mode-map
+           :prefix-map my-flyspell-mode-prefix-map
+           :prefix "C-M-x"
+           ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
+           ("x" . flyspell-correct-wrapper)
+           ("b" . flyspell-buffer)
+           ("n" . flyspell-correct-next)
+           ("p" . flyspell-correct-previous)
+           ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
+           ("i" . endless/ispell-word-then-abbrev))
 ;;
 (add-hook 'ispell-initialize-spellchecker-hook
-		  (lambda ()
-			(setq ispell-base-dicts-override-alist
-				  '((nil ; default
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
-					("american" ; Yankee English
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
-					("british" ; British English
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
+          (lambda ()
+            (setq ispell-base-dicts-override-alist
+                  '((nil ; default
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
+                    ("american" ; Yankee English
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
+                    ("british" ; British English
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
 ;;
-;; correct the wrong word with C-x i, next time auto-correct it
 ;; source: http://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html
-(define-key ctl-x-map "i"
-  #'endless/ispell-word-then-abbrev)
 (defun endless/simple-get-word ()
   (car-safe (save-excursion (ispell-get-word nil))))
 (defun endless/ispell-word-then-abbrev (p)
@@ -1886,28 +1900,28 @@ skip typos you don't want to fix with `SPC', and you can
 abort completely with `C-g'."
   (interactive "P")
   (let (bef aft)
-	(save-excursion
-	  (while (if (setq bef (endless/simple-get-word))
-				 ;; Word was corrected or used quit.
-				 (if (ispell-word nil 'quiet)
-					 nil ; End the loop.
-				   ;; Also end if we reach `bob'.
-				   (not (bobp)))
-			   ;; If there's no word at point, keep looking
-			   ;; until `bob'.
-			   (not (bobp)))
-		(backward-word)
-		(backward-char))
-	  (setq aft (endless/simple-get-word)))
-	(if (and aft bef (not (equal aft bef)))
-		(let ((aft (downcase aft))
-			  (bef (downcase bef)))
-		  (define-abbrev
-			(if p local-abbrev-table global-abbrev-table)
-			bef aft)
-		  (message "\"%s\" now expands to \"%s\" %sally"
-				   bef aft (if p "loc" "glob")))
-	  (user-error "No typo at or before point"))))
+    (save-excursion
+      (while (if (setq bef (endless/simple-get-word))
+                 ;; Word was corrected or used quit.
+                 (if (ispell-word nil 'quiet)
+                     nil ; End the loop.
+                   ;; Also end if we reach `bob'.
+                   (not (bobp)))
+               ;; If there's no word at point, keep looking
+               ;; until `bob'.
+               (not (bobp)))
+        (backward-word)
+        (backward-char))
+      (setq aft (endless/simple-get-word)))
+    (if (and aft bef (not (equal aft bef)))
+        (let ((aft (downcase aft))
+              (bef (downcase bef)))
+          (define-abbrev
+            (if p local-abbrev-table global-abbrev-table)
+            bef aft)
+          (message "\"%s\" now expands to \"%s\" %sally"
+                   bef aft (if p "loc" "glob")))
+      (user-error "No typo at or before point"))))
 (setq save-abbrevs 'silently)
 (setq-default abbrev-mode t)
 
@@ -2871,6 +2885,12 @@ background of code to whatever theme I'm using's background"
 				  (overlay-put o 'after-string text)))))
 		  (setq continue (outline-next-heading))
 		  )))))
+(setq org-highlight-latex-and-related '(latex script entities))
+;; put this after org-mode config part, or flyspell-mode won't be enabled, even eval-after-load won't work
+(add-hook 'org-mode-hook 'flyspell-mode)
+
+
+
 ;; icicles
 ;; icicles & helm differences:
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2014-04/msg00500.html
@@ -2885,7 +2905,6 @@ background of code to whatever theme I'm using's background"
 ;;
 ;; Icicles uses recursive Minibuffers in several ways, Helm does not.
 
-(setq org-highlight-latex-and-related '(latex script entities))
 
 ;; ;; ido for dired and kill-buffer that helm doesn't provide the TAB completion
 ;; (ido-mode t)
@@ -3167,7 +3186,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; flycheck-pos-tip
 (with-eval-after-load 'flycheck
   (flycheck-pos-tip-mode))
-(defhydra flycheck-hydra ()
+(defhydra flycheck-hydra
   (:pre (progn (setq hydra-lv t) (flycheck-list-errors))
 		:post (progn (setq hydra-lv nil) (quit-windows-on "*Flycheck errors*"))
 		:hint nil)
@@ -3790,7 +3809,7 @@ Version 2015-06-10"
 	(highlight-symbol-mode . "")
 	(highlight-parentheses-mode . "")
 	(cwarn-mode . "")
-	(flyspell-mode . "")
+	(flyspell-mode . " Fs")
 	(abbrev-mode . "")
 	(drag-stuff-mode . "")
 	(ggtags-mode . " Gg")
