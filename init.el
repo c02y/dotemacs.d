@@ -1,6 +1,6 @@
 ;; init.el --- Emacs configuration of Cody Chan
 ;;
-;; Copyright (c) 2012-2018 Cody Chan <cody.chan.cz@gmail.com>
+;; Copyright (c) 2012-2019 Cody Chan <cody.chan.cz@gmail.com>
 ;;
 ;; Author: Cody Chan <cody.chan.cz@gmail.com>
 ;; URL: https://github.com/c0dy/dotemacs.d
@@ -85,10 +85,6 @@
 ;; C-x C-r to 'recentf-open-files
 ;; C-k to 'kill-line to the end of the line
 ;; M-k to 'kill-line to the beginning of the line
-;; C-S-<left> to 'shrink-window-horizontally
-;; C-S-<right> to 'enlarge-window-horizontally
-;; C-S-<down> to 'shrink-window
-;; C-S-<up> to 'enlarge-window
 ;; C-x c to 'emacs-lisp-byte-compile-and-load
 ;; C-c d to 'delete-trailing-whitespace
 ;; C-x C-j to 'dired-jump
@@ -223,8 +219,7 @@
 		   ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
 		   ;; C-h e to switch to *Message* Buffer
 		   )
-(bind-keys*
- ("C-x M-z" . (lambda () (interactive) (switch-to-buffer "*scratch*"))))
+(bind-key* "C-x M-z" (lambda () (interactive) (switch-to-buffer "*scratch*")))
 
 ;; assembly
 ;; replace auto-mode-alist for multiple extensions
@@ -325,15 +320,15 @@ and you can reconfigure the compile args."
 (setq c-backspace-function 'backward-delete-char)
 ;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
 ;; Do not use when using tramp, it will stuck tramp a little bit
-(bind-keys* ("C-x M-p" .
-			 (lambda ()
-			   (interactive)
-			   (if (bound-and-true-p which-function-mode)
-				   (which-function-mode -1)
-				 (which-function-mode 1))
-			   (if (bound-and-true-p projectile-global-mode)
-				   (projectile-global-mode -1)
-				 (projectile-global-mode 1)))))
+(bind-key* "C-x M-p"
+		   (lambda ()
+			 (interactive)
+			 (if (bound-and-true-p which-function-mode)
+				 (which-function-mode -1)
+			   (which-function-mode 1))
+			 (if (bound-and-true-p projectile-global-mode)
+				 (projectile-global-mode -1)
+			   (projectile-global-mode 1))))
 
 ;; line space between lines, default to 0
 ;; (setq line-spacing 2)
@@ -383,15 +378,15 @@ and you can reconfigure the compile args."
 ;; save file need root permission, C-x C-q to edit the root file first
 ;; Note that this C-x C-s will fail if the buffer is not a file, in this case,
 ;; use C-x C-w instead
-(bind-keys* ("C-x C-s" .
-			 (lambda ()
-			   (interactive)
-			   (progn
-				 ;; check if the buffer is a file or like *scratch*
-				 (if (buffer-file-name)
-					 (if (file-writable-p buffer-file-name) (save-buffer)
-					   (write-file (concat "/sudo::" buffer-file-name)))
-				   (save-buffer))))))
+(bind-key* "C-x C-s"
+		   (lambda ()
+			 (interactive)
+			 (progn
+			   ;; check if the buffer is a file or like *scratch*
+			   (if (buffer-file-name)
+				   (if (file-writable-p buffer-file-name) (save-buffer)
+					 (write-file (concat "/sudo::" buffer-file-name)))
+				 (save-buffer)))))
 
 ;; displays the argument list for current func, work for all languages
 (eldoc-mode)
@@ -723,9 +718,12 @@ If the mark is not active, try to build a region using `symbol-at-point'."
 	(let ((bounds (bounds-of-thing-at-point 'symbol)))
 	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
   (increment-region beg end (- ARG)))
-(bind-keys*
- ("S-M-<up>" . increment-region)
- ("S-M-<down>" . decrement-region))
+(bind-key* "C-c #"
+		   (defhydra hydra-change-num (:hint nil)
+			 ""
+			 ("<up>" increment-region "increment")
+			 ("<down>" decrement-region "decrement")
+			 ("q" nil)))
 
 ;; make the default sentence ending with two spaces concept nil
 ;; Now it work for expand-region to expand sentence
@@ -811,10 +809,15 @@ Also converts full stops to commas."
   (if (use-region-p)
 	  (call-interactively 'upcase-region)
 	(call-interactively 'subword-upcase)))
-(bind-keys*
- ("M-S-c" . endless/capitalize)
- ("M-S-l" . endless/downcase)
- ("M-S-u" . endless/upcase))
+(bind-key* "C-c C-c"
+		   (defhydra hydra-change-case (:hint nil)
+			 ""
+			 ("c" endless/capitalize "capitalize")
+			 ("l" endless/downcase "downcase")
+			 ("u" endless/upcase "upcase")
+			 ("z" undo-tree-undo "undo")
+			 ("Z" undo-tree-redo "redo")
+			 ("q" nil)))
 
 ;; use M-x list-processes then d to delete
 (defalias 'lps 'list-processes)
@@ -1029,10 +1032,10 @@ Version 2016-12-18"
 (bind-key* "C-x DEL" 'xah-shrink-whitespaces)
 ;; Join the current line with the line beneath it.
 ;; M-^ is the revert
-(bind-keys* ("C-M-q" .
-			 (lambda ()
-			   (interactive)
-			   (delete-indentation 1))))
+(bind-key* "C-M-q"
+		   (lambda ()
+			 (interactive)
+			 (delete-indentation 1)))
 
 ;; delete not kill it into kill-ring
 ;; _based on_ http://ergoemacs.org/emacs/emacs_kill-ring.html
@@ -1111,7 +1114,7 @@ Version 2016-07-13"
 	  (let ((fill-column most-positive-fixnum ))
 		(fill-region -p1 -p2)))
 	(put this-command 'compact-p (not -compact-p))))
-(bind-keys* ("M-q" . xah-fill-or-unfill))
+(bind-key* "M-q" 'xah-fill-or-unfill)
 
 (defun xah-syntax-color-hex ()
   "Syntax color text of the form 「#ff1100」 and 「#abc」 in current buffer.
@@ -1144,11 +1147,11 @@ Version 2017-03-12"
 ;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (defun cleanup-buffer ()
   "Cleanup the buffer:
-1. origami-open-all-nodes to avoid date loss
+1. yafolding-show-all to avoid date loss
 2. delete-trailing-whitespace
 "
   (interactive)
-  ;; (origami-open-all-nodes (current-buffer)) ;; avoid data loss
+  (yafolding-show-all) ;; avoid data loss
   (delete-trailing-whitespace))
 (bind-key* "C-c M-d" 'cleanup-buffer)
 (defvar all-make-modes
@@ -1575,11 +1578,15 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;;;;;;;;;;;;;;;;;;;; Window
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; resize the opened windows
-(bind-keys*
- ("C-S-<left>" . shrink-window-horizontally)
- ("C-S-<right>" . enlarge-window-horizontally)
- ("C-S-<down>" . shrink-window)
- ("C-S-<up>" . enlarge-window))
+(bind-key* "C-x @"
+		   (defhydra hydra-resize-window (:hint nil)
+			 ""
+			 ("<left>" shrink-window-horizontally "-narrower-")
+			 ("<right>" enlarge-window-horizontally "-wider-")
+			 ("<down>" shrink-window "|shorter|")
+			 ("<up>" enlarge-window "|taller|")
+			 ("q"  nil)))
+
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
 ;; you can C-x 1 to close other windows and C-c <left> to restore
@@ -1831,13 +1838,13 @@ Emacs session."
  ;; if hunspell does NOT exist, use aspell
  ;; NOTE: Using hunspell may produce the "Error enabling Flyspell mode: (stringp nil)" problem
  ;; ((executable-find "hunspell")
- ;;  (setq ispell-program-name "hunspell")
- ;;  (setq ispell-local-dictionary "en_US")
- ;;  (setq ispell-local-dictionary-alist
- ;;        ;; Please note the list `("-d" "en_US")` contains ACTUAL parameters passed to hunspell
- ;;        ;; You could use `("-d" "en_US,en_US-med")` to check with multiple dictionaries
- ;;        '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)
- ;;          )))
+ ;;	 (setq ispell-program-name "hunspell")
+ ;;	 (setq ispell-local-dictionary "en_US")
+ ;;	 (setq ispell-local-dictionary-alist
+ ;;		   ;; Please note the list `("-d" "en_US")` contains ACTUAL parameters passed to hunspell
+ ;;		   ;; You could use `("-d" "en_US,en_US-med")` to check with multiple dictionaries
+ ;;		   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)
+ ;;			 )))
  ((executable-find "aspell")
   (setq ispell-program-name "aspell")
   ;; Please note ispell-extra-args contains ACTUAL parameters passed to aspell
@@ -1846,45 +1853,45 @@ Emacs session."
 (setq ispell-personal-dictionary "~/.emacs.d/ispell_en_US")
 (require 'flyspell)
 (dolist (mode '(prog-mode-hook
-                emacs-lisp-mode-hook
-                python-mode-hook))
+				emacs-lisp-mode-hook
+				python-mode-hook))
   (add-hook mode
-            '(lambda ()
-               (flyspell-prog-mode))))
+			'(lambda ()
+			   (flyspell-prog-mode))))
 ;; in prog-mode, make flyspell only work in comments
 ;; original value: '(font-lock-string-face font-lock-comment-face font-lock-doc-face)
 (with-eval-after-load 'flyspell-prog-mode
   (setq flyspell-prog-text-faces
-        (delq 'font-lock-string-face
-              flyspell-prog-text-faces)))
+		(delq 'font-lock-string-face
+			  flyspell-prog-text-faces)))
 (with-eval-after-load "flyspell"
   (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
   ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
   )
 (require 'flyspell-correct-helm)
 (bind-keys :map flyspell-mode-map
-           :prefix-map my-flyspell-mode-prefix-map
-           :prefix "C-M-x"
-           ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
-           ("x" . flyspell-correct-wrapper)
-           ("b" . flyspell-buffer)
-           ("n" . flyspell-correct-next)
-           ("p" . flyspell-correct-previous)
-           ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
-           ("i" . endless/ispell-word-then-abbrev))
+		   :prefix-map my-flyspell-mode-prefix-map
+		   :prefix "C-M-x"
+		   ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
+		   ("x" . flyspell-correct-wrapper)
+		   ("b" . flyspell-buffer)
+		   ("n" . flyspell-correct-next)
+		   ("p" . flyspell-correct-previous)
+		   ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
+		   ("i" . endless/ispell-word-then-abbrev))
 ;;
 (add-hook 'ispell-initialize-spellchecker-hook
-          (lambda ()
-            (setq ispell-base-dicts-override-alist
-                  '((nil ; default
-                     "[A-Za-z]" "[^A-Za-z]" "[']" t
-                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
-                    ("american" ; Yankee English
-                     "[A-Za-z]" "[^A-Za-z]" "[']" t
-                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
-                    ("british" ; British English
-                     "[A-Za-z]" "[^A-Za-z]" "[']" t
-                     ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
+		  (lambda ()
+			(setq ispell-base-dicts-override-alist
+				  '((nil ; default
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
+					("american" ; Yankee English
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
+					("british" ; British English
+					 "[A-Za-z]" "[^A-Za-z]" "[']" t
+					 ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
 ;;
 ;; source: http://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html
 (defun endless/simple-get-word ()
@@ -1899,28 +1906,28 @@ skip typos you don't want to fix with `SPC', and you can
 abort completely with `C-g'."
   (interactive "P")
   (let (bef aft)
-    (save-excursion
-      (while (if (setq bef (endless/simple-get-word))
-                 ;; Word was corrected or used quit.
-                 (if (ispell-word nil 'quiet)
-                     nil ; End the loop.
-                   ;; Also end if we reach `bob'.
-                   (not (bobp)))
-               ;; If there's no word at point, keep looking
-               ;; until `bob'.
-               (not (bobp)))
-        (backward-word)
-        (backward-char))
-      (setq aft (endless/simple-get-word)))
-    (if (and aft bef (not (equal aft bef)))
-        (let ((aft (downcase aft))
-              (bef (downcase bef)))
-          (define-abbrev
-            (if p local-abbrev-table global-abbrev-table)
-            bef aft)
-          (message "\"%s\" now expands to \"%s\" %sally"
-                   bef aft (if p "loc" "glob")))
-      (user-error "No typo at or before point"))))
+	(save-excursion
+	  (while (if (setq bef (endless/simple-get-word))
+				 ;; Word was corrected or used quit.
+				 (if (ispell-word nil 'quiet)
+					 nil ; End the loop.
+				   ;; Also end if we reach `bob'.
+				   (not (bobp)))
+			   ;; If there's no word at point, keep looking
+			   ;; until `bob'.
+			   (not (bobp)))
+		(backward-word)
+		(backward-char))
+	  (setq aft (endless/simple-get-word)))
+	(if (and aft bef (not (equal aft bef)))
+		(let ((aft (downcase aft))
+			  (bef (downcase bef)))
+		  (define-abbrev
+			(if p local-abbrev-table global-abbrev-table)
+			bef aft)
+		  (message "\"%s\" now expands to \"%s\" %sally"
+				   bef aft (if p "loc" "glob")))
+	  (user-error "No typo at or before point"))))
 (setq save-abbrevs 'silently)
 (setq-default abbrev-mode t)
 
@@ -1978,6 +1985,9 @@ abort completely with `C-g'."
 		  (lambda ()
 			(setq tab-width 8)))
 (add-hook 'fish-mode-hook
+		  (lambda ()
+			(setq indent-tabs-mode nil)))
+(add-hook 'sh-mode-hook
 		  (lambda ()
 			(setq indent-tabs-mode nil)))
 
@@ -2268,27 +2278,60 @@ Do this after `q` in Debugger buffer."
 		try-complete-lisp-symbol
 		try-expand-by-dict))
 
-(autoload 'multiple-cursors "multiple-cursors" t)
-(defhydra multiple-cursors-hydra (:hint nil)
-  "
-	 ^Up^			 ^Down^		   ^Other^
-----------------------------------------------
-[_p_]	Next		[_n_]	Next	  [_l_] Edit lines
-[_P_]	Skip_P		[_N_]	Skip_N	  [_a_] Mark all
-[_M-p_] Unmark_P	[_M-n_] Unmark_N  [_r_] Mark by regexp
-^ ^				^ ^					  [_q_] Quit
+(bind-key* "C-x #"
+		   (defhydra hydra-rectangle
+			 (:body-pre (rectangle-mark-mode 1)
+						:color pink
+						:hint nil
+						:post (deactivate-mark))
+			 "
+  ^_k_^		  _w_ copy		_o_pen		 _N_umber-lines			   |\\	   -,,,--,,_
+_h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
+  ^_j_^		  _d_ kill		_c_lear		 _r_eset-region-mark	  |,4-	) )_   .;.(	 `'-'
+^^^^		  _u_ndo		_g_ quit	 ^ ^					 '---''(./..)-'(_\_)
 "
-  ("l" mc/edit-lines :exit t)
-  ("a" mc/mark-all-like-this :exit t)
-  ("n" mc/mark-next-like-this)
-  ("N" mc/skip-to-next-like-this)
-  ("M-n" mc/unmark-next-like-this)
-  ("p" mc/mark-previous-like-this)
-  ("P" mc/skip-to-previous-like-this)
-  ("M-p" mc/unmark-previous-like-this)
-  ("r" mc/mark-all-in-region-regexp :exit t)
-  ("q" nil))
-(defalias 'mch 'multiple-cursors-hydra/body)
+			 ("k" rectangle-previous-line)
+			 ("j" rectangle-next-line)
+			 ("h" rectangle-backward-char)
+			 ("l" rectangle-forward-char)
+			 ("d" kill-rectangle)					 ;; C-x r k
+			 ("y" yank-rectangle)					 ;; C-x r y
+			 ("w" copy-rectangle-as-kill)			 ;; C-x r M-w
+			 ("o" open-rectangle)					 ;; C-x r o
+			 ("t" string-rectangle)					 ;; C-x r t
+			 ("c" clear-rectangle)					 ;; C-x r c
+			 ("e" rectangle-exchange-point-and-mark) ;; C-x C-x
+			 ("N" rectangle-number-lines)			 ;; C-x r N
+			 ("r" (if (region-active-p)
+					  (deactivate-mark)
+					(rectangle-mark-mode 1)))
+			 ("u" undo nil)
+			 ("g" nil)))
+
+;; remove ~/.emacs.d/.mc-lists.el file if it prompts "for all cursors"
+(autoload 'multiple-cursors "multiple-cursors" t)
+(bind-key* "C-c m"
+		   (defhydra hydra-multiple-cursors (:hint nil)
+			 "
+		 ^Up^					 ^Down^			   ^Other^
+----------------------------------------------
+[_p_]	Prev			[_n_]	Next	  [_l_] Edit lines
+[_P_]	Skip_P			[_N_]	Skip_N	  [_a_] Mark all
+[_M-p_] Unmark_P		[_M-n_] Unmark_N  [_r_] Mark by regexp
+[_z_]	Undo			[_Z_]	Redo	  [_q_] Quit
+"
+			 ("l" mc/edit-lines :exit t)
+			 ("a" mc/mark-all-like-this :exit t)
+			 ("n" mc/mark-next-like-this)
+			 ("N" mc/skip-to-next-like-this)
+			 ("M-n" mc/unmark-next-like-this)
+			 ("p" mc/mark-previous-like-this)
+			 ("P" mc/skip-to-previous-like-this)
+			 ("M-p" mc/unmark-previous-like-this)
+			 ("r" mc/mark-all-in-region-regexp :exit t)
+			 ("z" undo-tree-undo)
+			 ("Z" undo-tree-redo)
+			 ("q" nil)))
 
 ;; avy to replace ace-jump-mode
 (bind-keys*
@@ -2517,20 +2560,7 @@ Indent the line/region according to the context which is smarter than default Ta
  ("C-M-s" . findr-search)
  ("C-M-r" . findr-query-replace))
 
-;; iy-go-to-char better work with multiple-cursors
-(autoload 'iy-go-to-char "iy-go-to-char" t)
-(bind-keys*
- ("C-c f" . iy-go-to-char)
- ("C-c F" . iy-go-to-char-backward))
-;; (global-set-key (kbd "C-c ;") 'iy-go-to-or-up-to-continue)
-;; (global-set-key (kbd "C-c ,") 'iy-go-to-or-up-to-continue-backward)
-;;
-;; To make `iy-go-to-char' works better with `multiple-cursors`, add
-;; `iy-go-to-char-start-pos' to `mc/cursor-specific-vars' when mc is loaded:
-;; The following one line should be put after multiple-cursors plugin
-;; (add-to-list 'mc/cursor-specific-vars 'iy-go-to-char-start-pos)
 ;; markdown-mode, http://jblevins.org/projects/markdown-mode/
-
 (autoload 'markdown-mode "markdown-mode"
   "Major mode for editing Markdown files" t)
 ;; markdown-mode+
@@ -3175,18 +3205,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (setq flycheck-check-syntax-automatically '(save))
 ;; flycheck-pos-tip
 (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
-(defhydra flycheck-hydra
-  (:pre (progn (setq hydra-lv t) (flycheck-list-errors))
-		:post (progn (setq hydra-lv nil) (quit-windows-on "*Flycheck errors*"))
-		:hint nil)
-  "Errors"
-  ("f"	flycheck-error-list-set-filter							  "Filter")
-  ("n"	flycheck-next-error										  "Next")
-  ("p"	flycheck-previous-error									  "Previous")
-  ("gg" flycheck-first-error									  "First")
-  ("G"	(progn (goto-char (point-max)) (flycheck-previous-error)) "Last")
-  ("q"	nil))
-(defalias 'fh 'flycheck-hydra/body)
 
 ;; magit
 ;;
@@ -3194,7 +3212,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; git-rebase-mode required by magit
 ;; (with-eval-after-load 'info
 ;;	 (info-initialize)
-;;   (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/"))
+;;	 (add-to-list 'Info-directory-list "~/.emacs.d/elpa/magit-*/"))
 (autoload 'magit "magit: git for Emacs" t)
 ;; point to your favorite repos, Now use C-u M-x magit-status and have
 ;; magit prompt you to choose from one of your favorite repos.
@@ -3252,21 +3270,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (defalias 'hc 'hide/show-comments-toggle)
 
 ;; yafolding
-;; C-M-return 'yafolding-toggle-all
-;; C-return 'yafolding-toggle-element
-(autoload 'yafolding "yafolding" t)
-(add-hook 'python-mode-hook 'yafolding-mode)
+;; default bindings C-return doesn't work with terminal Emacs
+;; (autoload 'yafolding "yafolding" t)
 (add-hook 'prog-mode-hook 'yafolding-mode)
-
-;; origami
-(require 'origami)
-(global-origami-mode)
-(setq origami-show-fold-header t)
-(set-face-attribute 'origami-fold-fringe-face nil :foreground "yellow")
-(bind-keys*
- ("C-c <C-return>" . origami-toggle-node)
- ("C-c <S-return>" . origami-recursively-toggle-node)
- ("C-c <C-M-return>" . origami-toggle-all-nodes))
+(bind-keys :map prog-mode-map
+		   ("C-c f" . yafolding-toggle-element)
+		   ("C-c F" . yafolding-toggle-all))
 
 ;; highlight-symbol
 (autoload 'highlight-symbol "highlight-symbol" t)
@@ -3387,9 +3396,10 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 			 (progn
 			   (if (current-line-empty-p)
 				   (delete-blank-lines)
-				 (progn
-				   (delete-region (line-beginning-position) (line-end-position))
-				   (delete-char 1))))))))
+				 (delete-region (line-beginning-position) (line-end-position)))))
+		   ;; delete the extra empty line
+		   (delete-char 1)
+		   (indent-for-tab-command))))
 (defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
@@ -3402,10 +3412,18 @@ Version 2016-06-18"
 		(setq -p1 (point-min) -p2 (point-max))
 	  (if (use-region-p)
 		  (setq -p1 (region-beginning) -p2 (region-end))
-		(setq -p1 (line-beginning-position) -p2 (line-end-position))))
+		;; (setq -p1 (line-beginning-position) -p2 (line-end-position))))
+		;; use non-white position
+		;; -p1 is the position of beginning of line of non-whitespace
+		;; -p2 is the position of end of line of non-whitespace
+		(setq -p1 (save-excursion (back-to-indentation) (point))
+			  -p2 (save-excursion
+					(end-of-line)
+					(skip-syntax-backward "-")
+					(point)))))
 	(if (eq last-command this-command)
 		(progn
-		  (progn					   ; hack. exit if there's no more next line
+		  (progn										   ; hack. exit if there's no more next line
 			(end-of-line)
 			(forward-char)
 			(backward-char))
@@ -3436,13 +3454,23 @@ Version 2015-06-10"
 			 (progn
 			   (if (current-line-empty-p)
 				   (delete-blank-lines)
-				 (progn
-				   (kill-region (line-beginning-position) (line-end-position))
-				   (delete-char 1))))))))
+				 ;; (kill-region (line-beginning-position) (line-end-position))
+				 ;; use non-white position
+				 (kill-region
+				  (save-excursion (back-to-indentation) (point))
+				  (save-excursion
+					(end-of-line)
+					(skip-syntax-backward "-")
+					(point))))))
+		   ;; delete the no-whitespace part in this line
+		   (when (current-line-empty-p) (delete-blank-lines))
+		   ;; delete the extra empty line
+		   (delete-char 1)
+		   (indent-for-tab-command))))
 (bind-keys*
- ("C-x w" . delete-line-or-region-or-buffer)
- ;; ("M-w" . copy-line-or-region-or-buffer)
- ("C-w" . cut-line-or-region-or-buffer))
+ ("C-w" . delete-line-or-region-or-buffer)
+ ("M-w" . copy-line-or-region-or-buffer) ; replace it with easy-kill
+ ("C-x w" . cut-line-or-region-or-buffer))
 
 ;; easy-kill
 ;; M-d and more keys, ? for help, C-M-@ for easy-mark
@@ -3450,7 +3478,9 @@ Version 2015-06-10"
 ;; then do delete/C-w/C-x w on the marked part
 (require 'easy-kill)
 (global-set-key [remap kill-ring-save] 'easy-kill)
-(global-set-key [remap mark-sexp] 'easy-mark)
+(global-set-key [remap mark-sexp] 'easy-mark) ; C-M-@
+(bind-key* "C-x M-w" 'easy-kill)
+;; NOTE: remember to C-M-\ (indent-region) to reindent the code(block) after yanking
 
 ;; which-key to replace guide-key
 (which-key-mode)
@@ -3497,11 +3527,6 @@ Version 2015-06-10"
 			'(lambda ()
 			   (eldoc-mode)
 			   (lispy-mode))))
-
-;; browse-kill-ring required by bbyac
-
-;; bbyac
-(bbyac-global-mode 1)
 
 ;; omni-scratch
 (bind-key* "C-x B" 'omni-scratch-new-scratch-major-buffer)
@@ -3814,6 +3839,8 @@ Version 2015-06-10"
 	(reftex-mode . "")
 	(org-table-sticky-header-mode . "")
 	(org-numbers-overlay-mode . "")
+	(highlight-indent-guides-mode . "")
+	(electric-operator-mode . "")
 	;; Major modes
 	(lisp-interaction-mode . "λ")
 	(emacs-lisp-mode . "El")
