@@ -294,7 +294,6 @@ and you can reconfigure the compile args."
 
 ;; C-x </> 'scroll-left/right if line is too long
 (put 'scroll-left 'disabled nil)
-(setq comment-style 'extra-line)
 ;; file size in mode line
 (setq size-indication-mode t)
 ;; symbol to indicate the end of the buffer
@@ -718,7 +717,7 @@ If the mark is not active, try to build a region using `symbol-at-point'."
 	(let ((bounds (bounds-of-thing-at-point 'symbol)))
 	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
   (increment-region beg end (- ARG)))
-(bind-key* "C-c #"
+(bind-key* "C-c $"
 		   (defhydra hydra-change-num (:hint nil)
 			 ""
 			 ("<up>" increment-region "increment")
@@ -729,7 +728,6 @@ If the mark is not active, try to build a region using `symbol-at-point'."
 ;; Now it work for expand-region to expand sentence
 (setq sentence-end-double-space nil)
 
-;; You can do M-c/u/l the whole word in any position inside the word
 (defadvice endless/upcase (before upcase-word-advice activate)
   (unless (looking-back "\\b")
 	(backward-word)))
@@ -770,7 +768,6 @@ Version 2017-04-19"
 	 ((equal 2 (get this-command 'state))
 	  (downcase-region $p1 $p2)
 	  (put this-command 'state 0)))))
-(bind-key* "C-x M-c" 'xah-toggle-letter-case)
 ;; automatically convert the comma/dot once downcase/upcase next character
 (defun endless/convert-punctuation (rg rp)
   "Look for regexp RG around point, and replace with RP.
@@ -809,9 +806,10 @@ Also converts full stops to commas."
   (if (use-region-p)
 	  (call-interactively 'upcase-region)
 	(call-interactively 'subword-upcase)))
-(bind-key* "C-c C-c"
+(bind-key* "C-c @"
 		   (defhydra hydra-change-case (:hint nil)
 			 ""
+			 ("x" xah-toggle-letter-case "loop")
 			 ("c" endless/capitalize "capitalize")
 			 ("l" endless/downcase "downcase")
 			 ("u" endless/upcase "upcase")
@@ -1172,20 +1170,28 @@ Emacs by default won't treat the TAB as indent"
 			(cleanup-buffer)
 			(indent-buffer-safe)))
 ;; use prefix+M-x un/tabify for the entire buffer without clean-and-indent
-(defun tabify-buffer ()
-  "Automatically select the whole buffer and tabify it, and then indent-buffer-safe"
+										; only tabify the leading whitespace, this will avoid the changes in c/macro and comments
+(setq tabify-regexp "^\t* [ \t]+")
+(defun tabify-it ()
+  "tabify the region if marked a region, or else, tabify the whole buffer, then indent-buffer-safe"
   (interactive)
-  (point-to-register 'o)
-  (tabify (point-min) (point-max))
-  (indent-buffer-safe)
-  (jump-to-register 'o))
-(defun untabify-buffer ()
-  "Automatically select the whole buffer and untabify it, and then indent-buffer-safe"
+  (if (use-region-p)
+	  (setq $p1 (region-beginning)
+			$p2 (region-end))
+	(setq $p1 (point-min)
+		  $p2 (point-max)))
+  (tabify $p1 $p2)
+  (indent-buffer-safe))
+(defun untabify-it ()
+  "untabify the region if marked a region, or else, untabify the whole buffer, then indent-buffer-safe"
   (interactive)
-  (point-to-register 'o)
-  (untabify (point-min) (point-max))
-  (indent-buffer-safe)
-  (jump-to-register 'o))
+  (if (use-region-p)
+	  (setq $p1 (region-beginning)
+			$p2 (region-end))
+	(setq $p1 (point-min)
+		  $p2 (point-max)))
+  (untabify $p1 $p2)
+  (indent-buffer-safe))
 
 (defun rename-this-buffer-and-file ()
   "Renames current buffer and file it is visiting."
@@ -1407,13 +1413,20 @@ searches all buffers."
 ;; Always end a file with a newline
 (setq require-final-newline nil)
 
-(defun in-comment-p ()
-  "Testy if cursor/point in a commented line? lispy--in-comment-p is not working in org-mode,
-so combine lispy--in-comment-p with org-at-comment-p"
-  (save-excursion
-	(if (derived-mode-p 'org-mode)
-		(save-match-data (beginning-of-line) (looking-at "^[ \t]*#"))
-	  (lispy--in-comment-p))))
+(defun in-comment-p (&optional pos)
+  "Test if character at POS is comment.	 If POS is nil, character at `(point)' is tested.
+From https://emacs.stackexchange.com/a/14716/794"
+  (interactive)
+  (unless pos (setq pos (point)))
+  (let* ((fontfaces (get-text-property pos 'face)))
+	(when (not (listp fontfaces))
+	  (setf fontfaces (list fontfaces)))
+	(delq nil
+		  (mapcar #'(lambda (f)
+					  ;; learn this trick from flyspell
+					  (or (eq f 'font-lock-comment-face)
+						  (eq f 'font-lock-comment-delimiter-face)))
+				  fontfaces))))
 (defun advanced-return (&optional ARG)
   "Customized return, more powerful.
 
@@ -1578,14 +1591,15 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;;;;;;;;;;;;;;;;;;;; Window
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; resize the opened windows
-(bind-key* "C-x @"
-		   (defhydra hydra-resize-window (:hint nil)
-			 ""
-			 ("<left>" shrink-window-horizontally "-narrower-")
-			 ("<right>" enlarge-window-horizontally "-wider-")
-			 ("<down>" shrink-window "|shorter|")
-			 ("<up>" enlarge-window "|taller|")
-			 ("q"  nil)))
+(bind-key* "C-c #"
+           (defhydra hydra-resize-window (:hint nil)
+             ""
+             ("<left>" shrink-window-horizontally "-narrower-")
+             ("<right>" enlarge-window-horizontally "-wider-")
+             ("<down>" shrink-window "|shorter|")
+             ("<up>" enlarge-window "|longer|")
+             ("=" balance-windows "equal")
+             ("q"  nil)))
 
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
@@ -1870,15 +1884,16 @@ Emacs session."
   )
 (require 'flyspell-correct-helm)
 (bind-keys :map flyspell-mode-map
-		   :prefix-map my-flyspell-mode-prefix-map
-		   :prefix "C-M-x"
-		   ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
-		   ("x" . flyspell-correct-wrapper)
-		   ("b" . flyspell-buffer)
-		   ("n" . flyspell-correct-next)
-		   ("p" . flyspell-correct-previous)
-		   ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
-		   ("i" . endless/ispell-word-then-abbrev))
+           :prefix-map my-flyspell-mode-prefix-map
+           :prefix "C-M-x"
+           ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
+           ("x" . flyspell-correct-at-point)
+           ("b" . flyspell-buffer)
+           ("n" . flyspell-correct-next)
+           ("p" . flyspell-correct-previous)
+           ("a" . flyspell-correct-wrapper)
+           ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
+           ("i" . endless/ispell-word-then-abbrev))
 ;;
 (add-hook 'ispell-initialize-spellchecker-hook
 		  (lambda ()
@@ -1985,9 +2000,6 @@ abort completely with `C-g'."
 		  (lambda ()
 			(setq tab-width 8)))
 (add-hook 'fish-mode-hook
-		  (lambda ()
-			(setq indent-tabs-mode nil)))
-(add-hook 'sh-mode-hook
 		  (lambda ()
 			(setq indent-tabs-mode nil)))
 
@@ -2278,7 +2290,7 @@ Do this after `q` in Debugger buffer."
 		try-complete-lisp-symbol
 		try-expand-by-dict))
 
-(bind-key* "C-x #"
+(bind-key* "C-c %"
 		   (defhydra hydra-rectangle
 			 (:body-pre (rectangle-mark-mode 1)
 						:color pink
@@ -2335,11 +2347,11 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
 
 ;; avy to replace ace-jump-mode
 (bind-keys*
- ("M-g M-g" . avy-goto-word-or-subword-1)
- ("M-g s" . avy-goto-char-timer)
- ("M-g M-c" . avy-goto-char-in-line)
- ("M-g l" . avy-goto-line)
- ("M-g z" . avy-resume)
+ ("M-g M-g" . avy-goto-char-timer)		  ;; any char, can input word
+ ("M-g w"	. avy-goto-word-or-subword-1) ;; word or subword
+ ("M-g j"	. avy-goto-char-in-line)	  ;; char in current line
+ ("M-g l"	. avy-goto-line)
+ ("M-g z"	. avy-resume)
  ("M-g SPC" . avy-pop-mark))
 
 ;;
@@ -2442,43 +2454,43 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
 ;; Python Development Environment
 ;; elpy or anaconda-mode
 ;;
-;; ;; https://github.com/jorgenschaefer/elpy
-;; ;; https://realpython.com/emacs-the-best-python-editor/
-;; ;; usage of elpy: https://elpy.readthedocs.io/en/latest/ide.html
-;; (elpy-enable)
-;; ;; use flycheck instead of default flymake used by elpy
-;; (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-;; ;; (require 'py-autopep8)
-;; ;; (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
-;; ;; The following conf will slow Emacs, disable it when using elpy
-;; (add-hook 'elpy-mode-hook
-;;				  (lambda ()
-;;						(highlight-indent-guides-mode -1)
-;;						(highlight-indentation-mode -1)
-;;						(semantic-stickyfunc-mode -1)))
-;; anaconda
-(add-hook 'python-mode-hook 'anaconda-mode)
-(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
-(with-eval-after-load "company"
-  (add-to-list 'company-backends '(company-anaconda :with company-capf)))
-;; the following modes will make Emacs extremely slow when editing Python code
-(add-hook 'anaconda-mode-hook
+;; https://github.com/jorgenschaefer/elpy
+;; https://realpython.com/emacs-the-best-python-editor/
+;; usage of elpy: https://elpy.readthedocs.io/en/latest/ide.html
+(elpy-enable)
+;; use flycheck instead of default flymake used by elpy
+(setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;; (require 'py-autopep8)
+;; (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+;; The following conf will slow Emacs, disable it when using elpy
+(add-hook 'elpy-mode-hook
 		  (lambda ()
-			;; (highlight-indent-guides-mode -1)
-			;; (highlight-indentation-mode -1)
-			(color-identifiers-mode -1)
-			(which-function-mode -1)
-			(global-semantic-stickyfunc-mode -1)))
-(with-eval-after-load 'python
-  (bind-keys :map python-mode-map
-			 :prefix-map my-python-prefix-map
-			 :prefix "C-c c"
-			 ("d" . anaconda-mode-find-definitions-other-window)
-			 ("=" . anaconda-mode-find-assignments-other-window)
-			 ("r" . anaconda-mode-find-references-other-window)
-			 ("v" . anaconda-mode-show-doc)
-			 ("u" . xref-pop-marker-stack)
-			 ("TAB" . anaconda-mode-complete)))
+			(highlight-indent-guides-mode -1)
+			(highlight-indentation-mode -1)
+			(semantic-stickyfunc-mode -1)))
+;; ;; anaconda
+;; (add-hook 'python-mode-hook 'anaconda-mode)
+;; (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+;; (with-eval-after-load "company"
+;;   (add-to-list 'company-backends '(company-anaconda :with company-capf)))
+;; ;; the following modes will make Emacs extremely slow when editing Python code
+;; (add-hook 'anaconda-mode-hook
+;; 		  (lambda ()
+;; 			;; (highlight-indent-guides-mode -1)
+;; 			;; (highlight-indentation-mode -1)
+;; 			(color-identifiers-mode -1)
+;; 			(which-function-mode -1)
+;; 			(global-semantic-stickyfunc-mode -1)))
+;; (with-eval-after-load 'python
+;;   (bind-keys :map python-mode-map
+;; 			 :prefix-map my-python-prefix-map
+;; 			 :prefix "C-c c"
+;; 			 ("d" . anaconda-mode-find-definitions-other-window)
+;; 			 ("=" . anaconda-mode-find-assignments-other-window)
+;; 			 ("r" . anaconda-mode-find-references-other-window)
+;; 			 ("v" . anaconda-mode-show-doc)
+;; 			 ("u" . xref-pop-marker-stack)
+;; 			 ("TAB" . anaconda-mode-complete)))
 (with-eval-after-load "python"
   (define-key python-mode-map (kbd "C-c D") 'helm-pydoc))
 ;;
@@ -3080,7 +3092,10 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (bind-key "RET" 'helm-ag--run-other-window-action helm-ag-map)
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
-(add-hook 'after-init-hook 'helm-descbinds-mode)
+;; (add-hook 'after-init-hook 'helm-descbinds-mode)
+(bind-keys*
+ ("C-h b" . helm-descbinds)
+ ("C-h B" . (lambda () (interactive) (describe-bindings) (switch-to-buffer-other-window "*Help*"))))
 ;; Resize candidates window	 according to the number of candidates
 (helm-autoresize-mode 1)
 ;; (setq helm-autoresize-min-height 10)
@@ -3327,23 +3342,56 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; C-h C-m or C-h RET 'discover-my-major
 (bind-key* "C-h C-m" 'discover-my-major)
 
-;; drag-stuff
-;; word(s), line(s), region, M-<left/right/up/down> to move select if (s)
-(require 'drag-stuff)
-(dolist (mode '(prog-mode-hook
-				emacs-lisp-mode-hook
-				python-mode-hook
-				ielm-mode-hook
-				text-mode-hook))
-  (add-hook mode
-			'(lambda ()
-			   (drag-stuff-mode)
-			   (local-set-key (kbd "M-<up>") 'drag-stuff-up)
-			   (local-set-key (kbd "M-<down>") 'drag-stuff-down))))
-;; disable drag-stuff-mode in org-mode because of the M-... in it
-;; don't use remove-hook, it doesn't work here
-(add-hook 'org-mode-hook
-		  (lambda() (set (make-local-variable 'drag-stuff-mode) nil)))
+;; cool-moves
+(require 'cool-moves)
+;; M-.. are useful in org-mode, use elpy-mode-map instead of python-mode-map here
+(dolist (m (list prog-mode-map elpy-mode-map))
+  (bind-keys :map m
+			 ("M-<up>" . cool-moves/line-backward)
+			 ("M-<down>" . cool-moves/line-forward)
+			 ("M-<left>" . cool-moves/sexp-backward)
+			 ("M-<right>" . cool-moves/sexp-forward)))
+(bind-key* "C-c t"
+		   (defhydra hydra-text-motions (:color amaranth :hint nil :foreign-keys nil)
+			 "
+ _<down>_: line ↓     _<up>_: line ↑
+ _l_: line ↓             _L_: line ↑
+ _p_: par  ↓             _P_: par  ↑
+ _w_: word →             _W_: word ←
+ _c_: char →             _C_: char ←
+ _s_: sentence →         _S_: sentence ←
+ _<right>_: sexp →   <left>_: sexp ←
+ _x_: sexp →             _X_: sexp ←
+ _z_: undo               _Z_: redo
+"
+			 ("<escape>" nil)
+			 ("u" nil)
+
+			 ("l" cool-moves/line-forward)
+			 ("<down>" cool-moves/line-forward)
+			 ("L" cool-moves/line-backward)
+			 ("<up>" cool-moves/line-backward)
+
+			 ("p" cool-moves/paragraph-forward)
+			 ("P" cool-moves/paragraph-backward)
+
+			 ("w" cool-moves/word-forward)
+			 ("W" cool-moves/word-backwards)
+
+			 ("c" cool-moves/character-forward)
+			 ("C" cool-moves/character-backward)
+
+			 ("s" cool-moves/sentence-forward)
+			 ("S" cool-moves/sentence-backward)
+
+			 ("x" cool-moves/sexp-forward)
+			 ("<right>" cool-moves/sexp-forward)
+			 ("X" cool-moves/sexp-backward)
+			 ("<left>" cool-moves/sexp-backward)
+
+			 ("z" undo-tree-undo)
+			 ("Z" undo-tree-redo)
+			 ("q" nil)))
 
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
@@ -3391,15 +3439,13 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
   (interactive)
   (if current-prefix-arg
 	  (delete-region (point-min) (point-max))
-	(progn (if (use-region-p)
-			   (delete-region (region-beginning) (region-end))
-			 (progn
-			   (if (current-line-empty-p)
-				   (delete-blank-lines)
-				 (delete-region (line-beginning-position) (line-end-position)))))
-		   ;; delete the extra empty line
-		   (delete-char 1)
-		   (indent-for-tab-command))))
+	(progn
+	  (if (use-region-p)
+		  (delete-region (region-beginning) (region-end))
+		(delete-region (line-beginning-position) (line-end-position)))
+	  ;; delete the extra empty line
+	  (when (current-line-empty-p) (delete-blank-lines))
+	  (indent-for-tab-command))))
 (defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
@@ -3451,21 +3497,16 @@ Version 2015-06-10"
 		(delete-region (point-min) (point-max)))
 	(progn (if (use-region-p)
 			   (kill-region (region-beginning) (region-end) t)
-			 (progn
-			   (if (current-line-empty-p)
-				   (delete-blank-lines)
-				 ;; (kill-region (line-beginning-position) (line-end-position))
-				 ;; use non-white position
-				 (kill-region
-				  (save-excursion (back-to-indentation) (point))
-				  (save-excursion
-					(end-of-line)
-					(skip-syntax-backward "-")
-					(point))))))
-		   ;; delete the no-whitespace part in this line
-		   (when (current-line-empty-p) (delete-blank-lines))
+			 ;; (kill-region (line-beginning-position) (line-end-position))
+			 ;; use non-white position
+			 (kill-region
+			  (save-excursion (back-to-indentation) (point))
+			  (save-excursion
+				(end-of-line)
+				(skip-syntax-backward "-")
+				(point))))
 		   ;; delete the extra empty line
-		   (delete-char 1)
+		   (when (current-line-empty-p) (delete-blank-lines))
 		   (indent-for-tab-command))))
 (bind-keys*
  ("C-w" . delete-line-or-region-or-buffer)
@@ -3483,6 +3524,8 @@ Version 2015-06-10"
 ;; NOTE: remember to C-M-\ (indent-region) to reindent the code(block) after yanking
 
 ;; which-key to replace guide-key
+;; Put this before activating which-key-mode
+(setq which-key-idle-delay 0.3)
 (which-key-mode)
 ;; this will make C-h show next page if C-h in the first place instead of
 ;; help page, use ? for help page
