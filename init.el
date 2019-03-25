@@ -111,6 +111,10 @@
 ;; (setq tramp-default-method "ssh")
 ;; (setq tramp-ssh-controlmaster-options "-o ControlMaster=auto -o ControlPath='tramp.%%C' -o ControlPersist=no")
 
+(let ((benchmark-init.el "~/.emacs.d/elpa/benchmark-init-20150905.938/benchmark-init.el"))
+  (when (file-exists-p benchmark-init.el)
+    (load benchmark-init.el)))
+
 ;; Speed up emacs startup
 (let ((file-name-handler-alist nil)) "~/.emacs.d/init.elc")
 (setq package-enable-at-startup nil)
@@ -2066,7 +2070,7 @@ Has no effect if the character before point is not of the syntax class ')'."
 ;; Use M-x gdb-display-* to show more functions
 ;; M-x tool-bar-mode to show the tools
 ;; M-x gdb --> gdb -i=mi bin-file
-(require 'init-gdb)
+;; (require 'init-gdb)
 (with-eval-after-load "init-gdb"
   ;; use gdb-many-windows by default
   (setq gdb-many-windows t)
@@ -3396,7 +3400,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
 ;; ~/.gnus(~/.emacs.d/init-gnus.el) for more info
-(require 'init-gnus)
+;; (require 'init-gnus)
 
 ;; rebox2 to replace comment-box
 (require 'rebox2)
@@ -3722,7 +3726,7 @@ Version 2015-06-10"
  ;; (cons "o<--" " o<-- ")
  )
 
-(require 'init-tex)
+;; (require 'init-tex)
 
 ;; outline, C-c @ prefix
 (add-hook 'outline-minor-mode-hook
