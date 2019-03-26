@@ -402,36 +402,6 @@ and you can reconfigure the compile args."
 ;;;;;;;;   theme & font
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; theme
-;;
-;; Enabling a light theme temporarily, use M-x load-theme <TAB> flatui if you
-;; want to enable it after start up, add the two lines like below
-;;
-;; the following will get rid of prompt when M-x load-theme, treat all
-;; themes as safe
-(setq custom-safe-themes t)
-;;
-;; afternoon
-;; (require 'afternoon-theme)
-;;
-;; ;; molokai
-;; (load-theme 'molokai t)
-;; (require 'molokai-theme)
-;;
-;; moe-theme, a very colorful and powerful theme
-;; for more setting at https://github.com/kuanyui/moe-theme.el
-;; Put all theme configuration into the display-graphic-p block
-(if (display-graphic-p)
-	(progn
-	  (require 'moe-theme)
-	  ;; Resize titles
-	  (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
-	  (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
-	  ;; disable default mode-line buffer-id highlight
-	  (setq moe-theme-highlight-buffer-id nil)
-	  (moe-dark)))
-
-;;
 ;; font and size of startup
 ;;
 ;; List all fonts available to emacs
@@ -469,13 +439,59 @@ and you can reconfigure the compile args."
 		;; the following two settings are specifically for afternoon-theme
 		;; the combination colors of highlighted line and comments
 		;; (custom-set-faces
-		;;	'(font-lock-comment-face
-		;;	 ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
-		;;	 ))
+		;;      '(font-lock-comment-face
+		;;       ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
+		;;       ))
 		;; (set-face-background 'highlight "gray30")
 		)))
+;;
+;; theme
+;;
+;; Enabling a light theme temporarily, use M-x load-theme <TAB> flatui if you
+;; want to enable it after start up, add the two lines like below
+;;
+;;
+;; afternoon
+;; (require 'afternoon-theme)
+;;
+;; ;; molokai
+;; (load-theme 'molokai t)
+;; (require 'molokai-theme)
+;;
+;; moe-theme, a very colorful and powerful theme
+;; for more setting at https://github.com/kuanyui/moe-theme.el
+;; Put all theme configuration into the display-graphic-p block
+(if (daemonp)
+	;; for emacs --deamon, do not load theme/font in terminal Emacs
+	(add-hook 'after-make-frame-functions
+			  (lambda (frame)
+				(select-frame frame)
+				(when (display-graphic-p)
+				  (set-frame-size-according-to-resolution)
+				  ;; the following will get rid of prompt when M-x load-theme, treat all
+				  ;; themes as safe
+				  (setq custom-safe-themes t)
+				  (require 'moe-theme)
+				  ;; Resize titles
+				  (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
+				  (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
+				  ;; disable default mode-line buffer-id highlight
+				  (setq moe-theme-highlight-buffer-id nil)
+				  (moe-dark))))
+  (when (display-graphic-p)
+	(progn
+	  (set-frame-size-according-to-resolution)
+	  ;; the following will get rid of prompt when M-x load-theme, treat all
+	  ;; themes as safe
+	  (setq custom-safe-themes t)
+	  (require 'moe-theme)
+	  ;; Resize titles
+	  (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
+	  (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
+	  ;; disable default mode-line buffer-id highlight
+	  (setq moe-theme-highlight-buffer-id nil)
+	  (moe-dark))))
 
-(set-frame-size-according-to-resolution)
 ;;
 ;; disable scroll-bar-mode in newly created frame
 (add-hook 'after-make-frame-functions
@@ -1280,15 +1296,7 @@ Emacs by default won't treat the TAB as indent"
 (bind-keys :map dired-mode-map
 		   ("H" . dired-omit-mode)
 		   ("z" . dired-get-size))
-;; dired+
-;; stop Emacs dired mode from opening so many buffers
-(require 'dired+)
-(setq diredp-hide-details-initially-flag nil)
-(toggle-diredp-find-file-reuse-dir 1)
-;; sort in dired, `C-u s` then -S(sort by size), -u(sort by access time),
-;; -c(sort by last modification time), -X(sort by file extension),
-;; another, in dired `s`
-;;
+
 ;; move cursor between minibuffer and buffers using F7
 (defun switch-to-minibuffer-window ()
   "switch to minibuffer window (if active)"
@@ -1397,14 +1405,27 @@ searches all buffers."
 ;; 1. M-x diff-buffer-with-file
 ;; 2. After C-x C-c, type d to differ
 ;; If you are in vc dir, use C-x v = to diff the current version with the repo
-(bind-keys*
- ("C-h C-b" . diff-buffer-with-file)
- ("C-h C-v" . highlight-changes-visible-mode)
- ("M-<f1>" . highlight-changes-previous-change)
- ("M-<f2>" . highlight-changes-next-change))
-(global-highlight-changes-mode t)
-;; initial invisible, use C-h C-v to toggle the highlight of changes
-(setq highlight-changes-visibility-initial-state nil)
+(if (daemonp)
+	;; for emacs --deamon, highlight-change doesn't work with daemon
+	(add-hook 'after-make-frame-functions
+			  (lambda (frame)
+				(select-frame frame)
+				(bind-keys*
+				 ("C-h C-b" . diff-buffer-with-file)
+				 ("C-h C-v" . highlight-changes-visible-mode)
+				 ("M-<f1>" . highlight-changes-previous-change)
+				 ("M-<f2>" . highlight-changes-next-change))
+				(global-highlight-changes-mode t)
+				;; initial invisible, use C-h C-v to toggle the highlight of changes
+				(setq highlight-changes-visibility-initial-state nil)))
+  (bind-keys*
+   ("C-h C-b" . diff-buffer-with-file)
+   ("C-h C-v" . highlight-changes-visible-mode)
+   ("M-<f1>" . highlight-changes-previous-change)
+   ("M-<f2>" . highlight-changes-next-change))
+  (global-highlight-changes-mode t)
+  ;; initial invisible, use C-h C-v to toggle the highlight of changes
+  (setq highlight-changes-visibility-initial-state nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; line issues
@@ -1841,10 +1862,18 @@ Emacs session."
 	  (setq-default save-place t))
   (save-place-mode 1))
 
-;;
-(setq desktop-save 'ask)
+;; (setq desktop-save 'ask)
 ;;desktop-save ask means always ask
-(desktop-save-mode nil)
+;; (desktop-save-mode nil)
+(setq confirm-kill-emacs 'y-or-n-p)
+(defun ask-before-closing ()
+  "Useful to be used in emacsclient to avoid accident exit of Emacs like 'Save desktop?'."
+  (interactive)
+  (if (y-or-n-p (format "Really exit Emacs? "))
+	  (save-buffers-kill-terminal)
+	(message "Canceled frame close!")))
+(when (daemonp)
+  (global-set-key (kbd "C-x C-c") 'ask-before-closing))
 
 ;; show the possible errors in C/C++ source codes(cwarn mode)
 (global-cwarn-mode 1)
