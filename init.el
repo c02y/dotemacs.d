@@ -113,7 +113,8 @@
 
 (let ((benchmark-init.el "~/.emacs.d/elpa/benchmark-init-20150905.938/benchmark-init.el"))
   (when (file-exists-p benchmark-init.el)
-    (load benchmark-init.el)))
+	(load benchmark-init.el)))
+(defalias 'eit-list 'benchmark-init/show-durations-tabulated)
 
 ;; Speed up emacs startup
 (let ((file-name-handler-alist nil)) "~/.emacs.d/init.elc")
