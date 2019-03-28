@@ -1868,7 +1868,7 @@ Emacs session."
 ;; (desktop-save-mode nil)
 (setq confirm-kill-emacs 'y-or-n-p)
 (defun ask-before-closing ()
-  "Useful to be used in emacsclient to avoid accident exit of Emacs like 'Save desktop?'."
+  "Prompt for confirmation for emacsclient(not daemon) like confirm-kill-emacs for running Emacs without daemon."
   (interactive)
   (if (y-or-n-p (format "Really exit Emacs? "))
 	  (save-buffers-kill-terminal)
