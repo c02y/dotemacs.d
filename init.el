@@ -281,6 +281,10 @@ and you can reconfigure the compile args."
 ;; http://ergoemacs.org/misc/emacs_bug_cant_paste_2015.html
 (setq x-selection-timeout 100)
 
+;; omit the result to STDOUT after return when using emacs/emacsclient -e "expression"
+(define-advice server-eval-and-print (:filter-args (args) no-print)
+  (list (car args) nil))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3140,7 +3144,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 
 ;; helm-swoop
 (require 'helm-swoop)
-(bind-key "C-x s" 'helm-swoop)
+(bind-keys*
+ ("C-x s" . helm-swoop)
+ ("C-x S" . helm-multi-swoop))
 ;; speed(nil) or text color(t)
 (setq helm-swoop-speed-or-color t)
 ;; If this value is t, split window inside the current window
@@ -3165,7 +3171,6 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
   (interactive)
   (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-previous-line))
 (bind-keys :map helm-swoop-map
-		   ("C-x e" . helm-swoop-edit) ;; since builtin C-c C-e is already used
 		   ("C-s" . my-helm-swoop-next-line-with-string-at-point-if-needed)
 		   ("C-r" . my-helm-swoop-prev-line-with-string-at-point-if-needed))
 
