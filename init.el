@@ -281,9 +281,9 @@ and you can reconfigure the compile args."
 ;; http://ergoemacs.org/misc/emacs_bug_cant_paste_2015.html
 (setq x-selection-timeout 100)
 
-;; omit the result to STDOUT after return when using emacs/emacsclient -e "expression"
-(define-advice server-eval-and-print (:filter-args (args) no-print)
-  (list (car args) nil))
+;; ;; omit the result to STDOUT after return when using emacs/emacsclient -e "expression"
+;; (define-advice server-eval-and-print (:filter-args (args) no-print)
+;;   (list (car args) nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -1301,6 +1301,13 @@ Emacs by default won't treat the TAB as indent"
 (bind-keys :map dired-mode-map
 		   ("H" . dired-omit-mode)
 		   ("z" . dired-get-size))
+;;
+;; dired-hacks-utils required by dired-filter and dired-subtree
+;;
+;; dired-filter, C-u+C-c f+key to undo filter
+(define-key dired-mode-map (kbd "C-c f") dired-filter-mark-map)
+;; dired-subtree
+(define-key dired-mode-map "\t" 'dired-subtree-cycle) ;; TAB to cycle subtree
 
 ;; move cursor between minibuffer and buffers using F7
 (defun switch-to-minibuffer-window ()
@@ -3016,7 +3023,13 @@ background of code to whatever theme I'm using's background"
 (defun helm-occur-insert-symbol-regexp ()
   (interactive)
   (helm-set-pattern (concat "\\_<" helm-input "\\_>")))
-(define-key helm-moccur-map (kbd "<right>") 'helm-occur-insert-symbol-regexp)
+(define-key helm-occur-map (kbd "<right>") 'helm-occur-insert-symbol-regexp)
+;; use TAB to complete when using C-x C-f, use C-i for original TAB/C-i feature
+(define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
+(setq helm-ff-auto-update-initial-value t) ;file name auto-expansion github-issue-1616
+;; disable follow in helm-occur (like helm-swoop) github-2152
+(defmethod helm-setup-user-source ((source helm-moccur-class))
+  (setf (slot-value source 'follow) -1))
 (bind-keys*
  ("M-x" . helm-M-x)
  ;; M-y cycles the kill ring
@@ -3075,7 +3088,7 @@ background of code to whatever theme I'm using's background"
  ;; recentf-save-file
  ;; (concat user-emacs-directory "recentf")
  recentf-max-saved-items 100
- helm-moccur-auto-update-on-resume 'nil
+ ;; helm-occur-auto-update-on-resume 'nil
  ;; recentf-max-menu-items 15
  )
 (defun helm-other-occur ()
@@ -3193,6 +3206,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;				 (projectile-relevant-known-projects)))))
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
+;; use helm-projectile(C-c C-p h), it contains 5 commands into one
 (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
 
 ;; helm-flx
@@ -3207,7 +3221,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;		helm-source-projectile-files-list))
 ;; cache make it quick for large project, but cache will make the `C-c c p` only
 ;; work for cached files, use `C-c p i` or prefix `C-u` to make the cache invalidated
-(setq projectile-enable-caching t)
+(setq projectile-enable-caching nil)
+(setq projectile-git-submodule-command nil) ; make projectile work for repo contains submodules
 ;; change projectile to helm-projectile
 ;; projectile can create a file or dir if not found, but helm-projectile cannot
 (setq projectile-switch-project-action 'helm-projectile-find-file)
