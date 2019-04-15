@@ -76,7 +76,6 @@
 ;; C-M-h 'mark-defun
 ;; C-S-m for 'menu-bar-mode
 ;; Enter or C-j to 'newline-and-indent
-;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 ;; F7 to 'switch-to-minibuffer-window
 ;; F8 to make the frame transparent
 ;; F9 to 'search-all-buffers
@@ -89,7 +88,6 @@
 ;; C-c d to 'delete-trailing-whitespace
 ;; C-x C-j to 'dired-jump
 ;; C-c y to 'yas-reload-all
-;; C-c a to 'align-regexp
 ;; C-M-n/p Move forward/backward over a parenthetical group
 ;; C-M-u/d Move up/down in parenthesis structure
 ;; M-$ -> i -> y to insert the string into personal dictionary
@@ -281,9 +279,10 @@ and you can reconfigure the compile args."
 ;; http://ergoemacs.org/misc/emacs_bug_cant_paste_2015.html
 (setq x-selection-timeout 100)
 
-;; ;; omit the result to STDOUT after return when using emacs/emacsclient -e "expression"
-;; (define-advice server-eval-and-print (:filter-args (args) no-print)
-;;   (list (car args) nil))
+;; omit the result to STDOUT after return when using emacs/emacsclient -e "expression"
+(when (not (display-graphic-p))
+  (define-advice server-eval-and-print (:filter-args (args) no-print)
+    (list (car args) nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -990,20 +989,6 @@ With C-u C-u, print `Thu, 11. Aug 2016'"
 		(system-time-locale "en_US"))
 	(insert (format-time-string format))))
 
-;; Display trailing whitespace at end of lines
-(defun toggle-trailing-whitespace-display ()
-  "Toggle the display of trailing whitespace, by changing the
-buffer-local variable `show-trailing-whitespace'."
-  (interactive)
-  (save-excursion
-	(if show-trailing-whitespace
-		(setq show-trailing-whitespace nil)
-	  (setq show-trailing-whitespace t))
-	(force-window-update (current-buffer)))
-  (message (concat "Display of EOL spaces "
-				   (if show-trailing-whitespace
-					   "enabled" "disabled"))))
-(bind-key* "C-c e" 'show-ws-toggle-show-trailing-whitespace)
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation, combine two lines
 ;; M-Backspace delete to the previous word 'backword-kill-word
 ;; M-\ delete kill _all_ spaces at point 'delete-horizontal-space
@@ -1167,7 +1152,6 @@ Version 2017-03-12"
 (add-hook 'php-mode-hook 'xah-syntax-color-hex)
 (add-hook 'html-mode-hook 'xah-syntax-color-hex)
 
-;; C-c e to 'show-ws-toggle-show-trailing-whitespace
 (defun cleanup-buffer ()
   "Cleanup the buffer:
 1. yafolding-show-all to avoid date loss
@@ -1847,13 +1831,13 @@ Emacs session."
 	(align beginning end)
 	(untabify beginning end)))
 (require 'cc-mode) ;; c-mode-map
-(bind-keys*
- ("C-c a a" . align)
- ("C-c a r" . align-regexp))
+(bind-keys :map prog-mode-map
+		   ("C-c A a" . align)
+		   ("C-c A r" . align-regexp))
 (dolist (m (list c-mode-map c++-mode-map))
   (bind-keys :map m
 			 :prefix-map align-prefix-map
-			 :prefix "C-c a"
+			 :prefix "C-c A"
 			 ;; ("a" . align)
 			 ;; ("r" . align-regexp)
 			 ("c" . align-c-comments)
@@ -1909,7 +1893,7 @@ Emacs session."
   ;; Please note ispell-extra-args contains ACTUAL parameters passed to aspell
   (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US"))
   (message "hunspell not found, use aspell for spell-check!")))
-(setq ispell-personal-dictionary "~/.emacs.d/ispell_en_US")
+;; (setq ispell-personal-dictionary "~/.emacs.d/ispell_en_US")
 (require 'flyspell)
 (dolist (mode '(prog-mode-hook
 				emacs-lisp-mode-hook
@@ -1929,16 +1913,16 @@ Emacs session."
   )
 (require 'flyspell-correct-helm)
 (bind-keys :map flyspell-mode-map
-           :prefix-map my-flyspell-mode-prefix-map
-           :prefix "C-M-x"
-           ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
-           ("x" . flyspell-correct-at-point)
-           ("b" . flyspell-buffer)
-           ("n" . flyspell-correct-next)
-           ("p" . flyspell-correct-previous)
-           ("a" . flyspell-correct-wrapper)
-           ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
-           ("i" . endless/ispell-word-then-abbrev))
+		   :prefix-map my-flyspell-mode-prefix-map
+		   :prefix "C-M-x"
+		   ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
+		   ("x" . flyspell-correct-at-point)
+		   ("b" . flyspell-buffer)
+		   ("n" . flyspell-correct-next)
+		   ("p" . flyspell-correct-previous)
+		   ("a" . flyspell-correct-wrapper)
+		   ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
+		   ("i" . endless/ispell-word-then-abbrev))
 ;;
 (add-hook 'ispell-initialize-spellchecker-hook
 		  (lambda ()
@@ -2728,8 +2712,16 @@ Indent the line/region according to the context which is smarter than default Ta
 (require 'org)
 (setq org-completion-use-ido t)
 ;; NOTE: C-c C-v n/p org-babel-next/previous-src-block to navigate src blocks
+(bind-key* "C-c a" 'org-agenda)
+(setq org-agenda-span 31
+	  org-agenda-start-on-weekday nil
+	  org-agenda-start-day "-7d")
+(setq org-agenda-files (list "~/Org/todo.org"
+							 ;; "~/Org/school.org"
+							 ;; "~/Org/home.org"
+							 ))
 (bind-keys :map org-mode-map
-		   ("C-c a" . org-agenda)
+		   ("C-c l" . org-store-link)
 		   ("C-c c" . org-capture)
 		   ("<C-return>" . org-insert-heading-after-current)
 		   ("C-k". delete-line-to-end)
@@ -2742,15 +2734,6 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
 (require 'org-inlinetask)
-;; org agenda seems very slow
-;; Here are some other ideas for speeding up the agenda: :
-;; 1. Use a one day agenda view (rather than a seven day view).
-(setq org-agenda-span 1)
-;; 2. Archive inactive items to separate files.
-;; C-c C-x C-s (org-archive-subtree)
-;; 3. Do not include the global todo list in your agenda view.
-;; 4. Make sure that your org files are byte-compiled.
-;; replace auto-mode-alist for multiple extensions
 (mapc
  (lambda (file)
    (add-to-list 'auto-mode-alist
