@@ -279,10 +279,10 @@ and you can reconfigure the compile args."
 ;; http://ergoemacs.org/misc/emacs_bug_cant_paste_2015.html
 (setq x-selection-timeout 100)
 
-;; omit the result to STDOUT after return when using emacs/emacsclient -e "expression"
-(when (not (display-graphic-p))
-  (define-advice server-eval-and-print (:filter-args (args) no-print)
-    (list (car args) nil)))
+;; ;; omit the result to STDOUT after return when using emacs/emacsclient -e "expression"
+;; (when (not (display-graphic-p))
+;;   (define-advice server-eval-and-print (:filter-args (args) no-print)
+;;  (list (car args) nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Emacs Face Setting
@@ -2712,14 +2712,36 @@ Indent the line/region according to the context which is smarter than default Ta
 (require 'org)
 (setq org-completion-use-ido t)
 ;; NOTE: C-c C-v n/p org-babel-next/previous-src-block to navigate src blocks
+(setq org-agenda-custom-commands
+	  '(("c" "Simple agenda view"
+		 ((tags "PRIORITY=\"A\""
+				((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+				 (org-agenda-overriding-header "High-priority unfinished tasks:")))
+		  (agenda "")
+		  (alltodo "")))
+		))
+(setq org-capture-templates
+	  '(("a" "My TODO task format." entry
+		 (file "~/Org/todo.org")
+		 "* TODO %?
+SCHEDULED: %t")))
+;; search all items including archives
+(setq org-agenda-text-search-extra-files '(agenda-archives))
+;; mark all children DONE when mark parent DONE
+(setq org-enforce-todo-dependencies t)
+(setq org-log-reschedule 'time)
 (bind-key* "C-c a" 'org-agenda)
-(setq org-agenda-span 31
+(setq org-agenda-span 15
 	  org-agenda-start-on-weekday nil
 	  org-agenda-start-day "-7d")
-(setq org-agenda-files (list "~/Org/todo.org"
-							 ;; "~/Org/school.org"
-							 ;; "~/Org/home.org"
-							 ))
+;; Use specific fils as source of agenda
+(setq org-agenda-files
+	  (list "~/Org/todo.org"
+			;; "~/Org/school.org"
+			;; "~/Org/home.org"
+			))
+;; include all files in ~/Org as the source of org-agenda
+;; (setq org-agenda-files '("~/Org/"))
 (bind-keys :map org-mode-map
 		   ("C-c l" . org-store-link)
 		   ("C-c c" . org-capture)
@@ -2742,12 +2764,12 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; TODO
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
-;; (setq org-todo-keywords
-;;		  '((sequence "TODO(t)" "READ(r)" "|" "DONE(d)")
-;;			;; multiple sets for one file
-;;			;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
-;;			;; (sequence "|" "CANCELED(c)")
-;;			))
+(setq org-todo-keywords
+	  '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "|" "DONE(d)" "CANCELED(c)")
+		;; multiple sets for one file
+		;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
+		;; (sequence "|" "CANCELED(c)")
+		))
 ;; Keep track of when a certain TODO item was finished.
 (setq org-log-done 'time)
 ;; record a note along with the timestamp
