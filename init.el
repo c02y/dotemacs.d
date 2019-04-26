@@ -137,6 +137,8 @@
 ;; proxy goagent
 ;; (setq url-proxy-services '(("http*" . "127.0.0.1:8087")))
 
+;; hide the welcome/home page when startup
+(setq inhibit-startup-screen t)
 ;; Makes *scratch* empty.
 ;;(setq initial-scratch-message "")
 
@@ -209,9 +211,6 @@
 ;; C-0 M-x bd or M-x bd C-0 to bd
 (defalias 'bd 'byte-recompile-directory)
 ;; byte-comple and load *.el using "C-x c"
-(bind-keys :map emacs-lisp-mode-map
-		   ("C-x c" . emacs-lisp-byte-compile-and-load)
-		   ("C-c c" . eval-buffer))
 (bind-keys :map emacs-lisp-mode-map
 		   ("C-x c" . emacs-lisp-byte-compile-and-load)
 		   ("C-c c" . eval-buffer)
@@ -602,6 +601,7 @@ and you can reconfigure the compile args."
 				 ("" which-func-format " "))
 				" " mode-line-position
 				(vc-mode vc-mode)
+				(t org-mode-line-string) ;; show org info such as clock in mode line
 				" " mode-line-modes
 				"%-"))
 
@@ -1613,14 +1613,14 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; resize the opened windows
 (bind-key* "C-c #"
-           (defhydra hydra-resize-window (:hint nil)
-             ""
-             ("<left>" shrink-window-horizontally "-narrower-")
-             ("<right>" enlarge-window-horizontally "-wider-")
-             ("<down>" shrink-window "|shorter|")
-             ("<up>" enlarge-window "|longer|")
-             ("=" balance-windows "equal")
-             ("q"  nil)))
+		   (defhydra hydra-resize-window (:hint nil)
+			 ""
+			 ("<left>" shrink-window-horizontally "-narrower-")
+			 ("<right>" enlarge-window-horizontally "-wider-")
+			 ("<down>" shrink-window "|shorter|")
+			 ("<up>" enlarge-window "|longer|")
+			 ("=" balance-windows "equal")
+			 ("q"  nil)))
 
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
@@ -2712,25 +2712,46 @@ Indent the line/region according to the context which is smarter than default Ta
 (require 'org)
 (setq org-completion-use-ido t)
 ;; NOTE: C-c C-v n/p org-babel-next/previous-src-block to navigate src blocks
+(bind-keys*
+ ("C-c a a" . org-agenda) ; x to kill the buffers opened by org-agenda
+ ("C-c a c" . org-capture)
+ ("C-c a l" . org-store-link))
 (setq org-agenda-custom-commands
 	  '(("c" "Simple agenda view"
 		 ((tags "PRIORITY=\"A\""
 				((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
 				 (org-agenda-overriding-header "High-priority unfinished tasks:")))
-		  (agenda "")
-		  (alltodo "")))
-		))
+		  (alltodo "")
+		  (agenda "")))))
 (setq org-capture-templates
-	  '(("a" "My TODO task format." entry
-		 (file "~/Org/todo.org")
-		 "* TODO %?
-SCHEDULED: %t")))
+	  '(("s" "Scheduled TODO node" entry (file "~/Org/todo.org")
+		 "* TODO %?\nADDED: %U\nSCHEDULED: %t")
+		("S" "STARTED TODO node" entry (file "~/Org/todo.org")
+		 "* STARTED %?\nADDED: %U" :clock-in t :clock-keep t :clock-resume t)
+		("t" "TODO list" checkitem (file "~/Org/todo.org")
+		 "[ ] %?")
+		))
+(add-hook 'org-clock-out-hook
+		  '(lambda ()
+			 (setq org-mode-line-string nil)
+			 (force-mode-line-update)))
+;; Resume clocking task when emacs is restarted
+(org-clock-persistence-insinuate)
+;; removes clocked tasks with 0:00 duration
+(setq org-clock-out-remove-zero-time-clocks t)
+;; Save the running clock and all clock history when exiting Emacs, load it on startup
+(setq org-clock-persist t)
+;; Do not prompt to resume an active clock
+(setq org-clock-persist-query-resume nil)
+;; Include current clocking task in clock reports
+(setq org-clock-report-include-clocking-task t)
+;; Overwrite the current window with the agenda
+(setq org-agenda-window-setup 'current-window)
 ;; search all items including archives
 (setq org-agenda-text-search-extra-files '(agenda-archives))
 ;; mark all children DONE when mark parent DONE
 (setq org-enforce-todo-dependencies t)
 (setq org-log-reschedule 'time)
-(bind-key* "C-c a" 'org-agenda)
 (setq org-agenda-span 15
 	  org-agenda-start-on-weekday nil
 	  org-agenda-start-day "-7d")
@@ -2740,10 +2761,36 @@ SCHEDULED: %t")))
 			;; "~/Org/school.org"
 			;; "~/Org/home.org"
 			))
+(setq org-columns-default-format "%50ITEM(Task) %TODO %3PRIORITY %TAGS %10CLOCKSUM %16TIMESTAMP_IA")
+(setq org-log-into-drawer "LOGBOOK")
 ;; include all files in ~/Org as the source of org-agenda
 ;; (setq org-agenda-files '("~/Org/"))
+;; from https://github.com/svetlyak40wt/dot-emacs/blob/master/.emacs.d/lib/org-auto-clock.el
+(eval-after-load 'org
+  '(progn
+	 (defun wicked/org-clock-in-if-starting ()
+	   "Clock in when the task is marked STARTED."
+	   (when (and (string= org-state "STARTED")
+				  (not (string= org-last-state org-state)))
+		 (org-clock-in)))
+	 (add-hook 'org-after-todo-state-change-hook 'wicked/org-clock-in-if-starting)
+
+	 (defadvice org-clock-in (after wicked activate)
+	   "Set this task's status to 'STARTED' when clock-in."
+	   (org-todo "STARTED"))
+
+	 (defun wicked/org-clock-out-if-waiting ()
+	   "Clock out when the task is marked WAITING or CANCELED."
+	   (when (and (or (string= org-state "WAITING")
+					  (string= org-state "CANCELED"))
+				  (equal (marker-buffer org-clock-marker) (current-buffer))
+				  (< (point) org-clock-marker)
+				  (> (save-excursion (outline-next-heading) (point))
+					 org-clock-marker)
+				  (not (string= org-last-state org-state)))
+		 (org-clock-out)))
+	 (add-hook 'org-after-todo-state-change-hook 'wicked/org-clock-out-if-waiting)))
 (bind-keys :map org-mode-map
-		   ("C-c l" . org-store-link)
 		   ("C-c c" . org-capture)
 		   ("<C-return>" . org-insert-heading-after-current)
 		   ("C-k". delete-line-to-end)
@@ -2756,6 +2803,9 @@ SCHEDULED: %t")))
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
 (require 'org-inlinetask)
+;; set the default major-mode to org-mode instead of fundamental-mode when creating
+;; a new buffer without an extension
+(setq-default major-mode 'org-mode)
 (mapc
  (lambda (file)
    (add-to-list 'auto-mode-alist
@@ -2765,7 +2815,8 @@ SCHEDULED: %t")))
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
 (setq org-todo-keywords
-	  '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "|" "DONE(d)" "CANCELED(c)")
+	  ;; !/@ meaning: https://orgmode.org/manual/Tracking-TODO-state-changes.html
+	  '((sequence "TODO(t!)" "STARTED(s!)" "NEXT(n!)" "WAITING(w!)" "|" "DONE(d!)" "CANCELED(c@)")
 		;; multiple sets for one file
 		;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
 		;; (sequence "|" "CANCELED(c)")
@@ -2897,81 +2948,18 @@ background of code to whatever theme I'm using's background"
 (setq org-html-postamble nil)
 ;; ? before the star at the beginning of headline for all speed commands
 (setq org-use-speed-commands t)
+;; use org-num from org-9.3(not released ye, download it from
+;; https://raw.githubusercontent.com/bzg/org-mode/300f15bcbbaf7a49c94e2cfca4f4335f0dc55fc8/lisp/org-num.elt)
+;; to replace org-numbers-overlay-mode which causex emacsclient fail to lanuch when using
+;; `-e (org-capture)` or `-e (org-agenda-list)`
+(require 'org-num)
 ;; org-sticky-header and org-table-sticky-header
 (add-hook 'org-mode-hook
 		  (lambda ()
 			(org-sticky-header-mode)
 			(org-table-sticky-header-mode)
-			(org-numbers-overlay-mode)))
-;;
-;; Add number/index before the headings/subheadings instead just asterisks
-;; Original: https://github.com/larkery/emacs/blob/master/site-lisp/org-numbers-overlay.el
-;; Check the updates: current, 7099a1a
-(define-minor-mode org-numbers-overlay-mode
-  "Add overlays to org headings which number them"
-  nil " *1." nil
-  (let ((hooks '(after-save-hook
-				 org-insert-heading-hook))
-		(funcs '(org-promote
-				 ;; org-cycle-level
-				 org-promote-subtree
-				 org-demote
-				 org-demote-subtree
-				 org-move-subtree-up
-				 org-move-subtree-down
-				 org-move-item-down
-				 org-move-item-up
-				 org-cut-subtree
-				 org-insert-todo-heading
-				 org-insert-todo-subheading
-				 org-meta-return
-				 org-set-property)))
-	(if org-numbers-overlay-mode
-		(progn
-		  (org-numbers-overlay-update)
-		  (dolist (fn funcs)
-			(advice-add fn :after #'org-numbers-overlay-update))
-		  (dolist (hook hooks)
-			(add-hook hook #'org-numbers-overlay-update)))
-	  (progn
-		(dolist (fn funcs)
-		  (advice-add fn :after #'org-numbers-overlay-update))
-		(dolist (hook hooks)
-		  (remove-hook hook #'org-numbers-overlay-update))
-		(remove-overlays (point-min) (point-max) 'type 'org-number)))))
-(defun org-numbers-overlay-update (&rest args)
-  (when org-numbers-overlay-mode
-	(let ((continue t)
-		  (levels (make-vector 10 0))
-		  (any-unnumbered (member "UNNUMBERED" (org-buffer-property-keys))))
-	  (save-excursion
-		(widen)
-		(goto-char (point-min))
-		(or (outline-on-heading-p)
-			(outline-next-heading))
-		(overlay-recenter (point-max))
-		(remove-overlays (point-min) (point-max) 'type 'org-number)
-		(while continue
-		  (let* ((detail (org-heading-components))
-				 (level (- (car detail) 1)))
-			(when (or (not any-unnumbered)
-					  (org-entry-get (point) "UNNUMBERED" 'selective))
-			  (let* ((lcounter (1+ (aref levels level)))
-					 text)
-				(aset levels level lcounter)
-				(loop for i from (1+ level) to 9
-					  do (aset levels i 0))
-				(loop for i across levels
-					  until (zerop i)
-					  do (setf text (if text
-										(format "%s.%d" text i)
-									  (format " %d" i))))
-				(let  ((o (make-overlay (point) (+ (point) (car detail)) nil t t)))
-				  (overlay-put o 'type 'org-number)
-				  (overlay-put o 'evaporate t)
-				  (overlay-put o 'after-string text)))))
-		  (setq continue (outline-next-heading))
-		  )))))
+			(org-num-mode)))
+
 (setq org-highlight-latex-and-related '(latex script entities))
 ;; put this after org-mode config part, or flyspell-mode won't be enabled, even with-eval-after-load won't work
 (add-hook 'org-mode-hook 'flyspell-mode)
@@ -3300,7 +3288,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (set-default 'magit-stage-all-confirm nil)
 (set-default 'magit-unstage-all-confirm nil)
 ;; make git faster??
-(with-eval-after-load "magit" (setq magit-git-executable "/usr/bin/git"))
+;; (with-eval-after-load "magit" (setq magit-git-executable "/usr/bin/git"))
 ;; make `truncate-lines` nil in magit and `auto-fill-mode` off in commit buffers
 (add-hook 'magit-status-mode-hook
 		  (lambda ()
