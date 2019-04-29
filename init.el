@@ -1174,10 +1174,10 @@ Emacs by default won't treat the TAB as indent"
 			 (not (member major-mode all-make-modes)))
 	(indent-region (point-min) (point-max))))
 (bind-key* "C-c C-w" 'indent-buffer-safe)
-(add-hook 'before-save-hook
-		  (lambda ()
-			(cleanup-buffer)
-			(indent-buffer-safe)))
+;; (add-hook 'before-save-hook
+;; 		  (lambda ()
+;; 			(cleanup-buffer)
+;; 			(indent-buffer-safe)))
 ;; use prefix+M-x un/tabify for the entire buffer without clean-and-indent
 										; only tabify the leading whitespace, this will avoid the changes in c/macro and comments
 (setq tabify-regexp "^\t* [ \t]+")
@@ -2697,6 +2697,10 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; Non-nil means single character alphabetical bullets are allowed.
 ;; or the shortkeys like M-q won't work in org-mode
 (setq org-list-allow-alphabetical t)
+;; use different bullet for a sub-list
+(setq org-list-demote-modify-bullet
+	  '(("-" . "+") ("+" . "*") ("*" . "-") ("1." . "+") ("1)" . "+")
+		("a." . "-") ("a)" . "-") ("A." . "-") ("A)" . "-")))
 ;; To make sure all your variables work you should not use (require 'org).
 ;; Instead use the following setting
 ;; You should also make sure that you do not require any other org-...
@@ -2864,7 +2868,9 @@ Indent the line/region according to the context which is smarter than default Ta
 			;; this line not work if set org-indent-mode or org-startup-indented
 			(setq org-hide-leading-stars nil)))
 ;; don not put this into hook
-(setq org-startup-indented t)
+;; Comment this line out, since it will cause the sub-list indentation problem,
+;; the confliction of this with other config may cause the bug, not itself
+;; (setq org-startup-indented t)
 (setq org-indent-indentation-per-level 3)
 ;; Prevents accidentally editing hidden text when the point is inside a folded region.
 ;; use C-c C-r 'org-reveal to show where your point is
@@ -3492,7 +3498,7 @@ When `universal-argument' is called first, delete whole buffer (respects `narrow
 		(delete-region (line-beginning-position) (line-end-position)))
 	  ;; delete the extra empty line
 	  (when (current-line-empty-p) (delete-blank-lines))
-	  (indent-for-tab-command))))
+	  (when (not (current-line-empty-p)) (indent-for-tab-command)))))
 (defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
@@ -3554,7 +3560,7 @@ Version 2015-06-10"
 				(point))))
 		   ;; delete the extra empty line
 		   (when (current-line-empty-p) (delete-blank-lines))
-		   (indent-for-tab-command))))
+		   (when (not (current-line-empty-p)) (indent-for-tab-command)))))
 (bind-keys*
  ("C-w" . delete-line-or-region-or-buffer)
  ("M-w" . copy-line-or-region-or-buffer) ; replace it with easy-kill
