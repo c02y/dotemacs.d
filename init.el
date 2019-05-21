@@ -673,9 +673,12 @@ and you can reconfigure the compile args."
 ;; set the query-replace from top
 (defun query-replace-from-top ()
   (interactive)
-  (save-excursion
-	(goto-char (point-min))
-	(call-interactively 'query-replace)))
+  (let ((orig-point (point)))
+    (save-excursion
+      (goto-char (point-min))
+      (call-interactively 'query-replace))
+    (message "Back to old point.")
+    (goto-char orig-point)))
 (bind-key* "M-%" 'query-replace-from-top)
 
 ;; flush blank lines
