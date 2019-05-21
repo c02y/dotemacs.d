@@ -3697,12 +3697,8 @@ Version 2015-06-10"
 ;; check electric-operator--mode-rules-table
 ;; another system tool is GNU indent
 (require 'electric-operator)
-(add-hook 'c-mode-common-hook #'electric-operator-mode)
-(add-hook 'org-mode-hook #'electric-operator-mode)
-(add-hook 'python-mode-hook #'electric-operator-mode)
-(add-hook 'inferior-python-mode-hook #'electric-operator-mode)
-(add-hook 'LaTeX-mode-hook #'electric-operator-mode)
-(add-hook 'plantuml-mode-hook #'electric-operator-mode)
+(dolist (hook '(c-mode-common-hook org-mode-hook python-mode-hook inferior-python-mode-hook LaTeX-mode-hook plantuml-mode-hook))
+  (add-hook hook #'electric-operator-mode))
 (electric-operator-add-rules-for-mode
  'c++-mode
  (cons "<>" "<> ")
