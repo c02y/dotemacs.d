@@ -3348,23 +3348,15 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 		   ("C-c f" . yafolding-toggle-element)
 		   ("C-c F" . yafolding-toggle-all))
 
-;; highlight-symbol
-(autoload 'highlight-symbol "highlight-symbol" t)
-(with-eval-after-load "highlight-symbol" (highlight-symbol-nav-mode))
+;; use overlay-symbol to replace highlight-symbol
 (dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
-  (add-hook hook 'highlight-symbol-mode))
-;; enable highlighting symbol at point automatically
-(setq highlight-symbol-on-navigation-p t)
-(global-set-key [(control shift mouse-1)]
-				(lambda (event)
-				  (interactive "e")
-				  (goto-char (posn-point (event-start event)))
-				  (highlight-symbol-at-point)))
+  (add-hook hook 'symbol-overlay-mode))
 ;; donnot use bind-keys* here, it will affect the history in minibuffer
 (bind-keys
- ("M-n" . highlight-symbol-next)
- ("M-p" . highlight-symbol-prev)
- ("M-'" . highlight-symbol-query-replace))
+ ("M-n" . symbol-overlay-jump-next)
+ ("M-p" . symbol-overlay-jump-prev)
+ ("M-'" . symbol-overlay-query-replace))
+
 ;;
 ;; highlight-parentheses-mode, highlight nested parens, brackets, braces at each
 ;; depth, use hl-sexp-mode to replace if you like
@@ -3612,8 +3604,7 @@ Version 2015-06-10"
 (with-eval-after-load "lispy"
   (bind-keys :map lispy-mode-map
 			 ("RET" . advanced-return)
-			 ("M-RET" . Meta-return)
-			 ("M-n" . highlight-symbol-next)))
+			 ("M-RET" . Meta-return)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line-to-end`"
   (if (lispy--in-comment-p)
@@ -3908,7 +3899,6 @@ Version 2015-06-10"
 	(undo-tree-mode . " UT")
 	(yas-minor-mode . "")
 	(company-mode . "")
-	(highlight-symbol-mode . "")
 	(highlight-parentheses-mode . "")
 	(cwarn-mode . "")
 	(flyspell-mode . " Fs")
