@@ -1480,7 +1480,11 @@ In other non-comment situations, try C-M-j to split."
 	;; executing key in a function
 	(call-interactively (key-binding (kbd "C-M-j")))
 	(indent-according-to-mode)))
-(bind-key "M-RET" 'Meta-return)
+(bind-key* "M-RET" (lambda ()
+                     (interactive)
+                     (if (equal major-mode 'org-mode)
+                         (org-meta-return)
+                       (Meta-return))))
 ;; donnot use bind-key*, it will affect the Enter in minibuffer
 (bind-key "RET" 'advanced-return)
 
