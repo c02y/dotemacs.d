@@ -2005,7 +2005,8 @@ abort completely with `C-g'."
 			))
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
-			(setq tab-width 4)))
+			(setq tab-width 4
+                  indent-tabs-mode nil)))
 ;; Dismiss the guess python-indent-offset default to 4 warning message
 ;; DO NOT put this inside python-mode-hook, when create new python file, emacs
 ;; will still show the guess warning message
