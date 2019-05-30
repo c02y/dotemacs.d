@@ -111,7 +111,7 @@
 
 (let ((benchmark-init.el "~/.emacs.d/elpa/benchmark-init-20150905.938/benchmark-init.el"))
   (when (file-exists-p benchmark-init.el)
-	(load benchmark-init.el)))
+    (load benchmark-init.el)))
 (defalias 'eit-list 'benchmark-init/show-durations-tabulated)
 
 ;; Speed up emacs startup
@@ -119,13 +119,13 @@
 (setq package-enable-at-startup nil)
 (defvar file-name-handler-alist-old file-name-handler-alist)
 (setq file-name-handler-alist nil
-	  gc-cons-threshold 402653184
-	  gc-cons-percentage 0.6)
+      gc-cons-threshold 402653184
+      gc-cons-percentage 0.6)
 (add-hook 'after-init-hook
-		  (lambda ()
-			(setq file-name-handler-alist file-name-handler-alist-old
-				  gc-cons-threshold 16777216
-				  gc-cons-percentage 0.1)))
+          (lambda ()
+            (setq file-name-handler-alist file-name-handler-alist-old
+                  gc-cons-threshold 16777216
+                  gc-cons-percentage 0.1)))
 
 ;; (setq debug-on-error t)
 
@@ -182,45 +182,45 @@
 (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t)
 ;; use man for a function inside Emacs
 (dolist (hook
-		 '(
-		   ;; c-mode-hook
-		   ;; c++-mode-hook
-		   c-mode-common-hook))
+         '(
+           ;; c-mode-hook
+           ;; c++-mode-hook
+           c-mode-common-hook))
   (add-hook hook
-			(lambda ()
-			  (local-set-key
-			   (kbd "C-h d")
-			   (lambda ()
-				 (interactive)
-				 (manual-entry (current-word)))))))
+            (lambda ()
+              (local-set-key
+               (kbd "C-h d")
+               (lambda ()
+                 (interactive)
+                 (manual-entry (current-word)))))))
 
 (setq byte-compile-warnings nil)
 (defalias 'eit 'emacs-init-time)
 ;; re/compile every elisp file when saving it
 (add-hook 'emacs-lisp-mode-hook
-		  (lambda ()
-			(add-hook 'after-save-hook 'emacs-lisp-byte-compile t t)))
+          (lambda ()
+            (add-hook 'after-save-hook 'emacs-lisp-byte-compile t t)))
 ;; Delete the existed/no-existed .emacs.elc and recompile and reload
 (defun byte-compile-init-file ()
   (when (equal user-init-file buffer-file-name)
-	(when (file-exists-p (concat user-init-file ".elc"))
-	  (delete-file (concat user-init-file ".elc")))
-	(emacs-lisp-byte-compile-and-load)))
+    (when (file-exists-p (concat user-init-file ".elc"))
+      (delete-file (concat user-init-file ".elc")))
+    (emacs-lisp-byte-compile-and-load)))
 (add-hook 'after-save-hook 'byte-compile-init-file)
 ;; find ~/.emacs.d -name "*.elc" | xargs rm -rfv
 ;; C-0 M-x bd or M-x bd C-0 to bd
 (defalias 'bd 'byte-recompile-directory)
 ;; byte-comple and load *.el using "C-x c"
 (bind-keys :map emacs-lisp-mode-map
-		   ("C-x c" . emacs-lisp-byte-compile-and-load)
-		   ("C-c c" . eval-buffer)
-		   ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
-		   )
+           ("C-x c" . emacs-lisp-byte-compile-and-load)
+           ("C-c c" . eval-buffer)
+           ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
+           )
 (bind-keys :map lisp-interaction-mode-map
-		   ("C-c C-e" . (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
-		   ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
-		   ;; C-h e to switch to *Message* Buffer
-		   )
+           ("C-c C-e" . (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
+           ("C-c C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.elc")))
+           ;; C-h e to switch to *Message* Buffer
+           )
 (bind-key* "C-x M-z" (lambda () (interactive) (switch-to-buffer "*scratch*")))
 
 ;; assembly
@@ -228,11 +228,11 @@
 (mapc
  (lambda (file)
    (add-to-list 'auto-mode-alist
-				(cons (concat (regexp-quote file) "\\'") 'org-mode)))
+                (cons (concat (regexp-quote file) "\\'") 'org-mode)))
  '(".asm" ".s" ".S"))
 ;; To set your own indentation level to 4:
 (add-hook 'nasm-mode-hook
-		  (lambda () (setq-default nasm-basic-offset 4)))
+          (lambda () (setq-default nasm-basic-offset 4)))
 
 ;; compile
 ;; use `C-c ! n/p` 'flycheck-next/previous-error to navigate errors
@@ -252,26 +252,26 @@ and you can reconfigure the compile args."
   ;; (if (not (get-buffer-window "*compilation*"))
   ;;	  (split-window-vertically -10))
   (if (and (eq ARG 1) compilation-last-buffer)
-	  (recompile)
-	(call-interactively 'smart-compile)))
+      (recompile)
+    (call-interactively 'smart-compile)))
 (bind-key* "C-x C-m" 'compile-again)
 ;; create a new small frame to show the compilation info
 ;; will be auto closed if no error
 (setq special-display-buffer-names
-	  `(("*compilation*" . ((name . "*compilation*")
-							,@default-frame-alist
-							(left . (- 1))
-							(top . 0)))))
+      `(("*compilation*" . ((name . "*compilation*")
+                            ,@default-frame-alist
+                            (left . (- 1))
+                            (top . 0)))))
 (setq compilation-auto-jump-to-first-error t)
 (setq compilation-finish-functions
-	  (lambda (buf str)
-		(if (null (string-match ".*exited abnormally.*" str))
-			(message "No Compilation Errors!")
-		  ;; no errors, make the compilation window go away in a few seconds
-		  (progn
-			(run-at-time
-			 "0 sec" nil 'delete-windows-on
-			 "*compilation*")))))
+      (lambda (buf str)
+        (if (null (string-match ".*exited abnormally.*" str))
+            (message "No Compilation Errors!")
+          ;; no errors, make the compilation window go away in a few seconds
+          (progn
+            (run-at-time
+             "0 sec" nil 'delete-windows-on
+             "*compilation*")))))
 
 ;; 2015-07-04 Emacs Bug: Pasting into Emacs Freezes Emacs
 ;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16737#17
@@ -296,7 +296,7 @@ and you can reconfigure the compile args."
 (define-global-minor-mode global-goto-address-mode
   goto-address-mode
   (lambda ()
-	(goto-address-mode 1)))
+    (goto-address-mode 1)))
 (global-goto-address-mode t)
 
 ;; C-x </> 'scroll-left/right if line is too long
@@ -327,14 +327,14 @@ and you can reconfigure the compile args."
 ;; Toggle which-function-mode and projectile-global-mode, useful after finishing using tramp.
 ;; Do not use when using tramp, it will stuck tramp a little bit
 (bind-key* "C-x M-p"
-		   (lambda ()
-			 (interactive)
-			 (if (bound-and-true-p which-function-mode)
-				 (which-function-mode -1)
-			   (which-function-mode 1))
-			 (if (bound-and-true-p projectile-global-mode)
-				 (projectile-global-mode -1)
-			   (projectile-global-mode 1))))
+           (lambda ()
+             (interactive)
+             (if (bound-and-true-p which-function-mode)
+                 (which-function-mode -1)
+               (which-function-mode 1))
+             (if (bound-and-true-p projectile-global-mode)
+                 (projectile-global-mode -1)
+               (projectile-global-mode 1))))
 
 ;; line space between lines, default to 0
 ;; (setq line-spacing 2)
@@ -351,22 +351,22 @@ and you can reconfigure the compile args."
 ;; (setq frame-title-format
 ;; '("%b@%f" "--" display-time-string))
 (setq frame-title-format
-	  '("%b" (:eval (if (buffer-file-name)
-						(concat "@"
-								(abbreviate-file-name default-directory))))
-		" - " display-time-string))
+      '("%b" (:eval (if (buffer-file-name)
+                        (concat "@"
+                                (abbreviate-file-name default-directory))))
+        " - " display-time-string))
 ;;
 ;; syntax highlight
 (global-font-lock-mode t)
 ;; highlight TODO:/NOTE:/FIXME:/BUG: keywords
 (dolist (hook '(prog-mode-hook org-mode-hook))
   (add-hook hook
-			(lambda ()
-			  (font-lock-add-keywords
-			   nil
-			   ;; '(("\\<\\(TODO\\|FIXME\\|BUG\\):" 1
-			   '(("\\<\\(TODO:\\|NOTE:\\|FIXME:\\|BUG:\\)" 1
-				  font-lock-warning-face t))))))
+            (lambda ()
+              (font-lock-add-keywords
+               nil
+               ;; '(("\\<\\(TODO\\|FIXME\\|BUG\\):" 1
+               '(("\\<\\(TODO:\\|NOTE:\\|FIXME:\\|BUG:\\)" 1
+                  font-lock-warning-face t))))))
 
 ;; Turn on font lock mode in all the files
 (setq font-lock-maximum-decoration t)
@@ -375,31 +375,31 @@ and you can reconfigure the compile args."
 (defadvice helm-find-files (after helm-find-files activate)
   ;; "If a file is over a given size, turn off minor modes."
   (progn
-	(when (> (buffer-size) (* 1024 100)) ;; 100 KB
-	  (when (> (buffer-size) (* 1024 1024)) ;; 1 MB
-		(require 'vlf)
-		(vlf-mode))
-	  (display-line-numbers-mode -1))))
+    (when (> (buffer-size) (* 1024 100)) ;; 100 KB
+      (when (> (buffer-size) (* 1024 1024)) ;; 1 MB
+        (require 'vlf)
+        (vlf-mode))
+      (display-line-numbers-mode -1))))
 ;; C-x C-s to use save-buffer for regular files and use sudo to prompt passwd to
 ;; save file need root permission, C-x C-q to edit the root file first
 ;; Note that this C-x C-s will fail if the buffer is not a file, in this case,
 ;; use C-x C-w instead
 (bind-key* "C-x C-s"
-		   (lambda ()
-			 (interactive)
-			 (progn
-			   ;; check if the buffer is a file or like *scratch*
-			   (if (buffer-file-name)
-				   (if (file-writable-p buffer-file-name) (save-buffer)
-					 (write-file (concat "/sudo::" buffer-file-name)))
-				 (save-buffer)))))
+           (lambda ()
+             (interactive)
+             (progn
+               ;; check if the buffer is a file or like *scratch*
+               (if (buffer-file-name)
+                   (if (file-writable-p buffer-file-name) (save-buffer)
+                     (write-file (concat "/sudo::" buffer-file-name)))
+                 (save-buffer)))))
 
 ;; displays the argument list for current func, work for all languages
 (eldoc-mode)
 (dolist (mode '(prog-mode-hook python-mode-hook ielm-mode-hook))
   (add-hook mode
-			'(lambda ()
-			   (eldoc-mode))))
+            '(lambda ()
+               (eldoc-mode))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;   theme & font
@@ -418,35 +418,35 @@ and you can reconfigure the compile args."
 (defun set-frame-size-according-to-resolution ()
   (interactive)
   (if window-system
-	  (progn
-		;; Setting font size will affect frame size, so set font size first
-		;; But it still slightly affect the frame size even using this order
-		;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
-		(if (> (x-display-pixel-width) 1500)
-			(cond
-			 ((find-font (font-spec :name "PragmataPro"))
-			  (set-frame-font "PragmataPro-13.5"))
-			 ((find-font (font-spec :name "Input Mono Compressed"))
-			  (set-frame-font "Input Mono Compressed-13.5")))
-		  (cond
-		   ((find-font (font-spec :name "PragmataPro"))
-			(set-frame-font "PragmataPro-12"))
-		   ((find-font (font-spec :name "Input Mono Compressed"))
-			(set-frame-font "Input Mono Compressed-12"))))
-		(setq width-chars (/ (/ (x-display-pixel-width) (frame-char-width)) 2))
-		(setq height-lines (- (/ (x-display-pixel-height) (frame-char-height)) 4))
-		(setq default-frame-alist
-			  `((top . 0) (left . 0)
-				(width . ,width-chars)
-				(height . ,height-lines)))
-		;; the following two settings are specifically for afternoon-theme
-		;; the combination colors of highlighted line and comments
-		;; (custom-set-faces
-		;;      '(font-lock-comment-face
-		;;       ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
-		;;       ))
-		;; (set-face-background 'highlight "gray30")
-		)))
+      (progn
+        ;; Setting font size will affect frame size, so set font size first
+        ;; But it still slightly affect the frame size even using this order
+        ;; or Monaco, Bitstream Vera Sans Mono, Liberation Mono
+        (if (> (x-display-pixel-width) 1500)
+            (cond
+             ((find-font (font-spec :name "PragmataPro"))
+              (set-frame-font "PragmataPro-13.5"))
+             ((find-font (font-spec :name "Input Mono Compressed"))
+              (set-frame-font "Input Mono Compressed-13.5")))
+          (cond
+           ((find-font (font-spec :name "PragmataPro"))
+            (set-frame-font "PragmataPro-12"))
+           ((find-font (font-spec :name "Input Mono Compressed"))
+            (set-frame-font "Input Mono Compressed-12"))))
+        (setq width-chars (/ (/ (x-display-pixel-width) (frame-char-width)) 2))
+        (setq height-lines (- (/ (x-display-pixel-height) (frame-char-height)) 4))
+        (setq default-frame-alist
+              `((top . 0) (left . 0)
+                (width . ,width-chars)
+                (height . ,height-lines)))
+        ;; the following two settings are specifically for afternoon-theme
+        ;; the combination colors of highlighted line and comments
+        ;; (custom-set-faces
+        ;;      '(font-lock-comment-face
+        ;;       ((t (:foreground "gray60" :slant italic :weight normal :family "Menlo")))
+        ;;       ))
+        ;; (set-face-background 'highlight "gray30")
+        )))
 ;;
 ;; theme
 ;;
@@ -465,44 +465,44 @@ and you can reconfigure the compile args."
 ;; for more setting at https://github.com/kuanyui/moe-theme.el
 ;; Put all theme configuration into the display-graphic-p block
 (if (daemonp)
-	;; for emacs --deamon, do not load theme/font in terminal Emacs
-	(add-hook 'after-make-frame-functions
-			  (lambda (frame)
-				(select-frame frame)
-				(when (display-graphic-p)
-				  (set-frame-size-according-to-resolution)
-				  ;; the following will get rid of prompt when M-x load-theme, treat all
-				  ;; themes as safe
-				  (setq custom-safe-themes t)
-				  (require 'moe-theme)
-				  ;; Resize titles
-				  (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
-				  (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
-				  ;; disable default mode-line buffer-id highlight
-				  (setq moe-theme-highlight-buffer-id nil)
-				  (moe-dark))))
+    ;; for emacs --deamon, do not load theme/font in terminal Emacs
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                (select-frame frame)
+                (when (display-graphic-p)
+                  (set-frame-size-according-to-resolution)
+                  ;; the following will get rid of prompt when M-x load-theme, treat all
+                  ;; themes as safe
+                  (setq custom-safe-themes t)
+                  (require 'moe-theme)
+                  ;; Resize titles
+                  (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
+                  (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
+                  ;; disable default mode-line buffer-id highlight
+                  (setq moe-theme-highlight-buffer-id nil)
+                  (moe-dark))))
   (when (display-graphic-p)
-	(progn
-	  (set-frame-size-according-to-resolution)
-	  ;; the following will get rid of prompt when M-x load-theme, treat all
-	  ;; themes as safe
-	  (setq custom-safe-themes t)
-	  (require 'moe-theme)
-	  ;; Resize titles
-	  (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
-	  (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
-	  ;; disable default mode-line buffer-id highlight
-	  (setq moe-theme-highlight-buffer-id nil)
-	  (moe-dark))))
+    (progn
+      (set-frame-size-according-to-resolution)
+      ;; the following will get rid of prompt when M-x load-theme, treat all
+      ;; themes as safe
+      (setq custom-safe-themes t)
+      (require 'moe-theme)
+      ;; Resize titles
+      (setq moe-theme-resize-markdown-title '(1.3 1.2 1.1 1.0 1.0 1.0))
+      (setq moe-theme-resize-org-title '(1.3 1.2 1.1 1.0 1.0 1.0 1.0 1.0 1.0))
+      ;; disable default mode-line buffer-id highlight
+      (setq moe-theme-highlight-buffer-id nil)
+      (moe-dark))))
 
 ;;
 ;; disable scroll-bar-mode in newly created frame
 (add-hook 'after-make-frame-functions
-		  '(lambda (frame)
-			 (modify-frame-parameters
-			  frame
-			  '((vertical-scroll-bars . nil)
-				(horizontal-scroll-bars . nil)))))
+          '(lambda (frame)
+             (modify-frame-parameters
+              frame
+              '((vertical-scroll-bars . nil)
+                (horizontal-scroll-bars . nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;		  all about mode line
@@ -512,19 +512,19 @@ and you can reconfigure the compile args."
 (setq-default
  mode-line-buffer-identification
  '(#("%2b" 0 3
-	 (local-map
-	  (keymap
-	   (header-line keymap
-					(mouse-3 . mode-line-next-buffer)
-					(down-mouse-3 . ignore)
-					(mouse-1 . mode-line-previous-buffer)
-					(down-mouse-1 . ignore))
-	   (mode-line keymap
-				  (mouse-3 . mode-line-next-buffer)
-				  (mouse-1 . mode-line-previous-buffer)))
-	  mouse-face mode-line-highlight help-echo
-	  "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer"
-	  face mode-line-buffer-id))))
+     (local-map
+      (keymap
+       (header-line keymap
+                    (mouse-3 . mode-line-next-buffer)
+                    (down-mouse-3 . ignore)
+                    (mouse-1 . mode-line-previous-buffer)
+                    (down-mouse-1 . ignore))
+       (mode-line keymap
+                  (mouse-3 . mode-line-next-buffer)
+                  (mouse-1 . mode-line-previous-buffer)))
+      mouse-face mode-line-highlight help-echo
+      "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer"
+      face mode-line-buffer-id))))
 ;; show which function in mode-line
 (which-function-mode 1)
 ;; make which-function-mode work only for specific modes
@@ -535,12 +535,12 @@ and you can reconfigure the compile args."
 (set-face-attribute 'which-func nil :background nil :foreground nil)
 ;; line/column/percent/size, just "(%l,%c)[%p/%I]" if not highlight
 (setq-default mode-line-position
-			  '(("(%l_"
-				 (:eval (propertize "%c" 'face
-									(if (>= (current-column) 80)
-										'mode-line-80col-face
-									  'mode-line-position-face)))
-				 "|%p_%I) ")))
+              '(("(%l_"
+                 (:eval (propertize "%c" 'face
+                                    (if (>= (current-column) 80)
+                                        'mode-line-80col-face
+                                      'mode-line-position-face)))
+                 "|%p_%I) ")))
 ;; highlight when point is over 80th column
 (make-face 'mode-line-80col-face)
 (make-face 'mode-line-position-face)
@@ -554,31 +554,31 @@ and you can reconfigure the compile args."
 ;; make the code inside #if 0/#else/#endif the same color as comment
 (defun c-mode-font-lock-if0 (limit)
   (save-restriction
-	(widen)
-	(save-excursion
-	  (goto-char (point-min))
-	  (let ((depth 0) str start start-depth)
-		;; Search #if/#else/#endif using regular expression.
-		(while (re-search-forward "^\\s-*#\\s-*\\(if\\|else\\|endif\\)" limit 'move)
-		  (setq str (match-string 1))
-		  ;; Handle #if.
-		  (if (string= str "if")
-			  (progn
-				(setq depth (1+ depth))
-				;; Handle neariest 0.
-				(when (and (null start) (looking-at "\\s-+0"))
-				  (setq start (match-end 0)
-						start-depth depth)))
-			;; Handle #else, here we can decorate #if 0->#else block using 'font-lock-comment-face'.
-			(when (and start (= depth start-depth))
-			  (c-put-font-lock-face start (match-beginning 0) 'font-lock-comment-face)
-			  (setq start nil))
-			;; Handle #endif, return to upper block if possible.
-			(when (string= str "endif")
-			  (setq depth (1- depth)))))
-		;; Corner case when there are only #if 0 (May be you are coding now:))
-		(when (and start (> depth 0))
-		  (c-put-font-lock-face start (point) 'font-lock-comment-face)))))
+    (widen)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((depth 0) str start start-depth)
+        ;; Search #if/#else/#endif using regular expression.
+        (while (re-search-forward "^\\s-*#\\s-*\\(if\\|else\\|endif\\)" limit 'move)
+          (setq str (match-string 1))
+          ;; Handle #if.
+          (if (string= str "if")
+              (progn
+                (setq depth (1+ depth))
+                ;; Handle neariest 0.
+                (when (and (null start) (looking-at "\\s-+0"))
+                  (setq start (match-end 0)
+                        start-depth depth)))
+            ;; Handle #else, here we can decorate #if 0->#else block using 'font-lock-comment-face'.
+            (when (and start (= depth start-depth))
+              (c-put-font-lock-face start (match-beginning 0) 'font-lock-comment-face)
+              (setq start nil))
+            ;; Handle #endif, return to upper block if possible.
+            (when (string= str "endif")
+              (setq depth (1- depth)))))
+        ;; Corner case when there are only #if 0 (May be you are coding now:))
+        (when (and start (> depth 0))
+          (c-put-font-lock-face start (point) 'font-lock-comment-face)))))
   nil)
 (defun my-c-mode-common-hook ()
   (font-lock-add-keywords
@@ -588,22 +588,22 @@ and you can reconfigure the compile args."
 
 ;; whole structure of mode line
 (setq-default mode-line-format
-			  '(
-				"%e"
-				mode-line-front-space
-				mode-line-mule-info
-				mode-line-client
-				mode-line-modified
-				mode-line-remote
-				mode-line-frame-identification
-				mode-line-buffer-identification
-				(which-func-mode
-				 ("" which-func-format " "))
-				" " mode-line-position
-				(vc-mode vc-mode)
-				(t org-mode-line-string) ;; show org info such as clock in mode line
-				" " mode-line-modes
-				"%-"))
+              '(
+                "%e"
+                mode-line-front-space
+                mode-line-mule-info
+                mode-line-client
+                mode-line-modified
+                mode-line-remote
+                mode-line-frame-identification
+                mode-line-buffer-identification
+                (which-func-mode
+                 ("" which-func-format " "))
+                " " mode-line-position
+                (vc-mode vc-mode)
+                (t org-mode-line-string) ;; show org info such as clock in mode line
+                " " mode-line-modes
+                "%-"))
 
 (global-hl-line-mode 1)
 (set-face-attribute hl-line-face nil :underline t)
@@ -618,20 +618,20 @@ and you can reconfigure the compile args."
 (bind-key* "s-<f12>" 'flash-active-buffer)
 (make-face 'flash-active-buffer-face)
 (set-face-attribute 'flash-active-buffer-face nil
-					:background "blue" :foreground nil)
+                    :background "blue" :foreground nil)
 (defun flash-active-buffer ()
   (interactive)
   (run-at-time "150 millisec" nil
-			   (lambda (remap-cookie)
-				 (face-remap-remove-relative remap-cookie))
-			   (face-remap-add-relative 'default 'flash-active-buffer-face)))
+               (lambda (remap-cookie)
+                 (face-remap-remove-relative remap-cookie))
+               (face-remap-add-relative 'default 'flash-active-buffer-face)))
 ;; another way to highlight the active window
 (defun highlight-active-window ()
   "Highlight active window with a different background color."
   (walk-windows (lambda (w)
-				  (unless (eq w (selected-window))
-					(with-current-buffer (window-buffer w)
-					  (buffer-face-set '(:background "#111"))))))
+                  (unless (eq w (selected-window))
+                    (with-current-buffer (window-buffer w)
+                      (buffer-face-set '(:background "#111"))))))
   (buffer-face-set 'default))
 (add-hook 'buffer-list-update-hook 'highlight-active-window)
 
@@ -647,20 +647,20 @@ and you can reconfigure the compile args."
 (defun loop-alpha ()
   (interactive)
   (let ((h (car alpha-list)))
-	((lambda (a ab)
-	   (set-frame-parameter (selected-frame) 'alpha (list a ab))
-	   (add-to-list 'default-frame-alist
-					(cons 'alpha (list a ab))))
-	 (car h) (car (cdr h)))
-	(setq alpha-list (cdr (append alpha-list (list h))))))
+    ((lambda (a ab)
+       (set-frame-parameter (selected-frame) 'alpha (list a ab))
+       (add-to-list 'default-frame-alist
+                    (cons 'alpha (list a ab))))
+     (car h) (car (cdr h)))
+    (setq alpha-list (cdr (append alpha-list (list h))))))
 
 ;; ;; smooth-scrolling, just deal with C-n/p and arrow
 (setq redisplay-dont-pause t
-	  scroll-margin 1
-	  scroll-step 1
-	  scroll-conservatively 10000
-	  auto-window-vscroll nil
-	  scroll-preserve-screen-position 1)
+      scroll-margin 1
+      scroll-step 1
+      scroll-conservatively 10000
+      auto-window-vscroll nil
+      scroll-preserve-screen-position 1)
 (setq-default
  scroll-up-aggressively 0.01
  scroll-down-aggressively 0.01)
@@ -668,7 +668,7 @@ and you can reconfigure the compile args."
 (require 'smooth-scroll)
 (smooth-scroll-mode t)
 (setq mouse-wheel-scroll-amount '(0.08)
-	  mouse-wheel-progressive-speed nil)
+      mouse-wheel-progressive-speed nil)
 
 ;; set the query-replace from top
 (defun query-replace-from-top ()
@@ -691,9 +691,9 @@ and you can reconfigure the compile args."
  ("C-x M-a" . beginning-of-visual-line)
  ("C-x M-e" .
   (lambda ()
-	(interactive)
-	(end-of-visual-line)
-	(backward-char))))
+    (interactive)
+    (end-of-visual-line)
+    (backward-char))))
 (defun keep-beginning-of-line (ARG)
   "Make `C-a` keep going to first non-whitespace character _and_then_ beginning of
   next line(previous with C-u).
@@ -701,9 +701,9 @@ It will not work as expected in comment block because of goddamn rebox2"
   (interactive "P")
   (when (bolp) (forward-line (if ARG -1 1)))
   (let ((orig-point (point)))
-	(back-to-indentation)
-	(when (= orig-point (point))
-	  (move-beginning-of-line 1))))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
 (defun keep-end-of-line (ARG)
   "Make `C-e` keep going to end of next line(previous with C-u).
 It will become normal in comment block because of goddamn rebox2"
@@ -723,15 +723,15 @@ If the mark is not active, try to build a region using `symbol-at-point'."
   (interactive "r\np")
   (or ARG (setq ARG 1))
   (unless (and mark-active transient-mark-mode)
-	(let ((bounds (bounds-of-thing-at-point 'symbol)))
-	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
+    (let ((bounds (bounds-of-thing-at-point 'symbol)))
+      (if bounds (setq beg (car bounds) end (cdr bounds)))))
   (if (< end beg)
-	  (let ((tmp end))
-		(setq beg end end tmp)))
+      (let ((tmp end))
+        (setq beg end end tmp)))
   (save-excursion
-	(goto-char beg)
-	(while (re-search-forward "-?[0-9]+" end t)
-	  (replace-match (number-to-string (+ ARG (string-to-number (match-string 0)))))))
+    (goto-char beg)
+    (while (re-search-forward "-?[0-9]+" end t)
+      (replace-match (number-to-string (+ ARG (string-to-number (match-string 0)))))))
   (setq deactivate-mark nil))
 ;;
 (defun decrement-region (&optional beg end ARG)
@@ -741,15 +741,15 @@ If the mark is not active, try to build a region using `symbol-at-point'."
   (interactive "r\np")
   (or ARG (setq ARG 1))
   (unless (and mark-active transient-mark-mode)
-	(let ((bounds (bounds-of-thing-at-point 'symbol)))
-	  (if bounds (setq beg (car bounds) end (cdr bounds)))))
+    (let ((bounds (bounds-of-thing-at-point 'symbol)))
+      (if bounds (setq beg (car bounds) end (cdr bounds)))))
   (increment-region beg end (- ARG)))
 (bind-key* "C-c $"
-		   (defhydra hydra-change-num (:hint nil)
-			 ""
-			 ("<up>" increment-region "increment")
-			 ("<down>" decrement-region "decrement")
-			 ("q" nil)))
+           (defhydra hydra-change-num (:hint nil)
+             ""
+             ("<up>" increment-region "increment")
+             ("<down>" decrement-region "decrement")
+             ("q" nil)))
 
 ;; make the default sentence ending with two spaces concept nil
 ;; Now it work for expand-region to expand sentence
@@ -757,13 +757,13 @@ If the mark is not active, try to build a region using `symbol-at-point'."
 
 (defadvice endless/upcase (before upcase-word-advice activate)
   (unless (looking-back "\\b")
-	(backward-word)))
+    (backward-word)))
 (defadvice endless/downcase (before downcase-word-advice activate)
   (unless (looking-back "\\b")
-	(backward-word)))
+    (backward-word)))
 (defadvice endless/capitalize (before capitalize-word-advice activate)
   (unless (looking-back "\\b")
-	(backward-word)))
+    (backward-word)))
 ;; TODO: make the following function accept arg-num
 (defun xah-toggle-letter-case ()
   "Toggle the letter case of current word or text selection.
@@ -773,39 +773,39 @@ URL `http://ergoemacs.org/emacs/modernization_upcase-word.html'
 Version 2017-04-19"
   (interactive)
   (let (
-		(deactivate-mark nil)
-		$p1 $p2)
-	(if (use-region-p)
-		(setq $p1 (region-beginning)
-			  $p2 (region-end))
-	  (save-excursion
-		(skip-chars-backward "[:alnum:]-_")
-		(setq $p1 (point))
-		(skip-chars-forward "[:alnum:]-_")
-		(setq $p2 (point))))
-	(when (not (eq last-command this-command))
-	  (put this-command 'state 0))
-	(cond
-	 ((equal 0 (get this-command 'state))
-	  (upcase-initials-region $p1 $p2)
-	  (put this-command 'state 1))
-	 ((equal 1	(get this-command 'state))
-	  (upcase-region $p1 $p2)
-	  (put this-command 'state 2))
-	 ((equal 2 (get this-command 'state))
-	  (downcase-region $p1 $p2)
-	  (put this-command 'state 0)))))
+        (deactivate-mark nil)
+        $p1 $p2)
+    (if (use-region-p)
+        (setq $p1 (region-beginning)
+              $p2 (region-end))
+      (save-excursion
+        (skip-chars-backward "[:alnum:]-_")
+        (setq $p1 (point))
+        (skip-chars-forward "[:alnum:]-_")
+        (setq $p2 (point))))
+    (when (not (eq last-command this-command))
+      (put this-command 'state 0))
+    (cond
+     ((equal 0 (get this-command 'state))
+      (upcase-initials-region $p1 $p2)
+      (put this-command 'state 1))
+     ((equal 1	(get this-command 'state))
+      (upcase-region $p1 $p2)
+      (put this-command 'state 2))
+     ((equal 2 (get this-command 'state))
+      (downcase-region $p1 $p2)
+      (put this-command 'state 0)))))
 ;; automatically convert the comma/dot once downcase/upcase next character
 (defun endless/convert-punctuation (rg rp)
   "Look for regexp RG around point, and replace with RP.
 Only applies to text-mode."
   (let ((f "\\(%s\\)\\(%s\\)")
-		(space "?:[[:blank:]\n\r]*"))
-	;; We obviously don't want to do this in prog-mode.
-	(if (and (derived-mode-p 'org-mode)
-			 (or (looking-at (format f space rg))
-				 (looking-back (format f rg space))))
-		(replace-match rp nil nil nil 1))))
+        (space "?:[[:blank:]\n\r]*"))
+    ;; We obviously don't want to do this in prog-mode.
+    (if (and (derived-mode-p 'org-mode)
+             (or (looking-at (format f space rg))
+                 (looking-back (format f rg space))))
+        (replace-match rp nil nil nil 1))))
 (defun endless/capitalize ()
   "Capitalize region or word.
 Also converts commas to full stops, and kills
@@ -813,48 +813,48 @@ extraneous space at beginning of line."
   (interactive)
   (endless/convert-punctuation "," ".")
   (if (use-region-p)
-	  (call-interactively 'capitalize-region)
-	;; A single space at the start of a line:
-	(when (looking-at "^\\s-\\b")
-	  ;; get rid of it!
-	  (delete-char 1))
-	(call-interactively 'subword-capitalize)))
+      (call-interactively 'capitalize-region)
+    ;; A single space at the start of a line:
+    (when (looking-at "^\\s-\\b")
+      ;; get rid of it!
+      (delete-char 1))
+    (call-interactively 'subword-capitalize)))
 (defun endless/downcase ()
   "Downcase region or word.
 Also converts full stops to commas."
   (interactive)
   (endless/convert-punctuation "\\." ",")
   (if (use-region-p)
-	  (call-interactively 'downcase-region)
-	(call-interactively 'subword-downcase)))
+      (call-interactively 'downcase-region)
+    (call-interactively 'subword-downcase)))
 (defun endless/upcase ()
   "Upcase region or word."
   (interactive)
   (if (use-region-p)
-	  (call-interactively 'upcase-region)
-	(call-interactively 'subword-upcase)))
+      (call-interactively 'upcase-region)
+    (call-interactively 'subword-upcase)))
 (bind-key* "C-c @"
-		   (defhydra hydra-change-case (:hint nil)
-			 ""
-			 ("x" xah-toggle-letter-case "loop")
-			 ("c" endless/capitalize "capitalize")
-			 ("l" endless/downcase "downcase")
-			 ("u" endless/upcase "upcase")
-			 ("z" undo-tree-undo "undo")
-			 ("Z" undo-tree-redo "redo")
-			 ("q" nil)))
+           (defhydra hydra-change-case (:hint nil)
+             ""
+             ("x" xah-toggle-letter-case "loop")
+             ("c" endless/capitalize "capitalize")
+             ("l" endless/downcase "downcase")
+             ("u" endless/upcase "upcase")
+             ("z" undo-tree-undo "undo")
+             ("Z" undo-tree-redo "redo")
+             ("q" nil)))
 
 ;; use M-x list-processes then d to delete
 (defalias 'lps 'list-processes)
 (defun delete-process-at-point ()
   (interactive)
   (let ((process (get-text-property (point) 'tabulated-list-id)))
-	(cond ((and process
-				(processp process))
-		   (delete-process process)
-		   (revert-buffer))
-		  (t
-		   (error "no process at point!")))))
+    (cond ((and process
+                (processp process))
+           (delete-process process)
+           (revert-buffer))
+          (t
+           (error "no process at point!")))))
 (bind-key "d" 'delete-process-at-point process-menu-mode-map)
 
 ;; Removing duplicated lines
@@ -865,18 +865,18 @@ Called from a program, there are two arguments:
 BEG and END (region to sort)."
   (interactive "r")
   (save-excursion
-	(save-restriction
-	  (narrow-to-region beg end)
-	  (goto-char (point-min))
-	  (while (not (eobp))
-		(kill-line 1)
-		(yank)
-		(let ((next-line (point)))
-		  (while
-			  (re-search-forward
-			   (format "^%s" (regexp-quote (car kill-ring))) nil t)
-			(replace-match "" nil nil))
-		  (goto-char next-line))))))
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (kill-line 1)
+        (yank)
+        (let ((next-line (point)))
+          (while
+              (re-search-forward
+               (format "^%s" (regexp-quote (car kill-ring))) nil t)
+            (replace-match "" nil nil))
+          (goto-char next-line))))))
 (defalias 'ddl 'delete-duplicated-lines)
 
 (defun duplicate-line-or-region (&optional n)
@@ -885,23 +885,23 @@ With argument N, make N copies.
 With negative N, comment out original line and use the absolute value."
   (interactive "*p")
   (let ((use-region (use-region-p)))
-	(save-excursion
-	  (let ((text (if use-region		;Get region if active, otherwise line
-					  (buffer-substring (region-beginning) (region-end))
-					(prog1 (thing-at-point 'line)
-					  (end-of-line)
-					  (if (< 0 (forward-line 1)) ;Go to beginning of next line,
-										;or make a new one
-						  (newline))))))
-		(dotimes (i (abs (or n 1)))			;Insert N times, or once if not
-										;specified
-		  (insert text))))
-	(if use-region nil		   ;Only if we're working with a line (not a region)
-	  (let ((pos (- (point) (line-beginning-position)))) ;Save column
-		(if (> 0 n)						;Comment out original with negative arg
-			(comment-region (line-beginning-position) (line-end-position)))
-		(forward-line 1)
-		(forward-char pos)))))
+    (save-excursion
+      (let ((text (if use-region		;Get region if active, otherwise line
+                      (buffer-substring (region-beginning) (region-end))
+                    (prog1 (thing-at-point 'line)
+                      (end-of-line)
+                      (if (< 0 (forward-line 1)) ;Go to beginning of next line,
+                                        ;or make a new one
+                          (newline))))))
+        (dotimes (i (abs (or n 1)))			;Insert N times, or once if not
+                                        ;specified
+          (insert text))))
+    (if use-region nil		   ;Only if we're working with a line (not a region)
+      (let ((pos (- (point) (line-beginning-position)))) ;Save column
+        (if (> 0 n)						;Comment out original with negative arg
+            (comment-region (line-beginning-position) (line-end-position)))
+        (forward-line 1)
+        (forward-char pos)))))
 (bind-key* "C-c d" 'duplicate-line-or-region)
 
 ;; convert DOS to UNIX
@@ -914,69 +914,69 @@ With negative N, comment out original line and use the absolute value."
   "Copy the name (NOT full path) of current buffer file to the clipboard."
   (interactive)
   (let* ((filename (file-name-nondirectory buffer-file-name)))
-	(when filename
-	  (kill-new filename)
-	  (message "'%s' name copied!" filename))))
+    (when filename
+      (kill-new filename)
+      (message "'%s' name copied!" filename))))
 (defun copy-path-short ()
   "Copy the path of current buffer file to the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
-					  default-directory
-					;; abbreviate-file-name will replace /home/user with ~
-					;; also works with directory
-					(if buffer-file-name
-						(abbreviate-file-name buffer-file-name)
-					  (user-error "Current buffer is not a file/directory in disk!" "exit")))))
-	(when filename
-	  (kill-new filename)
-	  (message "'%s' path copied!" filename))))
+                      default-directory
+                    ;; abbreviate-file-name will replace /home/user with ~
+                    ;; also works with directory
+                    (if buffer-file-name
+                        (abbreviate-file-name buffer-file-name)
+                      (user-error "Current buffer is not a file/directory in disk!" "exit")))))
+    (when filename
+      (kill-new filename)
+      (message "'%s' path copied!" filename))))
 (defun copy-path ()
   "Copy the full path of current buffer file to the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
-					  default-directory
-					(buffer-file-name))))
-	(if filename
-		(progn
-		  (kill-new filename)
-		  (message "'%s' path copied!" filename))
-	  (message "Current buffer is not a file/directory in disk!"))))
+                      default-directory
+                    (buffer-file-name))))
+    (if filename
+        (progn
+          (kill-new filename)
+          (message "'%s' path copied!" filename))
+      (message "Current buffer is not a file/directory in disk!"))))
 (defun copy-path-html ()
   "Copy the html of according to the current buffer, this is useful when exporting org file to html."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
-					  default-directory
-					(buffer-file-name))))
-	(if filename
-		(progn
-		  (kill-new filename)
-		  (message "'%s' path copied!" filename))
-	  ;; print error message and exit/return the function
-	  (user-error "Current buffer is not a file in disk!" "exit")))
+                      default-directory
+                    (buffer-file-name))))
+    (if filename
+        (progn
+          (kill-new filename)
+          (message "'%s' path copied!" filename))
+      ;; print error message and exit/return the function
+      (user-error "Current buffer is not a file in disk!" "exit")))
   (let ((html-file (concat (file-name-sans-extension (buffer-file-name)) ".html")))
-	(if (file-exists-p html-file)
-		(progn
-		  (kill-new html-file)
-		  (message "'%s' path copied!" html-file))
-	  (message "'%s' is not a file in disk!" html-file))))
+    (if (file-exists-p html-file)
+        (progn
+          (kill-new html-file)
+          (message "'%s' path copied!" html-file))
+      (message "'%s' is not a file in disk!" html-file))))
 (defun copy-path-pdf ()
   "Copy the pdf of according to the current buffer, this is useful when exporting org file to html."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
-					  default-directory
-					(buffer-file-name))))
-	(if filename
-		(progn
-		  (kill-new filename)
-		  (message "'%s' path copied!" filename))
-	  ;; print error message and exit/return the function
-	  (user-error "Current buffer is not a file in disk!" "exit")))
+                      default-directory
+                    (buffer-file-name))))
+    (if filename
+        (progn
+          (kill-new filename)
+          (message "'%s' path copied!" filename))
+      ;; print error message and exit/return the function
+      (user-error "Current buffer is not a file in disk!" "exit")))
   (let ((pdf-file (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
-	(if (file-exists-p pdf-file)
-		(progn
-		  (kill-new pdf-file)
-		  (message "'%s' path copied!" pdf-file))
-	  (message "'%s' is not a file in disk!" pdf-file))))
+    (if (file-exists-p pdf-file)
+        (progn
+          (kill-new pdf-file)
+          (message "'%s' path copied!" pdf-file))
+      (message "'%s' is not a file in disk!" pdf-file))))
 
 (defun insert-date-or-time (ARG)
   "Without prefix, print `2016-08-11'
@@ -985,12 +985,12 @@ With C--, print `2016-08-11 15:39:43'
 With C-u C-u, print `Thu, 11. Aug 2016'"
   (interactive "P")
   (let ((format (cond
-				 ((not ARG) "%Y-%m-%d")
-				 ((equal ARG '-) "%Y-%m-%d %H:%M:%S")
-				 ((equal ARG '(4)) "%H:%M:%S")
-				 ((equal ARG '(16)) "%a, %d. %b %Y")))
-		(system-time-locale "en_US"))
-	(insert (format-time-string format))))
+                 ((not ARG) "%Y-%m-%d")
+                 ((equal ARG '-) "%Y-%m-%d %H:%M:%S")
+                 ((equal ARG '(4)) "%H:%M:%S")
+                 ((equal ARG '(16)) "%a, %d. %b %Y")))
+        (system-time-locale "en_US"))
+    (insert (format-time-string format))))
 
 ;; M-^ delete Up to Non-Whitespace Character, 'delete-indentation, combine two lines
 ;; M-Backspace delete to the previous word 'backword-kill-word
@@ -1010,43 +1010,43 @@ URL `http://ergoemacs.org/emacs/emacs_shrink_whitespace.html'
 Version 2016-12-18"
   (interactive)
   (let ((-p0 (point))
-		-line-has-char-p ; current line contains non-white space chars
-		-has-space-tab-neighbor-p
-		-space-or-tab-begin -space-or-tab-end
-		)
-	(save-excursion
-	  (setq -has-space-tab-neighbor-p
-			(or (looking-at " \\|\t") (looking-back " \\|\t" 1)))
-	  (beginning-of-line)
-	  (setq -line-has-char-p (re-search-forward "[[:graph:]]" (line-end-position) t))
-	  (goto-char -p0)
-	  (skip-chars-backward "\t ")
-	  (setq -space-or-tab-begin (point))
-	  (goto-char -p0)
-	  (skip-chars-forward "\t ")
-	  (setq -space-or-tab-end (point)))
-	(if -line-has-char-p
-		(if -has-space-tab-neighbor-p
-			(let (-deleted-text)
-			  ;; remove all whitespaces in the range
-			  (setq -deleted-text
-					(delete-and-extract-region -space-or-tab-begin -space-or-tab-end))
-			  ;; insert a whitespace only if we have removed something different than a simple whitespace
-			  (when (not (string= -deleted-text " "))
-				(insert " ")))
-		  (progn
-			(when (equal (char-before) 10) (delete-char -1))
-			(when (equal (char-after) 10) (delete-char 1))))
-	  (progn (delete-blank-lines)))))
+        -line-has-char-p ; current line contains non-white space chars
+        -has-space-tab-neighbor-p
+        -space-or-tab-begin -space-or-tab-end
+        )
+    (save-excursion
+      (setq -has-space-tab-neighbor-p
+            (or (looking-at " \\|\t") (looking-back " \\|\t" 1)))
+      (beginning-of-line)
+      (setq -line-has-char-p (re-search-forward "[[:graph:]]" (line-end-position) t))
+      (goto-char -p0)
+      (skip-chars-backward "\t ")
+      (setq -space-or-tab-begin (point))
+      (goto-char -p0)
+      (skip-chars-forward "\t ")
+      (setq -space-or-tab-end (point)))
+    (if -line-has-char-p
+        (if -has-space-tab-neighbor-p
+            (let (-deleted-text)
+              ;; remove all whitespaces in the range
+              (setq -deleted-text
+                    (delete-and-extract-region -space-or-tab-begin -space-or-tab-end))
+              ;; insert a whitespace only if we have removed something different than a simple whitespace
+              (when (not (string= -deleted-text " "))
+                (insert " ")))
+          (progn
+            (when (equal (char-before) 10) (delete-char -1))
+            (when (equal (char-after) 10) (delete-char 1))))
+      (progn (delete-blank-lines)))))
 ;; C-backspace is different in GUI and terminal mode and
 ;; unable to disable it(key or function) in terminal mode, so use something else
 (bind-key* "C-x DEL" 'xah-shrink-whitespaces)
 ;; Join the current line with the line beneath it.
 ;; M-^ is the revert
 (bind-key* "C-M-q"
-		   (lambda ()
-			 (interactive)
-			 (delete-indentation 1)))
+           (lambda ()
+             (interactive)
+             (delete-indentation 1)))
 
 ;; delete not kill it into kill-ring
 ;; _based on_ http://ergoemacs.org/emacs/emacs_kill-ring.html
@@ -1058,8 +1058,8 @@ This command does not push text to `kill-ring'."
   (delete-region
    (point)
    (progn
-	 (forward-word arg)
-	 (point))))
+     (forward-word arg)
+     (point))))
 (defun delete-word-backward (arg)
   "Delete(not kill) characters backward until encountering the beginning of the syntax-subword.
 With argument, do this that many times."
@@ -1070,22 +1070,22 @@ With argument, do this that many times."
 With argument, forward ARG lines."
   (interactive "p")
   (let (x1 x2)
-	(setq x1 (point))
-	(if (eolp) (forward-line arg) (forward-line (- arg 1)))
-	(move-end-of-line 1)
-	(setq x2 (point))
-	(delete-region x1 x2)
-	(when (bolp) (delete-char 1))))
+    (setq x1 (point))
+    (if (eolp) (forward-line arg) (forward-line (- arg 1)))
+    (move-end-of-line 1)
+    (setq x2 (point))
+    (delete-region x1 x2)
+    (when (bolp) (delete-char 1))))
 (defun delete-line-backward (arg)
   "Delete text between the beginning of the line to the cursor position.
 With argument, backward ARG lines."
   (interactive "p")
   (let (x1 x2)
-	(setq x1 (point))
-	(if (bolp) (forward-line (- arg)) (forward-line (- 1 arg)))
-	(move-beginning-of-line 1)
-	(setq x2 (point))
-	(delete-region x1 x2)))
+    (setq x1 (point))
+    (if (bolp) (forward-line (- arg)) (forward-line (- 1 arg)))
+    (move-beginning-of-line 1)
+    (setq x2 (point))
+    (delete-region x1 x2)))
 (bind-keys*
  ("M-d" . delete-word)
  ("<M-backspace>" . delete-word-backward)
@@ -1101,30 +1101,30 @@ Version 2016-07-13"
   ;; This command symbol has a property “'compact-p”, the possible values are t and nil.
   ;; This property is used to easily determine whether to compact or uncompact, when this command is called again
   (let ( (-compact-p
-		  (if (eq last-command this-command)
-			  (get this-command 'compact-p)
-			(> (- (line-end-position) (line-beginning-position)) fill-column)))
-		 (deactivate-mark nil)
-		 (-blanks-regex "\n[ \t]*\n")
-		 -p1 -p2
-		 )
-	(if (use-region-p)
-		(progn (setq -p1 (region-beginning))
-			   (setq -p2 (region-end)))
-	  (save-excursion
-		(if (re-search-backward -blanks-regex nil "NOERROR")
-			(progn (re-search-forward -blanks-regex)
-				   (setq -p1 (point)))
-		  (setq -p1 (point)))
-		(if (re-search-forward -blanks-regex nil "NOERROR")
-			(progn (re-search-backward -blanks-regex)
-				   (setq -p2 (point)))
-		  (setq -p2 (point)))))
-	(if -compact-p
-		(fill-region -p1 -p2)
-	  (let ((fill-column most-positive-fixnum ))
-		(fill-region -p1 -p2)))
-	(put this-command 'compact-p (not -compact-p))))
+          (if (eq last-command this-command)
+              (get this-command 'compact-p)
+            (> (- (line-end-position) (line-beginning-position)) fill-column)))
+         (deactivate-mark nil)
+         (-blanks-regex "\n[ \t]*\n")
+         -p1 -p2
+         )
+    (if (use-region-p)
+        (progn (setq -p1 (region-beginning))
+               (setq -p2 (region-end)))
+      (save-excursion
+        (if (re-search-backward -blanks-regex nil "NOERROR")
+            (progn (re-search-forward -blanks-regex)
+                   (setq -p1 (point)))
+          (setq -p1 (point)))
+        (if (re-search-forward -blanks-regex nil "NOERROR")
+            (progn (re-search-backward -blanks-regex)
+                   (setq -p2 (point)))
+          (setq -p2 (point)))))
+    (if -compact-p
+        (fill-region -p1 -p2)
+      (let ((fill-column most-positive-fixnum ))
+        (fill-region -p1 -p2)))
+    (put this-command 'compact-p (not -compact-p))))
 (bind-key* "M-q" 'xah-fill-or-unfill)
 
 (defun xah-syntax-color-hex ()
@@ -1135,21 +1135,21 @@ Version 2017-03-12"
   (font-lock-add-keywords
    nil
    '(("#[[:xdigit:]]\\{3\\}"
-	  (0 (put-text-property
-		  (match-beginning 0)
-		  (match-end 0)
-		  'face (list :background
-					  (let* (
-							 (ms (match-string-no-properties 0))
-							 (r (substring ms 1 2))
-							 (g (substring ms 2 3))
-							 (b (substring ms 3 4)))
-						(concat "#" r r g g b b))))))
-	 ("#[[:xdigit:]]\\{6\\}"
-	  (0 (put-text-property
-		  (match-beginning 0)
-		  (match-end 0)
-		  'face (list :background (match-string-no-properties 0)))))))
+      (0 (put-text-property
+          (match-beginning 0)
+          (match-end 0)
+          'face (list :background
+                      (let* (
+                             (ms (match-string-no-properties 0))
+                             (r (substring ms 1 2))
+                             (g (substring ms 2 3))
+                             (b (substring ms 3 4)))
+                        (concat "#" r r g g b b))))))
+     ("#[[:xdigit:]]\\{6\\}"
+      (0 (put-text-property
+          (match-beginning 0)
+          (match-end 0)
+          'face (list :background (match-string-no-properties 0)))))))
   (font-lock-flush))
 (add-hook 'prog-mode-hook 'xah-syntax-color-hex)
 (add-hook 'php-mode-hook 'xah-syntax-color-hex)
@@ -1166,7 +1166,7 @@ Version 2017-03-12"
 (bind-key* "C-c M-d" 'cleanup-buffer)
 (defvar all-make-modes
   '(makefile-makepp-mode makefile-bsdmake-mode makefile-imake-mode
-						 makefile-automake-mode makefile-mode makefile-gmake-mode)
+                         makefile-automake-mode makefile-mode makefile-gmake-mode)
   "A list of the makefile major modes")
 (defun indent-buffer-safe ()
   "Indent the whole buffer unless it is a Makefile,
@@ -1174,34 +1174,34 @@ Emacs by default won't treat the TAB as indent"
   (interactive)
   ;; indent the whole buffer but not Makefile because of must TAB
   (when (and (derived-mode-p 'prog-mode 'web-mode)
-			 (not (member major-mode all-make-modes)))
-	(indent-region (point-min) (point-max))))
+             (not (member major-mode all-make-modes)))
+    (indent-region (point-min) (point-max))))
 (bind-key* "C-c C-w" 'indent-buffer-safe)
 ;; (add-hook 'before-save-hook
-;; 		  (lambda ()
-;; 			(cleanup-buffer)
-;; 			(indent-buffer-safe)))
+;;            (lambda ()
+;;              (cleanup-buffer)
+;;              (indent-buffer-safe)))
 ;; use prefix+M-x un/tabify for the entire buffer without clean-and-indent
-										; only tabify the leading whitespace, this will avoid the changes in c/macro and comments
+                                        ; only tabify the leading whitespace, this will avoid the changes in c/macro and comments
 (setq tabify-regexp "^\t* [ \t]+")
 (defun tabify-it ()
   "tabify the region if marked a region, or else, tabify the whole buffer, then indent-buffer-safe"
   (interactive)
   (if (use-region-p)
-	  (setq $p1 (region-beginning)
-			$p2 (region-end))
-	(setq $p1 (point-min)
-		  $p2 (point-max)))
+      (setq $p1 (region-beginning)
+            $p2 (region-end))
+    (setq $p1 (point-min)
+          $p2 (point-max)))
   (tabify $p1 $p2)
   (indent-buffer-safe))
 (defun untabify-it ()
   "untabify the region if marked a region, or else, untabify the whole buffer, then indent-buffer-safe"
   (interactive)
   (if (use-region-p)
-	  (setq $p1 (region-beginning)
-			$p2 (region-end))
-	(setq $p1 (point-min)
-		  $p2 (point-max)))
+      (setq $p1 (region-beginning)
+            $p2 (region-end))
+    (setq $p1 (point-min)
+          $p2 (point-max)))
   (untabify $p1 $p2)
   (indent-buffer-safe))
 
@@ -1209,19 +1209,19 @@ Emacs by default won't treat the TAB as indent"
   "Renames current buffer and file it is visiting."
   (interactive)
   (let ((name (buffer-name))
-		(filename (buffer-file-name)))
-	(if (not (and filename (file-exists-p filename)))
-		(error "Buffer '%s' is not visiting a file!" name)
-	  (let ((new-name (read-file-name "New name: " filename)))
-		(cond ((get-buffer new-name)
-			   (error "A buffer named '%s' already exists!" new-name))
-			  (t
-			   (rename-file filename new-name 1)
-			   (rename-buffer new-name)
-			   (set-visited-file-name new-name)
-			   (set-buffer-modified-p nil)
-			   (message "File '%s' successfully renamed to '%s'" name
-						(file-name-nondirectory new-name))))))))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond ((get-buffer new-name)
+               (error "A buffer named '%s' already exists!" new-name))
+              (t
+               (rename-file filename new-name 1)
+               (rename-buffer new-name)
+               (set-visited-file-name new-name)
+               (set-buffer-modified-p nil)
+               (message "File '%s' successfully renamed to '%s'" name
+                        (file-name-nondirectory new-name))))))))
 (bind-keys* ("C-x C-w" . rename-this-buffer-and-file))
 
 ;; indent marked files in dirs
@@ -1231,10 +1231,10 @@ Emacs by default won't treat the TAB as indent"
 (defun indent-marked-files ()
   (interactive)
   (dolist (file (dired-get-marked-files))
-	(find-file file)
-	(indent-region (point-min) (point-max))
-	(save-buffer)
-	(kill-buffer nil)))
+    (find-file file)
+    (indent-region (point-min) (point-max))
+    (save-buffer)
+    (kill-buffer nil)))
 ;; C-x k to kill a buffer specified
 (bind-key* "C-c q" 'kill-this-buffer)
 
@@ -1259,12 +1259,12 @@ Emacs by default won't treat the TAB as indent"
 (defun dired-sort-dirs-first ()
   "Dired sort hook to list directories first."
   (save-excursion
-	(let (buffer-read-only)
-	  (forward-line 2) ;; beyond dir. header
-	  (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max))))
+    (let (buffer-read-only)
+      (forward-line 2) ;; beyond dir. header
+      (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max))))
   (and (featurep 'xemacs)
-	   (fboundp 'dired-insert-set-properties)
-	   (dired-insert-set-properties (point-min) (point-max)))
+       (fboundp 'dired-insert-set-properties)
+       (dired-insert-set-properties (point-min) (point-max)))
   (set-buffer-modified-p nil))
 (add-hook 'dired-after-readin-hook 'dired-sort-dirs-first)
 ;; change the format of the files(dirs)
@@ -1275,19 +1275,19 @@ Emacs by default won't treat the TAB as indent"
   "Get the size of a directory or a series of marked files and directories."
   (interactive)
   (let ((files (dired-get-marked-files)))
-	(with-temp-buffer
-	  (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
-	  (message
-	   "Size of all marked files: %s"
-	   (progn
-		 (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
-		 (match-string 1))))))
+    (with-temp-buffer
+      (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
+      (message
+       "Size of all marked files: %s"
+       (progn
+         (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
+         (match-string 1))))))
 (setq dired-omit-files "^\\...+$")
 (add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
 ;; map H from dired-do-hardlink to dired-omit-mode since it will not be used
 (bind-keys :map dired-mode-map
-		   ("H" . dired-omit-mode)
-		   ("z" . dired-get-size))
+           ("H" . dired-omit-mode)
+           ("z" . dired-get-size))
 ;;
 ;; dired-hacks-utils required by dired-filter and dired-subtree
 ;;
@@ -1301,15 +1301,15 @@ Emacs by default won't treat the TAB as indent"
   "switch to minibuffer window (if active)"
   (interactive)
   (if (active-minibuffer-window)
-	  (select-window (active-minibuffer-window))
-	(error "Minibuffer is not active")))
+      (select-window (active-minibuffer-window))
+    (error "Minibuffer is not active")))
 (bind-keys*
  ("<f7>" . switch-to-minibuffer-window)
  ("C-c b" . ibuffer))
 ;; don't let the cursor go into minibuffer prompt, donnot know the actual effect
 ;; http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
 (setq minibuffer-prompt-properties
-	  (quote (read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)))
+      (quote (read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)))
 (setq ibuffer-use-other-window t)
 ;; improve the profermance of the minibuffer
 (setq echo-keystrokes 0.001)
@@ -1322,15 +1322,15 @@ Emacs by default won't treat the TAB as indent"
   (interactive)
   (previous-buffer)
   (let ((i 0))
-	(while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
-	  (setq i (1+ i)) (previous-buffer))))
+    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+      (setq i (1+ i)) (previous-buffer))))
 (defun next-user-buffer ()
   "Switch to the next user buffer(not started with “*”.)"
   (interactive)
   (next-buffer)
   (let ((i 0))
-	(while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
-	  (setq i (1+ i)) (next-buffer))))
+    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+      (setq i (1+ i)) (next-buffer))))
 (bind-keys*
  ("<C-prior>" . prev-user-buffer)
  ("<C-next>" . next-user-buffer))
@@ -1346,11 +1346,11 @@ Repeated invocations toggle between the two most recently open buffers."
 Repeated invocations toggle between the two most recently open windows."
   (interactive)
   (let ((win (get-mru-window t t t)))
-	(unless win (error "Last window not found!"))
-	(let ((frame (window-frame win)))
-	  (raise-frame frame)
-	  (select-frame frame)
-	  (select-window win))))
+    (unless win (error "Last window not found!"))
+    (let ((frame (window-frame win)))
+      (raise-frame frame)
+      (select-frame frame)
+      (select-window win))))
 (bind-key* "C-x o" 'last-visited-window)
 
 ;; search-all-buffers-ignored-files, F9 to call this function
@@ -1364,18 +1364,18 @@ Repeated invocations toggle between the two most recently open windows."
 prefix > 1 (i.e., if you type C-u \\[search-all-buffers]),
 searches all buffers."
   (interactive (list (grep-read-regexp)
-					 current-prefix-arg))
+                     current-prefix-arg))
   (message "Regexp is %s; prefix is %s" regexp prefix)
   (multi-occur
    (if (member prefix '(4 (4)))
-	   (buffer-list)
-	 (remove-if
-	  (lambda (b)
-		(some (lambda (rx)
-				(string-match rx (file-name-nondirectory
-								  (buffer-file-name b))))
-			  search-all-buffers-ignored-files))
-	  (remove-if-not 'buffer-file-name (buffer-list))))
+       (buffer-list)
+     (remove-if
+      (lambda (b)
+        (some (lambda (rx)
+                (string-match rx (file-name-nondirectory
+                                  (buffer-file-name b))))
+              search-all-buffers-ignored-files))
+      (remove-if-not 'buffer-file-name (buffer-list))))
    regexp))
 (bind-key* "<f9>" 'search-all-buffers)
 
@@ -1384,11 +1384,11 @@ searches all buffers."
   "Make the current window always display this buffer."
   (interactive)
   (let* ((window (get-buffer-window (current-buffer)))
-		 (dedicated (window-dedicated-p window)))
-	(if (not dedicated)
-		(face-remap-add-relative 'mode-line-buffer-id '(:background "blue"))
-	  (face-remap-add-relative 'mode-line-buffer-id '(:background "dim gray")))
-	(set-window-dedicated-p window (not dedicated))))
+         (dedicated (window-dedicated-p window)))
+    (if (not dedicated)
+        (face-remap-add-relative 'mode-line-buffer-id '(:background "blue"))
+      (face-remap-add-relative 'mode-line-buffer-id '(:background "dim gray")))
+    (set-window-dedicated-p window (not dedicated))))
 (bind-key* "<f11>" 'stick-buffer)
 
 ;; Generate unique buffer names if you open many files with same basename
@@ -1405,18 +1405,18 @@ searches all buffers."
 ;; 2. After C-x C-c, type d to differ
 ;; If you are in vc dir, use C-x v = to diff the current version with the repo
 (if (daemonp)
-	;; for emacs --deamon, highlight-change doesn't work with daemon
-	(add-hook 'after-make-frame-functions
-			  (lambda (frame)
-				(select-frame frame)
-				(bind-keys*
-				 ("C-h C-b" . diff-buffer-with-file)
-				 ("C-h C-v" . highlight-changes-visible-mode)
-				 ("M-<f1>" . highlight-changes-previous-change)
-				 ("M-<f2>" . highlight-changes-next-change))
-				(global-highlight-changes-mode t)
-				;; initial invisible, use C-h C-v to toggle the highlight of changes
-				(setq highlight-changes-visibility-initial-state nil)))
+    ;; for emacs --deamon, highlight-change doesn't work with daemon
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                (select-frame frame)
+                (bind-keys*
+                 ("C-h C-b" . diff-buffer-with-file)
+                 ("C-h C-v" . highlight-changes-visible-mode)
+                 ("M-<f1>" . highlight-changes-previous-change)
+                 ("M-<f2>" . highlight-changes-next-change))
+                (global-highlight-changes-mode t)
+                ;; initial invisible, use C-h C-v to toggle the highlight of changes
+                (setq highlight-changes-visibility-initial-state nil)))
   (bind-keys*
    ("C-h C-b" . diff-buffer-with-file)
    ("C-h C-v" . highlight-changes-visible-mode)
@@ -1443,14 +1443,14 @@ From https://emacs.stackexchange.com/a/14716/794"
   (interactive)
   (unless pos (setq pos (point)))
   (let* ((fontfaces (get-text-property pos 'face)))
-	(when (not (listp fontfaces))
-	  (setf fontfaces (list fontfaces)))
-	(delq nil
-		  (mapcar #'(lambda (f)
-					  ;; learn this trick from flyspell
-					  (or (eq f 'font-lock-comment-face)
-						  (eq f 'font-lock-comment-delimiter-face)))
-				  fontfaces))))
+    (when (not (listp fontfaces))
+      (setf fontfaces (list fontfaces)))
+    (delq nil
+          (mapcar #'(lambda (f)
+                      ;; learn this trick from flyspell
+                      (or (eq f 'font-lock-comment-face)
+                          (eq f 'font-lock-comment-delimiter-face)))
+                  fontfaces))))
 (defun advanced-return (&optional ARG)
   "Customized return, more powerful.
 
@@ -1463,23 +1463,23 @@ In comments, RET will automatically use C-M-j instead.
 In other non-comment situations, try C-M-j to split."
   (interactive "P")
   (if (equal ARG '-)
-	  (progn
-		(beginning-of-line)
-		(open-line 1))
-	(if (equal ARG '(4))
-		(progn
-		  (end-of-line)
-		  (open-line 1)
-		  (forward-line))
-	  (progn
-		(end-of-line)
-		(newline-and-indent)))))
+      (progn
+        (beginning-of-line)
+        (open-line 1))
+    (if (equal ARG '(4))
+        (progn
+          (end-of-line)
+          (open-line 1)
+          (forward-line))
+      (progn
+        (end-of-line)
+        (newline-and-indent)))))
 (defun Meta-return ()
   (interactive)
   (progn
-	;; executing key in a function
-	(call-interactively (key-binding (kbd "C-M-j")))
-	(indent-according-to-mode)))
+    ;; executing key in a function
+    (call-interactively (key-binding (kbd "C-M-j")))
+    (indent-according-to-mode)))
 (bind-key* "M-RET" (lambda ()
                      (interactive)
                      (if (equal major-mode 'org-mode)
@@ -1490,8 +1490,8 @@ In other non-comment situations, try C-M-j to split."
 
 ;; comment in C code,`M-;` means /* */, use // in C++ code
 (add-hook 'c++-mode-hook
-		  (lambda ()
-			(setq comment-start "//" comment-end "")))
+          (lambda ()
+            (setq comment-start "//" comment-end "")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; Default configuration change
@@ -1513,18 +1513,18 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
   (interactive "P")
   (declare (interactive-only))
   (cond ((and (buffer-narrowed-p) (not p))
-		 (widen))
-		((region-active-p)
-		 (narrow-to-region (region-beginning) (region-end)))
-		((and (boundp 'org-src-mode) org-src-mode (not p)) ; <-- Added
-		 (org-edit-src-exit))
-		((derived-mode-p 'org-mode)
-		 (cond ((org-in-src-block-p)
-				(org-edit-src-code))
-			   ((org-at-block-p)
-				(org-narrow-to-block))
-			   (t (org-narrow-to-subtree))))
-		(t (narrow-to-defun))))
+         (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning) (region-end)))
+        ((and (boundp 'org-src-mode) org-src-mode (not p)) ; <-- Added
+         (org-edit-src-exit))
+        ((derived-mode-p 'org-mode)
+         (cond ((org-in-src-block-p)
+                (org-edit-src-code))
+               ((org-at-block-p)
+                (org-narrow-to-block))
+               (t (org-narrow-to-subtree))))
+        (t (narrow-to-defun))))
 ;; This line actually replaces Emacs' entire narrowing keymap
 (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
 ;;
@@ -1548,8 +1548,8 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 (defadvice shell (around always-new-shell)
   "Always start a new shell."
   (let ((buffer
-		 (generate-new-buffer-name "*shell*")))
-	ad-do-it))
+         (generate-new-buffer-name "*shell*")))
+    ad-do-it))
 ;; make shell in emacs load .bashrc/.fishrc
 ;; (setq shell-command-switch "-lc")
 ;; (ad-activate 'shell)
@@ -1560,16 +1560,16 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
   "Opens up a new shell and list the files in it in new window according to the directory associated with the current buffer's file. "
   (interactive)
   (let* ((parent (if (buffer-file-name)
-					 (file-name-directory (buffer-file-name))
-				   default-directory))
-		 (height (/ (window-total-height) 3))
-		 (name (car (last (split-string parent "/" t)))))
-	(split-window-vertically (- height))
-	(other-window 1)
-	(eshell "new")
-	(rename-buffer (concat "*eshell: " name "*"))
-	(insert (concat "ls"))
-	(eshell-send-input)))
+                     (file-name-directory (buffer-file-name))
+                   default-directory))
+         (height (/ (window-total-height) 3))
+         (name (car (last (split-string parent "/" t)))))
+    (split-window-vertically (- height))
+    (other-window 1)
+    (eshell "new")
+    (rename-buffer (concat "*eshell: " name "*"))
+    (insert (concat "ls"))
+    (eshell-send-input)))
 (bind-keys* ("C-x !" . eshell-here))
 (defun eshell/x ()
   "x in eshell prompt to exit eshell and close the eshell window."
@@ -1579,9 +1579,9 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;; avoid the problem that, execute a command after C-l, it will scroll to the
 ;; bottom of the screen, it may also solve the problem of ipython for Python
 (add-hook 'eshell-mode-hook
-		  (defun chunyang-eshell-mode-setup ()
-			(remove-hook 'eshell-output-filter-functions
-						 'eshell-postoutput-scroll-to-bottom)))
+          (defun chunyang-eshell-mode-setup ()
+            (remove-hook 'eshell-output-filter-functions
+                         'eshell-postoutput-scroll-to-bottom)))
 ;; C-l order from (middle top bottom) to (top middle bottom)
 (setq recenter-positions '(top middle bottom))
 
@@ -1589,13 +1589,13 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;; comint install
 (require 'xterm-color)
 (progn (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
-	   (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions)))
+       (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions)))
 ;; comint uninstall
 (progn (remove-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
-	   (add-to-list 'comint-output-filter-functions 'ansi-color-process-output))
+       (add-to-list 'comint-output-filter-functions 'ansi-color-process-output))
 (add-hook 'eshell-mode-hook
-		  (lambda ()
-			(setq xterm-color-preserve-properties t)))
+          (lambda ()
+            (setq xterm-color-preserve-properties t)))
 ;; eshell-preoutput-filter-functions needs to require eshell
 (require 'eshell)
 (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
@@ -1620,14 +1620,14 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; resize the opened windows
 (bind-key* "C-c #"
-		   (defhydra hydra-resize-window (:hint nil)
-			 ""
-			 ("<left>" shrink-window-horizontally "-narrower-")
-			 ("<right>" enlarge-window-horizontally "-wider-")
-			 ("<down>" shrink-window "|shorter|")
-			 ("<up>" enlarge-window "|longer|")
-			 ("=" balance-windows "equal")
-			 ("q"  nil)))
+           (defhydra hydra-resize-window (:hint nil)
+             ""
+             ("<left>" shrink-window-horizontally "-narrower-")
+             ("<right>" enlarge-window-horizontally "-wider-")
+             ("<down>" shrink-window "|shorter|")
+             ("<up>" enlarge-window "|longer|")
+             ("=" balance-windows "equal")
+             ("q"  nil)))
 
 ;; winner-mode, max a window temporarily and restore the state
 ;; C-c <left/right> 'winner-undo/redo
@@ -1638,16 +1638,16 @@ With prefix P, don't widen, just narrow even if buffer is already narrowed. "
   "Maximize window, called with C-u, maximize the other window."
   (interactive "P")
   (if (= 1 (length (window-list)))
-	  (if (not (get-register '_))
-		  (message "No window configuration existed!")
-		(jump-to-register '_))
-	(progn
-	  (window-configuration-to-register '_)
-	  (if current-prefix-arg
-		  (if (= 2 (length (window-list)))
-			  (delete-window)
-			(message "More than 2 windows existed, do nothing!"))
-		(delete-other-windows)))))
+      (if (not (get-register '_))
+          (message "No window configuration existed!")
+        (jump-to-register '_))
+    (progn
+      (window-configuration-to-register '_)
+      (if current-prefix-arg
+          (if (= 2 (length (window-list)))
+              (delete-window)
+            (message "More than 2 windows existed, do nothing!"))
+        (delete-other-windows)))))
 (bind-key* "ESC ESC ESC" 'toggle-maximize-window)
 ;; ESC ESC ESC == keyboard-escape-quit, it will do multiple actions, including
 ;; deleting other windows, disable this feature and replace it with toggle-maximize-window
@@ -1671,13 +1671,13 @@ URL `http://ergoemacs.org/emacs/elisp_copy-paste_register_1.html'
 Version 2015-12-08"
   (interactive)
   (let (-p1 -p2)
-	(if (region-active-p)
-		(progn (setq -p1 (region-beginning))
-			   (setq -p2 (region-end)))
-	  (progn (setq -p1 (line-beginning-position))
-			 (setq -p2 (line-end-position))))
-	(copy-to-register ?1 -p1 -p2)
-	(message "copied to register 1: 「%s」." (buffer-substring-no-properties -p1 -p2))))
+    (if (region-active-p)
+        (progn (setq -p1 (region-beginning))
+               (setq -p2 (region-end)))
+      (progn (setq -p1 (line-beginning-position))
+             (setq -p2 (line-end-position))))
+    (copy-to-register ?1 -p1 -p2)
+    (message "copied to register 1: 「%s」." (buffer-substring-no-properties -p1 -p2))))
 (defun register-1-paste ()
   "Paste text from register 1.
 See also: `register-1-copy', `insert-register'.
@@ -1685,7 +1685,7 @@ URL `http://ergoemacs.org/emacs/elisp_copy-paste_register_1.html'
 Version 2015-12-08"
   (interactive)
   (when (use-region-p)
-	(delete-region (region-beginning) (region-end)))
+    (delete-region (region-beginning) (region-end)))
   (insert-register ?1 t))
 (bind-keys*
  ("C-x r !" . register-1-copy)
@@ -1717,28 +1717,28 @@ Version 2015-12-08"
 (defun toggle-window-split ()
   (interactive)
   (if (= (count-windows) 2)
-	  (let* ((this-win-buffer (window-buffer))
-			 (next-win-buffer (window-buffer (next-window)))
-			 (this-win-edges (window-edges (selected-window)))
-			 (next-win-edges (window-edges (next-window)))
-			 (this-win-2nd
-			  (not (and (<= (car this-win-edges)
-							(car next-win-edges))
-						(<= (cadr this-win-edges)
-							(cadr next-win-edges)))))
-			 (splitter
-			  (if (= (car this-win-edges)
-					 (car (window-edges (next-window))))
-				  'split-window-horizontally
-				'split-window-vertically)))
-		(delete-other-windows)
-		(let ((first-win (selected-window)))
-		  (funcall splitter)
-		  (if this-win-2nd (other-window 1))
-		  (set-window-buffer (selected-window) this-win-buffer)
-		  (set-window-buffer (next-window) next-win-buffer)
-		  (select-window first-win)
-		  (if this-win-2nd (other-window 1))))))
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd
+              (not (and (<= (car this-win-edges)
+                            (car next-win-edges))
+                        (<= (cadr this-win-edges)
+                            (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
 ;; C-x 4 t 'toggle-window-split
 (bind-key "t" 'toggle-window-split ctl-x-4-map)
 
@@ -1746,9 +1746,9 @@ Version 2015-12-08"
 ;; NOTE that you can v/V to scroll the two windows synchronously
 (with-eval-after-load "ediff"
   (setq ediff-split-window-function
-		'split-window-horizontally)		;; use | to change the style
+        'split-window-horizontally)		;; use | to change the style
   (setq ediff-window-setup-function
-		'ediff-setup-windows-plain)
+        'ediff-setup-windows-plain)
   ;; delete these buffers (if they are not modified) after q
   (setq ediff-keep-variants nil))
 ;; use new frame (fullscreen) for ediff session and close the frame after exiting
@@ -1765,16 +1765,16 @@ Version 2015-12-08"
 (defun restore-my-window-configuration ()
   (interactive)
   (when (framep new-ediff-frame-to-use)
-	(delete-frame new-ediff-frame-to-use)
-	(setq new-ediff-frame-to-use nil))
+    (delete-frame new-ediff-frame-to-use)
+    (setq new-ediff-frame-to-use nil))
   (when (window-configuration-p pre-ediff-window-configuration)
-	(set-window-configuration pre-ediff-window-configuration)))
+    (set-window-configuration pre-ediff-window-configuration)))
 (add-hook 'ediff-after-quit-hook-internal 'restore-my-window-configuration)
 ;; quit the ediff without asking, unsaved buffer will remain
 ;; unmodified buffer will be killed
 (defun disable-y-or-n-p (orig-fun &rest args)
   (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
-	(apply orig-fun args)))
+    (apply orig-fun args)))
 (advice-add 'ediff-quit :around #'disable-y-or-n-p)
 
 ;; You can use C-x o 'other-window, but the following is better
@@ -1801,68 +1801,68 @@ Version 2015-12-08"
   "If buffer is associated with a file name, add that file to the
 `killed-buffers-list' when killing the buffer."
   (when buffer-file-name
-	(push buffer-file-name killed-buffers-list)))
+    (push buffer-file-name killed-buffers-list)))
 (add-hook 'kill-buffer-hook #'add-file-to-killed-buffers-list)
 (defun reopen-killed-buffer-fancy ()
   "Pick a file to revisit from a list of files killed during this
 Emacs session."
   (interactive)
   (if killed-buffers-list
-	  (let ((file
-			 (completing-read "Reopen killed file: " killed-buffers-list
-							  nil nil nil nil (car killed-buffers-list))))
-		(when file
-		  (setq killed-buffers-list
-				(cl-delete file killed-buffers-list :test #'equal))
-		  (find-file file)))
-	(error "No recently-killed files to reopen")))
+      (let ((file
+             (completing-read "Reopen killed file: " killed-buffers-list
+                              nil nil nil nil (car killed-buffers-list))))
+        (when file
+          (setq killed-buffers-list
+                (cl-delete file killed-buffers-list :test #'equal))
+          (find-file file)))
+    (error "No recently-killed files to reopen")))
 (bind-key* "C-x t" 'reopen-killed-buffer-fancy)
 
 ;; align-regexp with space instead tab
 (defadvice align-regexp (around align-regexp-with-spaces activate)
   (let ((indent-tabs-mode nil))
-	ad-do-it))
+    ad-do-it))
 (defalias 'ar #'align-regexp)
 (defadvice align (around align-with-spaces activate)
   (let ((indent-tabs-mode nil))
-	ad-do-it))
+    ad-do-it))
 (defun align-c-comments (beginning end)
   "Align instances of // or /* */ within marked region."
   (interactive "*r")
   (let (indent-tabs-mode align-to-tab-stop)
-	(align-regexp beginning end "\\(\\s-*\\)[//|/*]")))
+    (align-regexp beginning end "\\(\\s-*\\)[//|/*]")))
 (defun align-c-macros (beginning end)
   "Align macros within marked region"
   (interactive "*r")
   (progn
-	(align beginning end)
-	(untabify beginning end)))
+    (align beginning end)
+    (untabify beginning end)))
 (require 'cc-mode) ;; c-mode-map
 (bind-keys :map prog-mode-map
-		   ("C-c A a" . align)
-		   ("C-c A r" . align-regexp))
+           ("C-c A a" . align)
+           ("C-c A r" . align-regexp))
 (dolist (m (list c-mode-map c++-mode-map))
   (bind-keys :map m
-			 :prefix-map align-prefix-map
-			 :prefix "C-c A"
-			 ;; ("a" . align)
-			 ;; ("r" . align-regexp)
-			 ("c" . align-c-comments)
-			 ("m" . align-c-macros)))
+             :prefix-map align-prefix-map
+             :prefix "C-c A"
+             ;; ("a" . align)
+             ;; ("r" . align-regexp)
+             ("c" . align-c-comments)
+             ("m" . align-c-macros)))
 
 ;; put cursor at the #include line, C-c o open the header file
 ;; c-mode-common-hook equals to c-mode-hook + c++-mode-hook
 (add-hook 'c-mode-common-hook
-		  (lambda()
-			(local-set-key (kbd "C-c o") 'ff-find-other-file)))
+          (lambda()
+            (local-set-key (kbd "C-c o") 'ff-find-other-file)))
 
 ;; Saveplace & desktop
 ;; https://www.emacswiki.org/emacs/SavePlace
 (setq save-place-file "~/.emacs.d/saved-places")
 (if (version< emacs-version "25.0")
-	(progn
-	  (require 'saveplace)
-	  (setq-default save-place t))
+    (progn
+      (require 'saveplace)
+      (setq-default save-place t))
   (save-place-mode 1))
 
 ;; (setq desktop-save 'ask)
@@ -1873,8 +1873,8 @@ Emacs session."
   "Prompt for confirmation for emacsclient(not daemon) like confirm-kill-emacs for running Emacs without daemon."
   (interactive)
   (if (y-or-n-p (format "Really exit Emacs? "))
-	  (save-buffers-kill-terminal)
-	(message "Canceled frame close!")))
+      (save-buffers-kill-terminal)
+    (message "Canceled frame close!")))
 (when (daemonp)
   (global-set-key (kbd "C-x C-c") 'ask-before-closing))
 
@@ -1903,46 +1903,46 @@ Emacs session."
 ;; (setq ispell-personal-dictionary "~/.emacs.d/ispell_en_US")
 (require 'flyspell)
 (dolist (mode '(prog-mode-hook
-				emacs-lisp-mode-hook
-				python-mode-hook))
+                emacs-lisp-mode-hook
+                python-mode-hook))
   (add-hook mode
-			'(lambda ()
-			   (flyspell-prog-mode))))
+            '(lambda ()
+               (flyspell-prog-mode))))
 ;; in prog-mode, make flyspell only work in comments
 ;; original value: '(font-lock-string-face font-lock-comment-face font-lock-doc-face)
 (with-eval-after-load 'flyspell-prog-mode
   (setq flyspell-prog-text-faces
-		(delq 'font-lock-string-face
-			  flyspell-prog-text-faces)))
+        (delq 'font-lock-string-face
+              flyspell-prog-text-faces)))
 (with-eval-after-load "flyspell"
   (define-key flyspell-mouse-map [mouse-1] #'flyspell-correct-word)
   ;;(define-key flyspell-mouse-map [mouse-3] #'undefined)
   )
 (require 'flyspell-correct-helm)
 (bind-keys :map flyspell-mode-map
-		   :prefix-map my-flyspell-mode-prefix-map
-		   :prefix "C-M-x"
-		   ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
-		   ("x" . flyspell-correct-at-point)
-		   ("b" . flyspell-buffer)
-		   ("n" . flyspell-correct-next)
-		   ("p" . flyspell-correct-previous)
-		   ("a" . flyspell-correct-wrapper)
-		   ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
-		   ("i" . endless/ispell-word-then-abbrev))
+           :prefix-map my-flyspell-mode-prefix-map
+           :prefix "C-M-x"
+           ;; use `C-u prefix i` to correct multiple words(backwards), C-u C-u to forwards
+           ("x" . flyspell-correct-at-point)
+           ("b" . flyspell-buffer)
+           ("n" . flyspell-correct-next)
+           ("p" . flyspell-correct-previous)
+           ("a" . flyspell-correct-wrapper)
+           ;; correct the wrong word with prefix+i, next time auto-correct it, defined bellow
+           ("i" . endless/ispell-word-then-abbrev))
 ;;
 (add-hook 'ispell-initialize-spellchecker-hook
-		  (lambda ()
-			(setq ispell-base-dicts-override-alist
-				  '((nil ; default
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
-					("american" ; Yankee English
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_US" "-i" "utf-8") nil utf-8)
-					("british" ; British English
-					 "[A-Za-z]" "[^A-Za-z]" "[']" t
-					 ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
+          (lambda ()
+            (setq ispell-base-dicts-override-alist
+                  '((nil ; default
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
+                    ("american" ; Yankee English
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_US" "-i" "utf-8") nil utf-8)
+                    ("british" ; British English
+                     "[A-Za-z]" "[^A-Za-z]" "[']" t
+                     ("-d" "en_GB" "-i" "utf-8") nil utf-8)))))
 ;;
 ;; source: http://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html
 (defun endless/simple-get-word ()
@@ -1957,28 +1957,28 @@ skip typos you don't want to fix with `SPC', and you can
 abort completely with `C-g'."
   (interactive "P")
   (let (bef aft)
-	(save-excursion
-	  (while (if (setq bef (endless/simple-get-word))
-				 ;; Word was corrected or used quit.
-				 (if (ispell-word nil 'quiet)
-					 nil ; End the loop.
-				   ;; Also end if we reach `bob'.
-				   (not (bobp)))
-			   ;; If there's no word at point, keep looking
-			   ;; until `bob'.
-			   (not (bobp)))
-		(backward-word)
-		(backward-char))
-	  (setq aft (endless/simple-get-word)))
-	(if (and aft bef (not (equal aft bef)))
-		(let ((aft (downcase aft))
-			  (bef (downcase bef)))
-		  (define-abbrev
-			(if p local-abbrev-table global-abbrev-table)
-			bef aft)
-		  (message "\"%s\" now expands to \"%s\" %sally"
-				   bef aft (if p "loc" "glob")))
-	  (user-error "No typo at or before point"))))
+    (save-excursion
+      (while (if (setq bef (endless/simple-get-word))
+                 ;; Word was corrected or used quit.
+                 (if (ispell-word nil 'quiet)
+                     nil ; End the loop.
+                   ;; Also end if we reach `bob'.
+                   (not (bobp)))
+               ;; If there's no word at point, keep looking
+               ;; until `bob'.
+               (not (bobp)))
+        (backward-word)
+        (backward-char))
+      (setq aft (endless/simple-get-word)))
+    (if (and aft bef (not (equal aft bef)))
+        (let ((aft (downcase aft))
+              (bef (downcase bef)))
+          (define-abbrev
+            (if p local-abbrev-table global-abbrev-table)
+            bef aft)
+          (message "\"%s\" now expands to \"%s\" %sally"
+                   bef aft (if p "loc" "glob")))
+      (user-error "No typo at or before point"))))
 (setq save-abbrevs 'silently)
 (setq-default abbrev-mode t)
 
@@ -1998,14 +1998,14 @@ abort completely with `C-g'."
 (setq c-basic-offset 4)
 ;; (setq indent-line-function 'insert-tab)
 (add-hook 'text-mode-hook
-		  (lambda ()
-			(setq indent-tabs-mode t)
-			;; this will cause the position problem in org-mode
-			;; (setq tab-width 4)
-			))
+          (lambda ()
+            (setq indent-tabs-mode t)
+            ;; this will cause the position problem in org-mode
+            ;; (setq tab-width 4)
+            ))
 (add-hook 'emacs-lisp-mode-hook
-		  (lambda ()
-			(setq tab-width 4
+          (lambda ()
+            (setq tab-width 4
                   indent-tabs-mode nil)))
 ;; Dismiss the guess python-indent-offset default to 4 warning message
 ;; DO NOT put this inside python-mode-hook, when create new python file, emacs
@@ -2013,32 +2013,32 @@ abort completely with `C-g'."
 ;; Setting python-indent-offset directly is not working
 (setq python-indent-guess-indent-offset nil)
 (add-hook 'python-mode-hook
-		  (lambda ()
-			(set (make-local-variable 'comment-inline-offset) 2) ; PEP8 two spaces
-			(setq indent-tabs-mode nil)
-			(setq tab-width 4)))
+          (lambda ()
+            (set (make-local-variable 'comment-inline-offset) 2) ; PEP8 two spaces
+            (setq indent-tabs-mode nil)
+            (setq tab-width 4)))
 ;;
 (add-hook 'c-mode-hook
-		  (lambda ()
-			(c-set-style "linux")
-			(setq tab-width 8)
-			(setq indent-tabs-mode t) ;;default in linux kernel
-			(setq c-basic-offset 8)
-			;; make comment aligned with the code block/line
-			(c-set-offset 'comment-intro 0)))
+          (lambda ()
+            (c-set-style "linux")
+            (setq tab-width 8)
+            (setq indent-tabs-mode t) ;;default in linux kernel
+            (setq c-basic-offset 8)
+            ;; make comment aligned with the code block/line
+            (c-set-offset 'comment-intro 0)))
 (add-hook 'c++-mode-hook
-		  (lambda ()
-			(c-set-style "linux")
-			(setq tab-width 4)
-			(setq indent-tabs-mode t) ;;default in linux kernel
-			(setq c-basic-offset 4)
-			(c-set-offset 'comment-intro 0)))
+          (lambda ()
+            (c-set-style "linux")
+            (setq tab-width 4)
+            (setq indent-tabs-mode t) ;;default in linux kernel
+            (setq c-basic-offset 4)
+            (c-set-offset 'comment-intro 0)))
 (add-hook 'makefile-mode-hook
-		  (lambda ()
-			(setq tab-width 8)))
+          (lambda ()
+            (setq tab-width 8)))
 (add-hook 'fish-mode-hook
-		  (lambda ()
-			(setq indent-tabs-mode nil)))
+          (lambda ()
+            (setq indent-tabs-mode nil)))
 
 ;; ;;;;;;;Documentation/CodingStyle
 ;; ;;Using spaces for alignment, but tabs for indentation
@@ -2073,15 +2073,15 @@ abort completely with `C-g'."
 (show-paren-mode t)
 (setq show-paren-style 'expression)
 (defadvice show-paren-function
-	(after show-matching-paren-offscreen activate)
+    (after show-matching-paren-offscreen activate)
   "If the matching paren is offscreen, show the matching line in the echo area.
 Has no effect if the character before point is not of the syntax class ')'."
   (interactive)
   (let* ((cb (char-before (point)))
-		 (matching-text (and cb
-							 (char-equal (char-syntax cb) ?\) )
-							 (blink-matching-open))))
-	(when matching-text (message matching-text))))
+         (matching-text (and cb
+                             (char-equal (char-syntax cb) ?\) )
+                             (blink-matching-open))))
+    (when matching-text (message matching-text))))
 
 ;; show the open parentheses when typing the closing one
 (setq blink-matching-paren t)
@@ -2116,8 +2116,8 @@ Has no effect if the character before point is not of the syntax class ')'."
 - The 'complation' after 'Shell:run' in mode-line indicates the va is activated"
   (interactive)
   (if compilation-minor-mode
-	  (setq compilation-minor-mode nil)
-	(compilation-minor-mode)))
+      (setq compilation-minor-mode nil)
+    (compilation-minor-mode)))
 (bind-key  "C-c v" 'va prog-mode-map)
 (defvar all-gud-modes
   '(gud-mode comint-mode gdb-locals-mode gdb-frames-mode gdb-breakpoints-mode)
@@ -2127,14 +2127,14 @@ Has no effect if the character before point is not of the syntax class ')'."
 Do this after `q` in Debugger buffer."
   (interactive)
   (save-excursion
-	(let ((count 0))
-	  (dolist (buffer (buffer-list))
-		(set-buffer buffer)
-		(when (member major-mode all-gud-modes)
-		  (setq count (1+ count))
-		  (kill-buffer buffer)
-		  (delete-other-windows))) ;; fix the remaining two windows issue
-	  (message "Killed %i buffer(s)." count))))
+    (let ((count 0))
+      (dolist (buffer (buffer-list))
+        (set-buffer buffer)
+        (when (member major-mode all-gud-modes)
+          (setq count (1+ count))
+          (kill-buffer buffer)
+          (delete-other-windows))) ;; fix the remaining two windows issue
+      (message "Killed %i buffer(s)." count))))
 (defalias 'gdb-exit 'kill-all-gud-buffers)
 
 ;; cedet -- built-in
@@ -2191,7 +2191,7 @@ Do this after `q` in Debugger buffer."
   (semantic-add-system-include "/usr/include/" 'c++-mode))
 (add-hook 'semantic-init-hooks 'my-include-semantic-hook)
 (setq-mode-local c-mode semanticdb-find-default-throttle
-				 '(project unloaded system recursive))
+                 '(project unloaded system recursive))
 ;; Semantic's work optimization, optimize work with tags
 ;; Integration with imenu
 (defun my-semantic-hook ()
@@ -2204,8 +2204,8 @@ Do this after `q` in Debugger buffer."
 (bind-key "." 'semantic-complete-self-insert c++-mode-map)
 ;;
 (add-hook 'org-mode-hook
-		  (lambda() (set
-					 (make-local-variable 'semantic-mode) nil)))
+          (lambda() (set
+                     (make-local-variable 'semantic-mode) nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packages from  elpa, marmelade and melpa.
@@ -2213,14 +2213,14 @@ Do this after `q` in Debugger buffer."
 (require 'package)
 ;; Package repositories
 (setq package-archives
-	  '(
-		("gnu" . "http://elpa.gnu.org/packages/")
-		("melpa" . "http://melpa.org/packages/")
-		("melpa-stable" . "http://stable.melpa.org/packages/")
-		;; ("marmalade" . "http://marmalade-repo.org/packages/")
-		("ELPA" . "http://tromey.com/elpa/")
-		("user42" . "http://download.tuxfamily.org/user42/elpa/packages/")
-		))
+      '(
+        ("gnu" . "http://elpa.gnu.org/packages/")
+        ("melpa" . "http://melpa.org/packages/")
+        ("melpa-stable" . "http://stable.melpa.org/packages/")
+        ;; ("marmalade" . "http://marmalade-repo.org/packages/")
+        ("ELPA" . "http://tromey.com/elpa/")
+        ("user42" . "http://download.tuxfamily.org/user42/elpa/packages/")
+        ))
 (defalias 'pi 'package-install)
 (defalias 'pmm 'package-menu-mode)
 (defun package--save-selected-packages (&rest opt) nil)
@@ -2233,21 +2233,21 @@ Do this after `q` in Debugger buffer."
   "Mark current package for upgrading (i.e. also mark obsolete version for deletion.)"
   (interactive)
   (when-let ((upgrades (package-menu--find-upgrades))
-			 (description (tabulated-list-get-id))
-			 (name (package-desc-name description))
-			 (upgradable (cdr (assq name upgrades))))
-	;; Package is upgradable
-	(save-excursion
-	  (goto-char (point-min))
-	  (while (not (eobp))
-		(let* ((current-description (tabulated-list-get-id))
-			   (current-name (package-desc-name current-description)))
-		  (when (equal current-name name)
-			(cond ((equal description current-description)
-				   (package-menu-mark-install)
-				   (forward-line -1))
-				  (t (package-menu-mark-delete)))))
-		(forward-line 1)))))
+             (description (tabulated-list-get-id))
+             (name (package-desc-name description))
+             (upgradable (cdr (assq name upgrades))))
+    ;; Package is upgradable
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let* ((current-description (tabulated-list-get-id))
+               (current-name (package-desc-name current-description)))
+          (when (equal current-name name)
+            (cond ((equal description current-description)
+                   (package-menu-mark-install)
+                   (forward-line -1))
+                  (t (package-menu-mark-delete)))))
+        (forward-line 1)))))
 ;; NOTE: there are multiple filter commands in hydra-paradox-filter/body which
 ;;		   is bound to f, including c to clear the filter and back to the list
 (defun package-menu-list-marks ()
@@ -2255,8 +2255,8 @@ Do this after `q` in Debugger buffer."
   (interactive)
   (occur "^[A-Z]"))
 (bind-keys :map package-menu-mode-map
-		   ("t" . package-menu-upgrade-this-package)
-		   ("m" . package-menu-list-marks))
+           ("t" . package-menu-upgrade-this-package)
+           ("m" . package-menu-list-marks))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; plugin installed by M-x package-install
@@ -2268,9 +2268,9 @@ Do this after `q` in Debugger buffer."
 ;; stop yasnippet auto-indent
 ;; (setq yas/indent-line nil)
 (bind-keys :map yas-minor-mode-map
-		   ("C-c & C-y" . yas-reload-all))
+           ("C-c & C-y" . yas-reload-all))
 (add-hook 'python-mode-hook
-		  '(lambda () (set (make-local-variable 'yas-indent-line) 'fixed)))
+          '(lambda () (set (make-local-variable 'yas-indent-line) 'fixed)))
 
 ;; ecb, use M-x ecb-minor-mode, or Tools->Start Code Browser you'll be suprised
 ;; If you want to load the ECB first after starting it by ecb-activate
@@ -2290,97 +2290,97 @@ Do this after `q` in Debugger buffer."
 (defun try-expand-by-dict (old)
   ;; old is true if we have already attempted an expansion
   (unless (bound-and-true-p ispell-minor-mode)
-	(ispell-minor-mode 1))
+    (ispell-minor-mode 1))
   (let ((lookup-func
-		 (if (fboundp 'ispell-lookup-words)
-			 'ispell-lookup-words
-		   'lookup-words)))
-	(unless old
-	  (he-init-string (he-lisp-symbol-beg) (point))
-	  (if (not (he-string-member he-search-string he-tried-table))
-		  (setq he-tried-table (cons he-search-string he-tried-table)))
-	  (setq he-expand-list
-			(and (not (equal he-search-string ""))
-				 (funcall lookup-func
-						  (concat (buffer-substring-no-properties
-								   (he-lisp-symbol-beg) (point)) "*")))))
-	(if (null he-expand-list)
-		(if old (he-reset-string))
-	  (he-substitute-string (car he-expand-list))
-	  (setq he-expand-list (cdr he-expand-list)) t)))
+         (if (fboundp 'ispell-lookup-words)
+             'ispell-lookup-words
+           'lookup-words)))
+    (unless old
+      (he-init-string (he-lisp-symbol-beg) (point))
+      (if (not (he-string-member he-search-string he-tried-table))
+          (setq he-tried-table (cons he-search-string he-tried-table)))
+      (setq he-expand-list
+            (and (not (equal he-search-string ""))
+                 (funcall lookup-func
+                          (concat (buffer-substring-no-properties
+                                   (he-lisp-symbol-beg) (point)) "*")))))
+    (if (null he-expand-list)
+        (if old (he-reset-string))
+      (he-substitute-string (car he-expand-list))
+      (setq he-expand-list (cdr he-expand-list)) t)))
 ;; the built-in hippie-exp config
 (setq hippie-expand-try-functions-list
-	  '(
-		;; from yasnippet
-		yas-hippie-try-expand
-		;;
-		try-expand-dabbrev
-		try-expand-dabbrev-visible
-		try-expand-dabbrev-all-buffers
-		try-expand-dabbrev-from-kill
-		try-complete-file-name-partially
-		try-complete-file-name
-		try-expand-all-abbrevs
-		try-expand-list
-		try-expand-line
-		try-complete-lisp-symbol-partially
-		try-complete-lisp-symbol
-		try-expand-by-dict))
+      '(
+        ;; from yasnippet
+        yas-hippie-try-expand
+        ;;
+        try-expand-dabbrev
+        try-expand-dabbrev-visible
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-all-abbrevs
+        try-expand-list
+        try-expand-line
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol
+        try-expand-by-dict))
 
 (bind-key* "C-c %"
-		   (defhydra hydra-rectangle
-			 (:body-pre (rectangle-mark-mode 1)
-						:color pink
-						:hint nil
-						:post (deactivate-mark))
-			 "
+           (defhydra hydra-rectangle
+             (:body-pre (rectangle-mark-mode 1)
+                        :color pink
+                        :hint nil
+                        :post (deactivate-mark))
+             "
   ^_k_^		  _w_ copy		_o_pen		 _N_umber-lines			   |\\	   -,,,--,,_
 _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
   ^_j_^		  _d_ kill		_c_lear		 _r_eset-region-mark	  |,4-	) )_   .;.(	 `'-'
 ^^^^		  _u_ndo		_g_ quit	 ^ ^					 '---''(./..)-'(_\_)
 "
-			 ("k" rectangle-previous-line)
-			 ("j" rectangle-next-line)
-			 ("h" rectangle-backward-char)
-			 ("l" rectangle-forward-char)
-			 ("d" kill-rectangle)					 ;; C-x r k
-			 ("y" yank-rectangle)					 ;; C-x r y
-			 ("w" copy-rectangle-as-kill)			 ;; C-x r M-w
-			 ("o" open-rectangle)					 ;; C-x r o
-			 ("t" string-rectangle)					 ;; C-x r t
-			 ("c" clear-rectangle)					 ;; C-x r c
-			 ("e" rectangle-exchange-point-and-mark) ;; C-x C-x
-			 ("N" rectangle-number-lines)			 ;; C-x r N
-			 ("r" (if (region-active-p)
-					  (deactivate-mark)
-					(rectangle-mark-mode 1)))
-			 ("u" undo nil)
-			 ("g" nil)))
+             ("k" rectangle-previous-line)
+             ("j" rectangle-next-line)
+             ("h" rectangle-backward-char)
+             ("l" rectangle-forward-char)
+             ("d" kill-rectangle)					 ;; C-x r k
+             ("y" yank-rectangle)					 ;; C-x r y
+             ("w" copy-rectangle-as-kill)			 ;; C-x r M-w
+             ("o" open-rectangle)					 ;; C-x r o
+             ("t" string-rectangle)					 ;; C-x r t
+             ("c" clear-rectangle)					 ;; C-x r c
+             ("e" rectangle-exchange-point-and-mark) ;; C-x C-x
+             ("N" rectangle-number-lines)			 ;; C-x r N
+             ("r" (if (region-active-p)
+                      (deactivate-mark)
+                    (rectangle-mark-mode 1)))
+             ("u" undo nil)
+             ("g" nil)))
 
 ;; remove ~/.emacs.d/.mc-lists.el file if it prompts "for all cursors"
 (autoload 'multiple-cursors "multiple-cursors" t)
 (bind-key* "C-c m"
-		   (defhydra hydra-multiple-cursors (:hint nil)
-			 "
-		 ^Up^					 ^Down^			   ^Other^
+           (defhydra hydra-multiple-cursors (:hint nil)
+             "
+         ^Up^					 ^Down^			   ^Other^
 ----------------------------------------------
 [_p_]	Prev			[_n_]	Next	  [_l_] Edit lines
 [_P_]	Skip_P			[_N_]	Skip_N	  [_a_] Mark all
 [_M-p_] Unmark_P		[_M-n_] Unmark_N  [_r_] Mark by regexp
 [_z_]	Undo			[_Z_]	Redo	  [_q_] Quit
 "
-			 ("l" mc/edit-lines :exit t)
-			 ("a" mc/mark-all-like-this :exit t)
-			 ("n" mc/mark-next-like-this)
-			 ("N" mc/skip-to-next-like-this)
-			 ("M-n" mc/unmark-next-like-this)
-			 ("p" mc/mark-previous-like-this)
-			 ("P" mc/skip-to-previous-like-this)
-			 ("M-p" mc/unmark-previous-like-this)
-			 ("r" mc/mark-all-in-region-regexp :exit t)
-			 ("z" undo-tree-undo)
-			 ("Z" undo-tree-redo)
-			 ("q" nil)))
+             ("l" mc/edit-lines :exit t)
+             ("a" mc/mark-all-like-this :exit t)
+             ("n" mc/mark-next-like-this)
+             ("N" mc/skip-to-next-like-this)
+             ("M-n" mc/unmark-next-like-this)
+             ("p" mc/mark-previous-like-this)
+             ("P" mc/skip-to-previous-like-this)
+             ("M-p" mc/unmark-previous-like-this)
+             ("r" mc/mark-all-in-region-regexp :exit t)
+             ("z" undo-tree-undo)
+             ("Z" undo-tree-redo)
+             ("q" nil)))
 
 ;; avy to replace ace-jump-mode
 (bind-keys*
@@ -2411,11 +2411,11 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
 (defun er/add-text-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
   (setq er/try-expand-list (append
-							er/try-expand-list
-							'(
-							  er/mark-sentence
-							  mark-paragraph
-							  mark-page))))
+                            er/try-expand-list
+                            '(
+                              er/mark-sentence
+                              mark-paragraph
+                              mark-page))))
 (dolist (hook '(org-mode-hook markdown-mode-hook))
   (add-hook hook 'er/add-text-mode-expansions))
 
@@ -2447,18 +2447,18 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
 (setq company-dabbrev-ignore-case t)
 ;; default company-backends for all modes
 (setq company-backends
-	  '(
-		(
-		 company-files
-		 company-dabbrev
-		 company-keywords
-		 company-capf
-		 company-yasnippet
-		 company-semantic
-		 company-ispell
-		 )
-		(company-dabbrev company-dabbrev-code company-abbrev)
-		))
+      '(
+        (
+         company-files
+         company-dabbrev
+         company-keywords
+         company-capf
+         company-yasnippet
+         company-semantic
+         company-ispell
+         )
+        (company-dabbrev company-dabbrev-code company-abbrev)
+        ))
 ;; turn on this, space will insert the candidate not space
 ;; (setq company-auto-complete t)
 ;; use F1 or C-h in the drop list to show the doc, Use C-s/C-M-s to search the candidates,
@@ -2472,21 +2472,21 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
   (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
 (add-hook 'org-mode-hook #'my-org-mode-hook)
 (add-hook 'c-mode-common-hook
-		  (lambda ()
-			(set (make-local-variable 'company-backends)
-				 (list
-				  (cons
-				   '((
-					  company-c-headers
-					  company-clang
-					  company-gtags))
-				   (car company-backends))))))
+          (lambda ()
+            (set (make-local-variable 'company-backends)
+                 (list
+                  (cons
+                   '((
+                      company-c-headers
+                      company-clang
+                      company-gtags))
+                   (car company-backends))))))
 (add-hook 'emacs-lisp-mode-hook
-		  (lambda ()
-			(set (make-local-variable 'company-backends)
-				 (list
-				  (cons 'company-elisp
-						(car company-backends))))))
+          (lambda ()
+            (set (make-local-variable 'company-backends)
+                 (list
+                  (cons 'company-elisp
+                        (car company-backends))))))
 
 ;; Python Development Environment
 ;; elpy or anaconda-mode
@@ -2501,10 +2501,10 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
 ;; (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
 ;; The following conf will slow Emacs, disable it when using elpy
 (add-hook 'elpy-mode-hook
-		  (lambda ()
-			(highlight-indent-guides-mode -1)
-			(highlight-indentation-mode -1)
-			(semantic-stickyfunc-mode -1)))
+          (lambda ()
+            (highlight-indent-guides-mode -1)
+            (highlight-indentation-mode -1)
+            (semantic-stickyfunc-mode -1)))
 ;; ;; anaconda
 ;; (add-hook 'python-mode-hook 'anaconda-mode)
 ;; (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
@@ -2512,35 +2512,35 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
 ;;   (add-to-list 'company-backends '(company-anaconda :with company-capf)))
 ;; ;; the following modes will make Emacs extremely slow when editing Python code
 ;; (add-hook 'anaconda-mode-hook
-;; 		  (lambda ()
-;; 			;; (highlight-indent-guides-mode -1)
-;; 			;; (highlight-indentation-mode -1)
-;; 			(color-identifiers-mode -1)
-;; 			(which-function-mode -1)
-;; 			(global-semantic-stickyfunc-mode -1)))
+;;            (lambda ()
+;;              ;; (highlight-indent-guides-mode -1)
+;;              ;; (highlight-indentation-mode -1)
+;;              (color-identifiers-mode -1)
+;;              (which-function-mode -1)
+;;              (global-semantic-stickyfunc-mode -1)))
 ;; (with-eval-after-load 'python
 ;;   (bind-keys :map python-mode-map
-;; 			 :prefix-map my-python-prefix-map
-;; 			 :prefix "C-c c"
-;; 			 ("d" . anaconda-mode-find-definitions-other-window)
-;; 			 ("=" . anaconda-mode-find-assignments-other-window)
-;; 			 ("r" . anaconda-mode-find-references-other-window)
-;; 			 ("v" . anaconda-mode-show-doc)
-;; 			 ("u" . xref-pop-marker-stack)
-;; 			 ("TAB" . anaconda-mode-complete)))
+;;               :prefix-map my-python-prefix-map
+;;               :prefix "C-c c"
+;;               ("d" . anaconda-mode-find-definitions-other-window)
+;;               ("=" . anaconda-mode-find-assignments-other-window)
+;;               ("r" . anaconda-mode-find-references-other-window)
+;;               ("v" . anaconda-mode-show-doc)
+;;               ("u" . xref-pop-marker-stack)
+;;               ("TAB" . anaconda-mode-complete)))
 (with-eval-after-load "python"
   (define-key python-mode-map (kbd "C-c D") 'helm-pydoc))
 ;;
 (setq python-shell-prompt-detect-failure-warning nil)
 ;; use iPython inside Emacs directly once found when M-x run-python
 (if (executable-find "ipython")
-	(progn (setq python-shell-interpreter "ipython")
-		   (if (version< (replace-regexp-in-string "\n$" "" (shell-command-to-string "ipython --version")) "5")
-			   (setq python-shell-interpreter-args "-i")
-			 (setq python-shell-interpreter-args "--simple-prompt -i")))
+    (progn (setq python-shell-interpreter "ipython")
+           (if (version< (replace-regexp-in-string "\n$" "" (shell-command-to-string "ipython --version")) "5")
+               (setq python-shell-interpreter-args "-i")
+             (setq python-shell-interpreter-args "--simple-prompt -i")))
   (progn
-	(setq python-shell-interpreter-args "-i")
-	(setq python-shell-interpreter "python")))
+    (setq python-shell-interpreter-args "-i")
+    (setq python-shell-interpreter "python")))
 (defadvice run-python (after run-python-buffer activate)
   "Switch to *Python* buffer after C-c C-p in a python buffer."
   (switch-to-buffer-other-window "*Python*"))
@@ -2549,15 +2549,15 @@ _h_	  _l_	  _y_ank		_t_ype		 _e_xchange-point		   /,`.-'`'	  ..  \-;;,_
 Indent the line/region according to the context which is smarter than default Tab/S-Tab"
   (interactive)
   (if (not (region-active-p))
-	  (indent-for-tab-command)
-	(let ((lo (min (region-beginning) (region-end)))
-		  (hi (max (region-beginning) (region-end))))
-	  (goto-char lo)
-	  (beginning-of-line)
-	  (set-mark (point))
-	  (goto-char hi)
-	  (end-of-line)
-	  (python-indent-shift-right (mark) (point)))))
+      (indent-for-tab-command)
+    (let ((lo (min (region-beginning) (region-end)))
+          (hi (max (region-beginning) (region-end))))
+      (goto-char lo)
+      (beginning-of-line)
+      (set-mark (point))
+      (goto-char hi)
+      (end-of-line)
+      (python-indent-shift-right (mark) (point)))))
 (with-eval-after-load "python"
   (define-key python-mode-map [remap indent-for-tab-command] 'my-python-tab-command))
 ;; grouped default back-ends for all major mode
@@ -2595,11 +2595,11 @@ Indent the line/region according to the context which is smarter than default Ta
 (global-undo-tree-mode)
 (with-eval-after-load 'undo-tree
   (bind-keys :map undo-tree-map
-			 ("C-_" . nil)
-			 ("M-_" . nil)
-			 ("C-z" . undo-tree-undo)
-			 ("C-M-z" . undo-tree-redo)
-			 ("C-x u" . undo-tree-visualize)))
+             ("C-_" . nil)
+             ("M-_" . nil)
+             ("C-z" . undo-tree-undo)
+             ("C-M-z" . undo-tree-redo)
+             ("C-x u" . undo-tree-visualize)))
 
 ;; findr
 (autoload 'findr-search "findr" "Find text in files." t)
@@ -2629,13 +2629,13 @@ Indent the line/region according to the context which is smarter than default Ta
 "
   (interactive "DCreate cscope* database files in directory: ")
   (progn
-	(cscope-create-list-of-files-to-index top-directory)
-	(cscope-index-files top-directory)
-	(setq cscope-initial-directory top-directory)
-	(sit-for 2)
-	(delete-windows-on "*cscope-indexing-buffer*")
-	(kill-buffer "*cscope-indexing-buffer*")
-	))
+    (cscope-create-list-of-files-to-index top-directory)
+    (cscope-index-files top-directory)
+    (setq cscope-initial-directory top-directory)
+    (sit-for 2)
+    (delete-windows-on "*cscope-indexing-buffer*")
+    (kill-buffer "*cscope-indexing-buffer*")
+    ))
 (bind-keys*
  ("C-c s r" . cscope-create-database))
 
@@ -2665,7 +2665,7 @@ Indent the line/region according to the context which is smarter than default Ta
  helm-gtags-prefix-key "\C-cg"
  helm-gtags-suggested-key-mapping t
  helm-gtags-auto-update t
-										;helm-gtags-cache-select-result t
+                                        ;helm-gtags-cache-select-result t
  )
 (require 'helm-gtags)
 (add-hook 'c-mode-hook 'helm-gtags-mode)
@@ -2673,17 +2673,17 @@ Indent the line/region according to the context which is smarter than default Ta
 (add-hook 'asm-mode-hook 'helm-gtags-mode)
 (with-eval-after-load 'helm-gtags
   (bind-keys :map helm-gtags-mode-map
-			 ("C-c g t" . helm-gtags-find-tag)
-			 ("C-c g h" . helm-gtags-find-tag-from-here)
-			 ("C-c g o" . helm-gtags-find-tag-other-window)
-			 ("C-c g r" . helm-gtags-find-rtag)
-			 ("C-c g s" . helm-gtags-find-symbol)
-			 ("C-c g f" . helm-gtags-parse-file)
-			 ("C-c g p" . helm-gtags-previous-history)
-			 ("C-c g n" . helm-gtags-next-history)
-			 ("C-c g z" . helm-gtags-resume)
-			 ("C-c g S" . helm-gtags-show-stack)
-			 ("C-c g u" . helm-gtags-pop-stack)))
+             ("C-c g t" . helm-gtags-find-tag)
+             ("C-c g h" . helm-gtags-find-tag-from-here)
+             ("C-c g o" . helm-gtags-find-tag-other-window)
+             ("C-c g r" . helm-gtags-find-rtag)
+             ("C-c g s" . helm-gtags-find-symbol)
+             ("C-c g f" . helm-gtags-parse-file)
+             ("C-c g p" . helm-gtags-previous-history)
+             ("C-c g n" . helm-gtags-next-history)
+             ("C-c g z" . helm-gtags-resume)
+             ("C-c g S" . helm-gtags-show-stack)
+             ("C-c g u" . helm-gtags-pop-stack)))
 
 ;; org-mode
 (autoload 'package "package" t)
@@ -2707,8 +2707,8 @@ Indent the line/region according to the context which is smarter than default Ta
 (setq org-list-allow-alphabetical t)
 ;; use different bullet for a sub-list
 (setq org-list-demote-modify-bullet
-	  '(("-" . "+") ("+" . "*") ("*" . "-") ("1." . "+") ("1)" . "+")
-		("a." . "-") ("a)" . "-") ("A." . "-") ("A)" . "-")))
+      '(("-" . "+") ("+" . "*") ("*" . "-") ("1." . "+") ("1)" . "+")
+        ("a." . "-") ("a)" . "-") ("A." . "-") ("A)" . "-")))
 ;; To make sure all your variables work you should not use (require 'org).
 ;; Instead use the following setting
 ;; You should also make sure that you do not require any other org-...
@@ -2729,24 +2729,24 @@ Indent the line/region according to the context which is smarter than default Ta
  ("C-c a c" . org-capture)
  ("C-c a l" . org-store-link))
 (setq org-agenda-custom-commands
-	  '(("c" "Simple agenda view"
-		 ((tags "PRIORITY=\"A\""
-				((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
-				 (org-agenda-overriding-header "High-priority unfinished tasks:")))
-		  (alltodo "")
-		  (agenda "")))))
+      '(("c" "Simple agenda view"
+         ((tags "PRIORITY=\"A\""
+                ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                 (org-agenda-overriding-header "High-priority unfinished tasks:")))
+          (alltodo "")
+          (agenda "")))))
 (setq org-capture-templates
-	  '(("s" "Scheduled TODO node" entry (file "~/Org/todo.org")
-		 "* TODO %?\nADDED: %U\nSCHEDULED: %t")
-		("S" "STARTED TODO node" entry (file "~/Org/todo.org")
-		 "* STARTED %?\nADDED: %U" :clock-in t :clock-keep t :clock-resume t)
-		("t" "TODO list" checkitem (file "~/Org/todo.org")
-		 "[ ] %?")
-		))
+      '(("s" "Scheduled TODO node" entry (file "~/Org/todo.org")
+         "* TODO %?\nADDED: %U\nSCHEDULED: %t")
+        ("S" "STARTED TODO node" entry (file "~/Org/todo.org")
+         "* STARTED %?\nADDED: %U" :clock-in t :clock-keep t :clock-resume t)
+        ("t" "TODO list" checkitem (file "~/Org/todo.org")
+         "[ ] %?")
+        ))
 (add-hook 'org-clock-out-hook
-		  '(lambda ()
-			 (setq org-mode-line-string nil)
-			 (force-mode-line-update)))
+          '(lambda ()
+             (setq org-mode-line-string nil)
+             (force-mode-line-update)))
 ;; Resume clocking task when emacs is restarted
 (org-clock-persistence-insinuate)
 ;; removes clocked tasks with 0:00 duration
@@ -2765,14 +2765,14 @@ Indent the line/region according to the context which is smarter than default Ta
 (setq org-enforce-todo-dependencies t)
 (setq org-log-reschedule 'time)
 (setq org-agenda-span 15
-	  org-agenda-start-on-weekday nil
-	  org-agenda-start-day "-7d")
+      org-agenda-start-on-weekday nil
+      org-agenda-start-day "-7d")
 ;; Use specific fils as source of agenda
 (setq org-agenda-files
-	  (list "~/Org/todo.org"
-			;; "~/Org/school.org"
-			;; "~/Org/home.org"
-			))
+      (list "~/Org/todo.org"
+            ;; "~/Org/school.org"
+            ;; "~/Org/home.org"
+            ))
 (setq org-columns-default-format "%50ITEM(Task) %TODO %3PRIORITY %TAGS %10CLOCKSUM %16TIMESTAMP_IA")
 (setq org-log-into-drawer "LOGBOOK")
 ;; include all files in ~/Org as the source of org-agenda
@@ -2780,38 +2780,38 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; from https://github.com/svetlyak40wt/dot-emacs/blob/master/.emacs.d/lib/org-auto-clock.el
 (eval-after-load 'org
   '(progn
-	 (defun wicked/org-clock-in-if-starting ()
-	   "Clock in when the task is marked STARTED."
-	   (when (and (string= org-state "STARTED")
-				  (not (string= org-last-state org-state)))
-		 (org-clock-in)))
-	 (add-hook 'org-after-todo-state-change-hook 'wicked/org-clock-in-if-starting)
+     (defun wicked/org-clock-in-if-starting ()
+       "Clock in when the task is marked STARTED."
+       (when (and (string= org-state "STARTED")
+                  (not (string= org-last-state org-state)))
+         (org-clock-in)))
+     (add-hook 'org-after-todo-state-change-hook 'wicked/org-clock-in-if-starting)
 
-	 (defadvice org-clock-in (after wicked activate)
-	   "Set this task's status to 'STARTED' when clock-in."
-	   (org-todo "STARTED"))
+     (defadvice org-clock-in (after wicked activate)
+       "Set this task's status to 'STARTED' when clock-in."
+       (org-todo "STARTED"))
 
-	 (defun wicked/org-clock-out-if-waiting ()
-	   "Clock out when the task is marked WAITING or CANCELED."
-	   (when (and (or (string= org-state "WAITING")
-					  (string= org-state "CANCELED"))
-				  (equal (marker-buffer org-clock-marker) (current-buffer))
-				  (< (point) org-clock-marker)
-				  (> (save-excursion (outline-next-heading) (point))
-					 org-clock-marker)
-				  (not (string= org-last-state org-state)))
-		 (org-clock-out)))
-	 (add-hook 'org-after-todo-state-change-hook 'wicked/org-clock-out-if-waiting)))
+     (defun wicked/org-clock-out-if-waiting ()
+       "Clock out when the task is marked WAITING or CANCELED."
+       (when (and (or (string= org-state "WAITING")
+                      (string= org-state "CANCELED"))
+                  (equal (marker-buffer org-clock-marker) (current-buffer))
+                  (< (point) org-clock-marker)
+                  (> (save-excursion (outline-next-heading) (point))
+                     org-clock-marker)
+                  (not (string= org-last-state org-state)))
+         (org-clock-out)))
+     (add-hook 'org-after-todo-state-change-hook 'wicked/org-clock-out-if-waiting)))
 (bind-keys :map org-mode-map
-		   ("C-c c" . org-capture)
-		   ("<C-return>" . org-insert-heading-after-current)
-		   ("C-k". delete-line-to-end)
-		   ("RET" . advanced-return)
-		   ;; use global defined C-a/e not `org-end/beginning-of-line`
-		   ("C-e". nil)
-		   ("C-a". nil)
-		   ;; show/unshow the descriptive and literal links
-		   ("C-c C-x l" . org-toggle-link-display))
+           ("C-c c" . org-capture)
+           ("<C-return>" . org-insert-heading-after-current)
+           ("C-k". delete-line-to-end)
+           ("RET" . advanced-return)
+           ;; use global defined C-a/e not `org-end/beginning-of-line`
+           ("C-e". nil)
+           ("C-a". nil)
+           ;; show/unshow the descriptive and literal links
+           ("C-c C-x l" . org-toggle-link-display))
 ;; If you would like to embed a TODO within text without treating it as
 ;; an outline heading, you can use inline tasks. Simply add:
 (require 'org-inlinetask)
@@ -2821,18 +2821,18 @@ Indent the line/region according to the context which is smarter than default Ta
 (mapc
  (lambda (file)
    (add-to-list 'auto-mode-alist
-				(cons (concat (regexp-quote file) "\\'") 'org-mode)))
+                (cons (concat (regexp-quote file) "\\'") 'org-mode)))
  '("README" ".txt"))
 ;; TODO
 ;; different sequential states in the process of working on an item
 ;; C-c C-t SPC for nothing
 (setq org-todo-keywords
-	  ;; !/@ meaning: https://orgmode.org/manual/Tracking-TODO-state-changes.html
-	  '((sequence "TODO(t!)" "STARTED(s!)" "NEXT(n!)" "WAITING(w!)" "|" "DONE(d!)" "CANCELED(c@)")
-		;; multiple sets for one file
-		;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
-		;; (sequence "|" "CANCELED(c)")
-		))
+      ;; !/@ meaning: https://orgmode.org/manual/Tracking-TODO-state-changes.html
+      '((sequence "TODO(t!)" "STARTED(s!)" "NEXT(n!)" "WAITING(w!)" "|" "DONE(d!)" "CANCELED(c@)")
+        ;; multiple sets for one file
+        ;; (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)""|" "FIXED(f)")
+        ;; (sequence "|" "CANCELED(c)")
+        ))
 ;; Keep track of when a certain TODO item was finished.
 (setq org-log-done 'time)
 ;; record a note along with the timestamp
@@ -2854,7 +2854,7 @@ Indent the line/region according to the context which is smarter than default Ta
 (defun org-summary-todo (n-done n-not-done)
   "Switch entry to DONE when all subentries are done, to TODO otherwise."
   (let (org-log-done org-log-states)	; turn off logging
-	(org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+    (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 (setq org-tags-column 0)
 ;; syntax highlight in the source code snippet
@@ -2867,14 +2867,14 @@ Indent the line/region according to the context which is smarter than default Ta
 ;; fix problems of more spaces before source code lines in the exported html file
 (setq org-src-preserve-indentation t)
 (add-hook 'org-mode-hook
-		  (lambda ()
-			;; in code snippet block, `C-c '` and then TAB to format code snippet lines
-			;; display one lone line in one window, get rid of straight right arrow
-			(setq truncate-lines nil)
-			;; DO NOT end a org file with a newline, default is t(with newline)
-			(setq require-final-newline nil)
-			;; this line not work if set org-indent-mode or org-startup-indented
-			(setq org-hide-leading-stars nil)))
+          (lambda ()
+            ;; in code snippet block, `C-c '` and then TAB to format code snippet lines
+            ;; display one lone line in one window, get rid of straight right arrow
+            (setq truncate-lines nil)
+            ;; DO NOT end a org file with a newline, default is t(with newline)
+            (setq require-final-newline nil)
+            ;; this line not work if set org-indent-mode or org-startup-indented
+            (setq org-hide-leading-stars nil)))
 ;; don not put this into hook
 ;; Comment this line out, since it will cause the sub-list indentation problem,
 ;; the confliction of this with other config may cause the bug, not itself
@@ -2895,28 +2895,28 @@ Indent the line/region according to the context which is smarter than default Ta
 into one step."
   (interactive)
   (when (org-in-src-block-p)
-	(org-edit-special)
-	(indent-region (point-min) (point-max))
-	(org-edit-src-exit)))
+    (org-edit-special)
+    (indent-region (point-min) (point-max))
+    (org-edit-src-exit)))
 (bind-key "C-c <C-tab>" 'org-src-format org-mode-map)
 ;; in org-mode file
 (setq org-emphasis-alist
-	  '(
-		("*" (:foreground "cyan" :weight bold))
-		("/" (:foreground "cyan" :slant italic))
-		("_" (:foreground "cyan" :underline t))
-		("=" (:foreground "cyan" :weight bold))
-		("~" (:foreground "cyan" :weight bold
-						  :box (:line-width 3 :color "#545454" :style released-button)))
-		("+" (:foreground "cyan" :strike-through t))))
+      '(
+        ("*" (:foreground "cyan" :weight bold))
+        ("/" (:foreground "cyan" :slant italic))
+        ("_" (:foreground "cyan" :underline t))
+        ("=" (:foreground "cyan" :weight bold))
+        ("~" (:foreground "cyan" :weight bold
+                          :box (:line-width 3 :color "#545454" :style released-button)))
+        ("+" (:foreground "cyan" :strike-through t))))
 ;; in html file
 (setq org-html-text-markup-alist
-	  '((bold . "<b>%s</b>")
-		(code . "<kbd>%s</kbd>")
-		(italic . "<i>%s</i>")
-		(strike-through . "<del>%s</del>")
-		(underline . "<span class=\"underline\">%s</span>")
-		(verbatim . "<code>%s</code>")))
+      '((bold . "<b>%s</b>")
+        (code . "<kbd>%s</kbd>")
+        (italic . "<i>%s</i>")
+        (strike-through . "<del>%s</del>")
+        (underline . "<span class=\"underline\">%s</span>")
+        (verbatim . "<code>%s</code>")))
 ;; C-tab(original 'org-force-cycle-archived) to show the element
 ;; in another window(simpler version of org-panes.el)
 ;; then M-PageUp/Down to scroll another window
@@ -2929,19 +2929,19 @@ into one step."
 ;;
 ;; org-export stylesheet
 (setq org-html-head-extra
-	  "<link rel=\"stylesheet\" href=\"/home/chz/.emacs.d/lisp/org.css\" type=\"text/css\" />")
+      "<link rel=\"stylesheet\" href=\"/home/chz/.emacs.d/lisp/org.css\" type=\"text/css\" />")
 (defun my/org-inline-css-hook (exporter)
   "Insert custom inline css to automatically set the
 background of code to whatever theme I'm using's background"
   (when (eq exporter 'html)
-	(let* ((my-pre-bg (face-background 'default))
-		   (my-pre-fg (face-foreground 'default)))
-	  (setq
-	   org-html-head-extra
-	   (concat
-		org-html-head-extra
-		(format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
-				my-pre-bg my-pre-fg))))))
+    (let* ((my-pre-bg (face-background 'default))
+           (my-pre-fg (face-foreground 'default)))
+      (setq
+       org-html-head-extra
+       (concat
+        org-html-head-extra
+        (format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
+                my-pre-bg my-pre-fg))))))
 (add-hook 'org-export-before-processing-hook 'my/org-inline-css-hook)
 ;; export org to html with checkbox like ☑ (ballot)
 (setq org-html-checkbox-type 'unicode)
@@ -2950,14 +2950,14 @@ background of code to whatever theme I'm using's background"
 ;; Use styles at http://orgmode.org/manual/Footnotes.html such as [fn:1]
 ;; C-c C-c to jump to/back definition/reference
 (setq org-footnote-re
-	  (concat "\\[\\(?:"
-			  ;; Match inline footnotes.
-			  (org-re "fn:\\([-_[:word:]]+\\)?:\\|")
-			  ;; Match other footnotes. "\\(?:\\([0-9]+\\)\\]\\)\\|"
-			  (org-re "\\(fn:[-_[:word:]]+\\)")
-			  "\\)"))
+      (concat "\\[\\(?:"
+              ;; Match inline footnotes.
+              (org-re "fn:\\([-_[:word:]]+\\)?:\\|")
+              ;; Match other footnotes. "\\(?:\\([0-9]+\\)\\]\\)\\|"
+              (org-re "\\(fn:[-_[:word:]]+\\)")
+              "\\)"))
 (setq org-footnote-definition-re
-	  (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
+      (org-re "^\\[\\(fn:[-_[:word:]]+\\)\\]"))
 ;; remove the end part of the exported file such as `author, date, emacs and org-mode version`
 (setq org-html-postamble nil)
 ;; ? before the star at the beginning of headline for all speed commands
@@ -2969,10 +2969,10 @@ background of code to whatever theme I'm using's background"
 (require 'org-num)
 ;; org-sticky-header and org-table-sticky-header
 (add-hook 'org-mode-hook
-		  (lambda ()
-			(org-sticky-header-mode)
-			(org-table-sticky-header-mode)
-			(org-num-mode)))
+          (lambda ()
+            (org-sticky-header-mode)
+            (org-table-sticky-header-mode)
+            (org-num-mode)))
 
 (setq org-highlight-latex-and-related '(latex script entities))
 ;; put this after org-mode config part, or flyspell-mode won't be enabled, even with-eval-after-load won't work
@@ -3087,8 +3087,8 @@ background of code to whatever theme I'm using's background"
 (setq helm-ff-newfile-prompt-p nil)
 (with-eval-after-load 'helm-semantic
   (setq helm-semantic-display-style
-		'((c-mode . semantic-format-tag-summarize)
-		  (emacs-lisp-mode . semantic-format-tag-summarize))))
+        '((c-mode . semantic-format-tag-summarize)
+          (emacs-lisp-mode . semantic-format-tag-summarize))))
 (unbind-key "C-x f" global-map)
 ;; (recentf-mode t)
 (setq
@@ -3103,17 +3103,17 @@ background of code to whatever theme I'm using's background"
 NOTE: when this is used in more than 3 windows, it would be confused by 'other-window"
   (interactive)
   (save-selected-window
-	(other-window 1)
-	(helm-occur)))
+    (other-window 1)
+    (helm-occur)))
 (bind-key* "C-x M-s" 'helm-other-occur)
 (defun helm-backspace ()
   "Forward to `backward-delete-char'.
 On error (read-only), quit without selecting(showing 'Text is read only' in minibuffer)."
   (interactive)
   (condition-case nil
-	  (backward-delete-char 1)
-	(error
-	 (helm-keyboard-quit))))
+      (backward-delete-char 1)
+    (error
+     (helm-keyboard-quit))))
 (bind-key "DEL" 'helm-backspace helm-map)
 (setq
  ;; helm-quick-update t	 ; do not display invisible candidates
@@ -3121,7 +3121,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
  helm-split-window-in-side-p t ; open helm buffer inside current window, not occupy whole other window
  helm-buffers-favorite-modes
  (append helm-buffers-favorite-modes
-		 '(picture-mode artist-mode))	; do not show these files in helm buffer
+         '(picture-mode artist-mode))	; do not show these files in helm buffer
  helm-boring-file-regexp-list
  '("\\.git$" "\\.hg$" "\\.svn$" "\\.CVS$" "\\._darcs$" "\\.la$" "\\.o$" "\\.i$")
  ;; move to end or beginning of source when reaching top or bottom of source.
@@ -3144,9 +3144,9 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
  ;; the original M-: is still eval-expression
  ("C-M-:" . helm-eval-expression-with-eldoc))
 (bind-keys :map helm-ag-map
-		   ("C-x C-e" . helm-ag-edit))
+           ("C-x C-e" . helm-ag-edit))
 (setq helm-ag-fuzzy-match t
-	  helm-ag-insert-at-point 'symbol)
+      helm-ag-insert-at-point 'symbol)
 (bind-key "RET" 'helm-ag--run-other-window-action helm-ag-map)
 ;;
 ;; helm-descbinds, describe-bindings using helm, F1-b or C-h b
@@ -3175,15 +3175,15 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 (setq helm-swoop-pre-input-function (lambda () ""))
 (defun my-helm-swoop-move-line-with-string-at-point-if-needed ($move-fn)
   (if (equal helm-swoop-pattern "")
-	  (let (($string ""))
-		(with-current-buffer (get-buffer-create (cdr helm-swoop-last-point))
-		  (save-excursion
-			(goto-char (car helm-swoop-last-point))
-			(setq $string (thing-at-point 'symbol))))
-		(with-selected-window (or (active-minibuffer-window)
-								  (minibuffer-window))
-		  (insert $string)))
-	(call-interactively $move-fn)))
+      (let (($string ""))
+        (with-current-buffer (get-buffer-create (cdr helm-swoop-last-point))
+          (save-excursion
+            (goto-char (car helm-swoop-last-point))
+            (setq $string (thing-at-point 'symbol))))
+        (with-selected-window (or (active-minibuffer-window)
+                                  (minibuffer-window))
+          (insert $string)))
+    (call-interactively $move-fn)))
 (defun my-helm-swoop-next-line-with-string-at-point-if-needed ()
   (interactive)
   (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-next-line))
@@ -3191,8 +3191,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
   (interactive)
   (my-helm-swoop-move-line-with-string-at-point-if-needed 'helm-previous-line))
 (bind-keys :map helm-swoop-map
-		   ("C-s" . my-helm-swoop-next-line-with-string-at-point-if-needed)
-		   ("C-r" . my-helm-swoop-prev-line-with-string-at-point-if-needed))
+           ("C-s" . my-helm-swoop-next-line-with-string-at-point-if-needed)
+           ("C-r" . my-helm-swoop-prev-line-with-string-at-point-if-needed))
 
 ;; projectile required by helm-projectile
 
@@ -3220,7 +3220,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; helm-flx
 (helm-flx-mode +1)
 (setq helm-flx-for-helm-find-files t ;; t by default
-	  helm-flx-for-helm-locate t) ;; nil by default
+      helm-flx-for-helm-locate t) ;; nil by default
 
 ;; for large projects
 ;;(setq helm-projectile-sources-list
@@ -3237,7 +3237,7 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;;	  'helm-projectile)
 ;; modify the indicator in mode line
 (setq projectile-mode-line
-	  '(:eval (format "" (projectile-project-name))))
+      '(:eval (format "" (projectile-project-name))))
 
 ;;;; s required by flycheck
 ;;;; f required by flycheck
@@ -3305,14 +3305,14 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; (with-eval-after-load "magit" (setq magit-git-executable "/usr/bin/git"))
 ;; make `truncate-lines` nil in magit and `auto-fill-mode` off in commit buffers
 (add-hook 'magit-status-mode-hook
-		  (lambda ()
-			(setq truncate-lines nil)
-			(magit-filenotify-mode)
-			))
+          (lambda ()
+            (setq truncate-lines nil)
+            (magit-filenotify-mode)
+            ))
 (add-hook 'git-commit-mode-hook
-		  (lambda ()
-			(turn-off-auto-fill)
-			(flyspell-mode)))
+          (lambda ()
+            (turn-off-auto-fill)
+            (flyspell-mode)))
 ;; make the item in magit buffer easy to see after TAB
 (defadvice magit-toggle-section (after magit-toggle-top activate)
   "TAB a item to scroll the of the repeat."
@@ -3322,12 +3322,12 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; http://docs.emmet.io/
 (dolist (mode '(sgml-mode-hook html-mode-hook css-mode-hook))
   (add-hook mode
-			'(lambda ()
-			   (emmet-mode))))
+            '(lambda ()
+               (emmet-mode))))
 ;; web-mode
 ;; http://web-mode.org/
 (dolist (hook '(css-mode-hook
-				html-mode-hook))
+                html-mode-hook))
   (add-hook hook (lambda () (web-mode))))
 (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
 (setq web-mode-enable-current-element-highlight t)
@@ -3350,8 +3350,8 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; (autoload 'yafolding "yafolding" t)
 (add-hook 'prog-mode-hook 'yafolding-mode)
 (bind-keys :map prog-mode-map
-		   ("C-c f" . yafolding-toggle-element)
-		   ("C-c F" . yafolding-toggle-all))
+           ("C-c f" . yafolding-toggle-element)
+           ("C-c F" . yafolding-toggle-all))
 
 ;; use overlay-symbol to replace highlight-symbol
 (dolist (hook '(prog-mode-hook python-mode-hook org-mode-hook ielm-mode-hook))
@@ -3400,13 +3400,13 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; M-.. are useful in org-mode, use elpy-mode-map instead of python-mode-map here
 (dolist (m (list prog-mode-map elpy-mode-map))
   (bind-keys :map m
-			 ("M-<up>" . cool-moves/line-backward)
-			 ("M-<down>" . cool-moves/line-forward)
-			 ("M-<left>" . cool-moves/sexp-backward)
-			 ("M-<right>" . cool-moves/sexp-forward)))
+             ("M-<up>" . cool-moves/line-backward)
+             ("M-<down>" . cool-moves/line-forward)
+             ("M-<left>" . cool-moves/sexp-backward)
+             ("M-<right>" . cool-moves/sexp-forward)))
 (bind-key* "C-c t"
-		   (defhydra hydra-text-motions (:color amaranth :hint nil :foreign-keys nil)
-			 "
+           (defhydra hydra-text-motions (:color amaranth :hint nil :foreign-keys nil)
+             "
  _<down>_: line ↓     _<up>_: line ↑
  _l_: line ↓             _L_: line ↑
  _p_: par  ↓             _P_: par  ↑
@@ -3417,34 +3417,34 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
  _x_: sexp →             _X_: sexp ←
  _z_: undo               _Z_: redo
 "
-			 ("<escape>" nil)
-			 ("u" nil)
+             ("<escape>" nil)
+             ("u" nil)
 
-			 ("l" cool-moves/line-forward)
-			 ("<down>" cool-moves/line-forward)
-			 ("L" cool-moves/line-backward)
-			 ("<up>" cool-moves/line-backward)
+             ("l" cool-moves/line-forward)
+             ("<down>" cool-moves/line-forward)
+             ("L" cool-moves/line-backward)
+             ("<up>" cool-moves/line-backward)
 
-			 ("p" cool-moves/paragraph-forward)
-			 ("P" cool-moves/paragraph-backward)
+             ("p" cool-moves/paragraph-forward)
+             ("P" cool-moves/paragraph-backward)
 
-			 ("w" cool-moves/word-forward)
-			 ("W" cool-moves/word-backwards)
+             ("w" cool-moves/word-forward)
+             ("W" cool-moves/word-backwards)
 
-			 ("c" cool-moves/character-forward)
-			 ("C" cool-moves/character-backward)
+             ("c" cool-moves/character-forward)
+             ("C" cool-moves/character-backward)
 
-			 ("s" cool-moves/sentence-forward)
-			 ("S" cool-moves/sentence-backward)
+             ("s" cool-moves/sentence-forward)
+             ("S" cool-moves/sentence-backward)
 
-			 ("x" cool-moves/sexp-forward)
-			 ("<right>" cool-moves/sexp-forward)
-			 ("X" cool-moves/sexp-backward)
-			 ("<left>" cool-moves/sexp-backward)
+             ("x" cool-moves/sexp-forward)
+             ("<right>" cool-moves/sexp-forward)
+             ("X" cool-moves/sexp-backward)
+             ("<left>" cool-moves/sexp-backward)
 
-			 ("z" undo-tree-undo)
-			 ("Z" undo-tree-redo)
-			 ("q" nil)))
+             ("z" undo-tree-undo)
+             ("Z" undo-tree-redo)
+             ("q" nil)))
 
 ;; gnus
 ;; bbdb, w3m installed for gnus, check the
@@ -3461,17 +3461,17 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; you can change the style in the box(no mark needed) to such as 126
 ;; using M-126 M-q, but only from the original to 126, not 126 to another again
 (add-hook 'emacs-lisp-mode-hook
-		  (lambda ()
-			(set (make-local-variable 'rebox-style-loop) '(21 25 111))
-			(rebox-mode 1)))
+          (lambda ()
+            (set (make-local-variable 'rebox-style-loop) '(21 25 111))
+            (rebox-mode 1)))
 (add-hook 'c-mode-hook
-		  (lambda ()
-			(set (make-local-variable 'rebox-style-loop) '(241 243 111))
-			(rebox-mode 1)))
+          (lambda ()
+            (set (make-local-variable 'rebox-style-loop) '(241 243 111))
+            (rebox-mode 1)))
 (add-hook 'c++-mode-hook
-		  (lambda ()
-			(set (make-local-variable 'rebox-style-loop) '(21 23 111))
-			(rebox-mode 1)))
+          (lambda ()
+            (set (make-local-variable 'rebox-style-loop) '(21 23 111))
+            (rebox-mode 1)))
 (unbind-key "<S-return>" rebox-mode-map)
 (unbind-key "M-w" rebox-mode-map)
 
@@ -3484,21 +3484,21 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
 ;; C-u C-w/M-w/C-x w to delete/copy/cut whole buffer without moving point
 (defun current-line-empty-p ()
   (save-excursion
-	(beginning-of-line)
-	(looking-at "[[:space:]]*$")))
+    (beginning-of-line)
+    (looking-at "[[:space:]]*$")))
 (defun delete-line-or-region-or-buffer ()
   "Delete current line, or text selection.
 When `universal-argument' is called first, delete whole buffer (respects `narrow-to-region')."
   (interactive)
   (if current-prefix-arg
-	  (delete-region (point-min) (point-max))
-	(progn
-	  (if (use-region-p)
-		  (delete-region (region-beginning) (region-end))
-		(delete-region (line-beginning-position) (line-end-position)))
-	  ;; delete the extra empty line
-	  (when (current-line-empty-p) (delete-blank-lines))
-	  (when (not (current-line-empty-p)) (indent-for-tab-command)))))
+      (delete-region (point-min) (point-max))
+    (progn
+      (if (use-region-p)
+          (delete-region (region-beginning) (region-end))
+        (delete-region (line-beginning-position) (line-end-position)))
+      ;; delete the extra empty line
+      (when (current-line-empty-p) (delete-blank-lines))
+      (when (not (current-line-empty-p)) (indent-for-tab-command)))))
 (defun copy-line-or-region-or-buffer ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
@@ -3507,37 +3507,37 @@ URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
 Version 2016-06-18"
   (interactive)
   (let (-p1 -p2)
-	(if current-prefix-arg
-		(setq -p1 (point-min) -p2 (point-max))
-	  (if (use-region-p)
-		  (setq -p1 (region-beginning) -p2 (region-end))
-		;; (setq -p1 (line-beginning-position) -p2 (line-end-position))))
-		;; use non-white position
-		;; -p1 is the position of beginning of line of non-whitespace
-		;; -p2 is the position of end of line of non-whitespace
-		(setq -p1 (save-excursion (back-to-indentation) (point))
-			  -p2 (save-excursion
-					(end-of-line)
-					(skip-syntax-backward "-")
-					(point)))))
-	(if (eq last-command this-command)
-		(progn
-		  (progn										   ; hack. exit if there's no more next line
-			(end-of-line)
-			(forward-char)
-			(backward-char))
-		  ;; (push-mark (point) "NOMSG" "ACTIVATE")
-		  (kill-append "\n" nil)
-		  (kill-append (buffer-substring-no-properties (line-beginning-position) (line-end-position)) nil)
-		  (message "Line copy appended"))
-	  (progn
-		(kill-ring-save -p1 -p2)
-		(if current-prefix-arg
-			(message "Buffer text copied")
-		  (message "Text copied"))))
-	;; (end-of-line)
-	;; (forward-char)
-	))
+    (if current-prefix-arg
+        (setq -p1 (point-min) -p2 (point-max))
+      (if (use-region-p)
+          (setq -p1 (region-beginning) -p2 (region-end))
+        ;; (setq -p1 (line-beginning-position) -p2 (line-end-position))))
+        ;; use non-white position
+        ;; -p1 is the position of beginning of line of non-whitespace
+        ;; -p2 is the position of end of line of non-whitespace
+        (setq -p1 (save-excursion (back-to-indentation) (point))
+              -p2 (save-excursion
+                    (end-of-line)
+                    (skip-syntax-backward "-")
+                    (point)))))
+    (if (eq last-command this-command)
+        (progn
+          (progn										   ; hack. exit if there's no more next line
+            (end-of-line)
+            (forward-char)
+            (backward-char))
+          ;; (push-mark (point) "NOMSG" "ACTIVATE")
+          (kill-append "\n" nil)
+          (kill-append (buffer-substring-no-properties (line-beginning-position) (line-end-position)) nil)
+          (message "Line copy appended"))
+      (progn
+        (kill-ring-save -p1 -p2)
+        (if current-prefix-arg
+            (message "Buffer text copied")
+          (message "Text copied"))))
+    ;; (end-of-line)
+    ;; (forward-char)
+    ))
 (defun cut-line-or-region-or-buffer ()
   "Cut current line, or text selection.
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
@@ -3545,22 +3545,22 @@ URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
 Version 2015-06-10"
   (interactive)
   (if current-prefix-arg
-	  (progn ; not using kill-region because we don't want to include previous kill
-		(kill-new (buffer-string))
-		(delete-region (point-min) (point-max)))
-	(progn (if (use-region-p)
-			   (kill-region (region-beginning) (region-end) t)
-			 ;; (kill-region (line-beginning-position) (line-end-position))
-			 ;; use non-white position
-			 (kill-region
-			  (save-excursion (back-to-indentation) (point))
-			  (save-excursion
-				(end-of-line)
-				(skip-syntax-backward "-")
-				(point))))
-		   ;; delete the extra empty line
-		   (when (current-line-empty-p) (delete-blank-lines))
-		   (when (not (current-line-empty-p)) (indent-for-tab-command)))))
+      (progn ; not using kill-region because we don't want to include previous kill
+        (kill-new (buffer-string))
+        (delete-region (point-min) (point-max)))
+    (progn (if (use-region-p)
+               (kill-region (region-beginning) (region-end) t)
+             ;; (kill-region (line-beginning-position) (line-end-position))
+             ;; use non-white position
+             (kill-region
+              (save-excursion (back-to-indentation) (point))
+              (save-excursion
+                (end-of-line)
+                (skip-syntax-backward "-")
+                (point))))
+           ;; delete the extra empty line
+           (when (current-line-empty-p) (delete-blank-lines))
+           (when (not (current-line-empty-p)) (indent-for-tab-command)))))
 (bind-keys*
  ("C-w" . delete-line-or-region-or-buffer)
  ("M-w" . copy-line-or-region-or-buffer) ; replace it with easy-kill
@@ -3588,17 +3588,17 @@ Version 2015-06-10"
 (which-key-setup-side-window-bottom)
 ;; C-h to cycle the which-key pages
 (setq which-key-use-C-h-for-paging nil
-	  which-key-special-keys nil
-	  which-key-sort-order 'which-key-description-order
-	  which-key-show-remaining-keys t
-	  which-key-max-description-length 35)
+      which-key-special-keys nil
+      which-key-sort-order 'which-key-description-order
+      which-key-show-remaining-keys t
+      which-key-max-description-length 35)
 (setq which-key-highlighted-command-list
-	  '("helm\\|toggle\\|projectile\\|describe"			;; default link
-		("\\(^cscope\\)\\|\\(^ggtags\\)" . warning)			; orange
-		("register" . success)								; green
-		("rectangle" . error)								; red
-		("help\\|emacs\\|bookmarks" . highlight)			; gray and bg
-		))
+      '("helm\\|toggle\\|projectile\\|describe"			;; default link
+        ("\\(^cscope\\)\\|\\(^ggtags\\)" . warning)			; orange
+        ("register" . success)								; green
+        ("rectangle" . error)								; red
+        ("help\\|emacs\\|bookmarks" . highlight)			; gray and bg
+        ))
 
 ;; noflet, iedit, ace-window, hydra required by lispy
 (bind-key* "C-x q" 'ace-window)
@@ -3608,20 +3608,20 @@ Version 2015-06-10"
 (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (with-eval-after-load "lispy"
   (bind-keys :map lispy-mode-map
-			 ("RET" . advanced-return)
-			 ("M-RET" . Meta-return)))
+             ("RET" . advanced-return)
+             ("M-RET" . Meta-return)))
 (defadvice lispy-kill (around lispy-kill-advice activate)
   "In lispy code, disable lispy C-k in comments, in comments, C-k will be self defined`delete-line-to-end`"
   (if (lispy--in-comment-p)
-	  (delete-line-to-end (prefix-numeric-value current-prefix-arg))
-	(delete-line-to-end 1)))
+      (delete-line-to-end (prefix-numeric-value current-prefix-arg))
+    (delete-line-to-end 1)))
 
 ;; minibuffer
 (dolist (mode '(emacs-lisp-mode-hook ielm-mode-hook))
   (add-hook mode
-			'(lambda ()
-			   (eldoc-mode)
-			   (lispy-mode))))
+            '(lambda ()
+               (eldoc-mode)
+               (lispy-mode))))
 
 ;; omni-scratch
 (bind-key* "C-x B" 'omni-scratch-new-scratch-major-buffer)
@@ -3676,11 +3676,11 @@ Version 2015-06-10"
   (newline-and-indent))
 (with-eval-after-load "smartparens"
   (bind-keys :map smartparens-mode-map
-			 ("M-<backspace>" . delete-word-backward)
-			 ("C-M-e" . nil)
-			 ("C-M-a" . nil)
-			 ;; C-S-a redefined to beginning-of-visual-line
-			 ("C-S-a" . nil)))
+             ("M-<backspace>" . delete-word-backward)
+             ("C-M-e" . nil)
+             ("C-M-a" . nil)
+             ;; C-S-a redefined to beginning-of-visual-line
+             ("C-S-a" . nil)))
 
 ;; deft
 (setq deft-directory "~/Org")
@@ -3774,9 +3774,9 @@ Version 2015-06-10"
 
 ;; outline, C-c @ prefix
 (add-hook 'outline-minor-mode-hook
-		  (lambda ()
-			(require 'outline-magic)
-			(bind-keys :map outline-minor-mode-map ("<C-tab>" . outline-cycle))))
+          (lambda ()
+            (require 'outline-magic)
+            (bind-keys :map outline-minor-mode-map ("<C-tab>" . outline-cycle))))
 (add-hook 'LaTeX-mode-hook 'outline-minor-mode)
 
 ;; esup -- analyze the startup time of ~/.emacs
@@ -3805,7 +3805,7 @@ Version 2015-06-10"
 ;; vdiff
 (require 'vdiff)
 (bind-keys :map vdiff-mode-map
-		   ("C-c" . vdiff-mode-prefix-map))
+           ("C-c" . vdiff-mode-prefix-map))
 
 ;; plantuml-mode for plantuml http://plantuml.com
 ;; current version: 1.2017.14
@@ -3867,9 +3867,9 @@ Version 2015-06-10"
 ;; call a function with prefix argument by default
 (define-key plantuml-mode-map (kbd "C-c C-c")
   (lambda () (interactive)
-	(setq current-prefix-arg '(4))		; C-u
-	(call-interactively 'plantuml-preview)
-	))
+    (setq current-prefix-arg '(4))		; C-u
+    (call-interactively 'plantuml-preview)
+    ))
 ;; (bind-keys :map plantuml-mode-hook
 ;;		   ("C-c C-v" . plantuml-preview-region)
 ;;		   ;; ("C-c C-c" . (lambda () (interactive)
@@ -3899,44 +3899,44 @@ Version 2015-06-10"
 ;; C-h v minor-mode-alist to get the exact mode names
 (defvar mode-line-cleaner-alist
   '(
-	(helm-mode . "")
-	(eldoc-mode . "")
-	(undo-tree-mode . " UT")
-	(yas-minor-mode . "")
-	(company-mode . "")
-	(highlight-parentheses-mode . "")
-	(cwarn-mode . "")
-	(flyspell-mode . " Fs")
-	(abbrev-mode . "")
-	(drag-stuff-mode . "")
-	(ggtags-mode . " Gg")
-	(helm-gtags-mode . " Hg")
-	(auto-fill-function . "") ;; not auto-fill-mode
-	(rebox-mode . "")
-	(indent-guide-mode . "")
-	(whole-line-or-region-mode . "")
-	(whitespace-mode . "")
-	(subword-mode . "")
-	(smooth-scroll-mode . "")
-	(org-indent-mode . "")
-	(color-identifiers-mode . "")
-	(bbyac-mode . "")
-	(magit-auto-revert-mode . "")
-	(highlight-changes-mode . "")
-	(rainbow-mode . "")
-	(buffer-face-mode . "")
-	(visual-line-mode . "")
-	(reftex-mode . "")
-	(org-table-sticky-header-mode . "")
-	(org-numbers-overlay-mode . "")
-	(highlight-indent-guides-mode . "")
-	(electric-operator-mode . "")
-	;; Major modes
-	(lisp-interaction-mode . "λ")
-	(emacs-lisp-mode . "El")
-	(hi-lock-mode . "")
-	(python-mode . "Py")
-	(nxhtml-mode . ""))
+    (helm-mode . "")
+    (eldoc-mode . "")
+    (undo-tree-mode . " UT")
+    (yas-minor-mode . "")
+    (company-mode . "")
+    (highlight-parentheses-mode . "")
+    (cwarn-mode . "")
+    (flyspell-mode . " Fs")
+    (abbrev-mode . "")
+    (drag-stuff-mode . "")
+    (ggtags-mode . " Gg")
+    (helm-gtags-mode . " Hg")
+    (auto-fill-function . "") ;; not auto-fill-mode
+    (rebox-mode . "")
+    (indent-guide-mode . "")
+    (whole-line-or-region-mode . "")
+    (whitespace-mode . "")
+    (subword-mode . "")
+    (smooth-scroll-mode . "")
+    (org-indent-mode . "")
+    (color-identifiers-mode . "")
+    (bbyac-mode . "")
+    (magit-auto-revert-mode . "")
+    (highlight-changes-mode . "")
+    (rainbow-mode . "")
+    (buffer-face-mode . "")
+    (visual-line-mode . "")
+    (reftex-mode . "")
+    (org-table-sticky-header-mode . "")
+    (org-numbers-overlay-mode . "")
+    (highlight-indent-guides-mode . "")
+    (electric-operator-mode . "")
+    ;; Major modes
+    (lisp-interaction-mode . "λ")
+    (emacs-lisp-mode . "El")
+    (hi-lock-mode . "")
+    (python-mode . "Py")
+    (nxhtml-mode . ""))
   "Alist for `clean-mode-line'.
 When you add a new element to the alist, keep in mind that you
 must pass the correct minor/major mode symbol and a string you
@@ -3944,14 +3944,14 @@ want to use in the modeline *in lieu of* the original.")
 (defun clean-mode-line ()
   (interactive)
   (loop for cleaner in mode-line-cleaner-alist
-		do (let* ((mode (car cleaner))
-				  (mode-str (cdr cleaner))
-				  (old-mode-str (cdr (assq mode minor-mode-alist))))
-			 (when old-mode-str
-			   (setcar old-mode-str mode-str))
-			 ;; major mode
-			 (when (eq mode major-mode)
-			   (setq mode-name mode-str)))))
+        do (let* ((mode (car cleaner))
+                  (mode-str (cdr cleaner))
+                  (old-mode-str (cdr (assq mode minor-mode-alist))))
+             (when old-mode-str
+               (setcar old-mode-str mode-str))
+             ;; major mode
+             (when (eq mode major-mode)
+               (setq mode-name mode-str)))))
 (add-hook 'after-change-major-mode-hook 'clean-mode-line)
 
 (provide 'init)
