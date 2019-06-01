@@ -3405,16 +3405,14 @@ On error (read-only), quit without selecting(showing 'Text is read only' in mini
              ("M-<left>" . cool-moves/sexp-backward)
              ("M-<right>" . cool-moves/sexp-forward)))
 (bind-key* "C-c t"
-           (defhydra hydra-text-motions (:color amaranth :hint nil :foreign-keys nil)
+           (defhydra hydra-cool-moves (:color amaranth :hint nil :foreign-keys nil)
              "
- _<down>_: line ↓     _<up>_: line ↑
- _l_: line ↓             _L_: line ↑
+ _<down>_/_l_: line ↓     _<up>_/_L_: line ↑
  _p_: par  ↓             _P_: par  ↑
  _w_: word →             _W_: word ←
  _c_: char →             _C_: char ←
  _s_: sentence →         _S_: sentence ←
- _<right>_: sexp →   <left>_: sexp ←
- _x_: sexp →             _X_: sexp ←
+ _<right>_/_x_: sexp →   _<left>_/_X_: sexp ←
  _z_: undo               _Z_: redo
 "
              ("<escape>" nil)
