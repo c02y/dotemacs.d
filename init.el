@@ -1182,28 +1182,21 @@ Emacs by default won't treat the TAB as indent"
 ;;              (cleanup-buffer)
 ;;              (indent-buffer-safe)))
 ;; use prefix+M-x un/tabify for the entire buffer without clean-and-indent
-                                        ; only tabify the leading whitespace, this will avoid the changes in c/macro and comments
+;; tabify only the leading whitespace, this will avoid the changes in c/macro and comments
 (setq tabify-regexp "^\t* [ \t]+")
-(defun tabify-it ()
-  "tabify the region if marked a region, or else, tabify the whole buffer, then indent-buffer-safe"
+(defun tabify-or-untabify ()
+  "tabify/untabify(according to the value of indent-tabs-mode) the region if marked a region,
+ or else, tabify the whole buffer, then indent-buffer-safe"
   (interactive)
   (if (use-region-p)
       (setq $p1 (region-beginning)
             $p2 (region-end))
     (setq $p1 (point-min)
           $p2 (point-max)))
-  (tabify $p1 $p2)
-  (indent-buffer-safe))
-(defun untabify-it ()
-  "untabify the region if marked a region, or else, untabify the whole buffer, then indent-buffer-safe"
-  (interactive)
-  (if (use-region-p)
-      (setq $p1 (region-beginning)
-            $p2 (region-end))
-    (setq $p1 (point-min)
-          $p2 (point-max)))
-  (untabify $p1 $p2)
-  (indent-buffer-safe))
+  (if indent-tabs-mode
+      (tabify $p1 $p2)
+    (untabify $p1 $p2))
+  (indent-region $p1 $p2))
 
 (defun rename-this-buffer-and-file ()
   "Renames current buffer and file it is visiting."
