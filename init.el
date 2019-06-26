@@ -2963,7 +2963,10 @@ background of code to whatever theme I'm using's background"
 ;; org-sticky-header and org-table-sticky-header
 (add-hook 'org-mode-hook
           (lambda ()
-            (org-sticky-header-mode)
+            ;; FIXME: `org-sticky-header-mode' in org-mode-hook has a bug that
+            ;; the last line of hint will not be displayed for defhydra
+            ;; https://github.com/abo-abo/hydra/issues/331
+            ;; (org-sticky-header-mode)
             (org-table-sticky-header-mode)
             (org-num-mode)))
 
