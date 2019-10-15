@@ -3787,8 +3787,8 @@ Version 2015-06-10"
 (setq highlight-indent-guides-auto-enabled nil)
 (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
 (setq highlight-indent-guides-method 'character)
-;; Indent character samples: | ┆ ┊ ⁞
-(setq highlight-indent-guides-character ?\┆)
+;; Indent character samples: | ┆ ┊ ⁞ ⸽
+(setq highlight-indent-guides-character ?\⸽)
 
 ;; dumb-jump
 (bind-keys*
